@@ -34,6 +34,7 @@
 - `volumes`：虚拟磁盘文件（如 Dev Drive 的 `.vhdx`）
 - `backups`：轻量备份与配置导出
 - `legacy`：仅限 NTFS 的历史兼容区
+- `secrets`：本机敏感凭据保管区，如 SSH 私钥；只保存本机文件，不进入 Git 仓库
 
 ### V:\
 
@@ -210,6 +211,25 @@ STK 导出结果
 
 凡是依赖 NTFS 行为、老 32 位编译链、古早 Qt 工程、旧脚本链路的内容，都放到 C:\Dev\legacy。
 
+### 3.x 本机敏感凭据
+
+凡是本机使用的高敏感、低变更、需要严格权限控制的凭据，统一放到：
+
+```text
+C:\Dev\secrets
+```
+
+SSH 私钥推荐放到：
+
+C:\Dev\secrets\ssh
+
+说明：
+
+私钥实体不放入 OneDrive、Git 仓库或公共同步目录。
+%USERPROFILE%\.ssh\config 只作为 OpenSSH 配置入口，通过 IdentityFile 指向 C:\Dev\secrets\ssh。
+OneDrive 只允许保存 SSH 使用说明、公钥或加密后的私钥备份。
+Git 仓库只保存规则、脚本和模板，不保存真实密钥。
+
 ## 4. 典型归类示例
 
 ### Flutter
@@ -245,13 +265,14 @@ Codex 项目级配置模板：C:\Dev\mcp\configs\codex\templates
 某项目专用场景：V:\src\<project>\assets\stk
 导出结果：V:\datasets\stk-exports
 
-## 5. 六条核心规则
+## 5. 七条核心规则
 工具本体进 C:\Dev\toolchains。
 MCP 服务端、Toolkit 和配置模板进 C:\Dev\mcp。
 共享资产进 C:\Dev\resources。
 活跃工程进 V:\src。
 构建输出、缓存、数据和临时文件进 V:\build / V:\cache / V:\datasets / V:\scratch。
 历史兼容内容进 C:\Dev\legacy。
+本机敏感凭据进 `C:\Dev\secrets`，其中 SSH 私钥进 `C:\Dev\secrets\ssh`。
 
 ## 6. 最终目录结构
 C:\Dev\
@@ -269,6 +290,8 @@ C:\Dev\
     docs\
     logs\
   resources\
+  secrets\
+    ssh\
   scripts\
   docs\
   volumes\

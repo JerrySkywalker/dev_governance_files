@@ -52,6 +52,10 @@ $relativeDirs = @(
     'legacy\src',
     'legacy\build',
     'legacy\resources'
+
+    # 本机敏感凭据保管区：只创建目录，真实密钥不得进入 Git 仓库
+    'secrets',
+    'secrets\ssh'
 )
 
 function Join-DevPath {
@@ -86,3 +90,4 @@ Write-Host "[NOTE] Dev Drive 的 VHDX 文件建议放到：C:\Dev\volumes\dev-ma
 Write-Host "[NOTE] MATLAB MCP Core Server 建议放到：C:\Dev\mcp\servers\matlab-mcp-core-server\bin\matlab-mcp-core-server.exe"
 Write-Host "[NOTE] MATLAB Agentic Toolkit 建议放到：C:\Dev\mcp\toolkits\matlab-agentic-toolkit"
 Write-Host "[NOTE] Codex 的 MATLAB MCP 不建议写入全局 ~/.codex/config.toml；建议在具体项目的 .codex\config.toml 中启用。"
+Write-Host "[NOTE] SSH 私钥建议放到：C:\Dev\secrets\ssh，并通过 %USERPROFILE%\.ssh\config 引用。"
