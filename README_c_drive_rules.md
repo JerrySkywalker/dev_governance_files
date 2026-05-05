@@ -135,6 +135,33 @@ C:\Dev\volumes\dev-main.vhdx
 依赖旧编译器的工程
 必须使用 NTFS 的旧脚本链路
 
+### `C:\Dev\secrets`
+
+本机敏感凭据保管区。
+
+适合放：
+
+- SSH 私钥
+- 本机使用但不应进入云同步或 Git 仓库的轻量凭据
+
+推荐结构：
+
+```text
+C:\Dev\secrets\
+  ssh\
+    beijing.pem
+```
+
+要求：
+
+不放入 OneDrive。
+不放入 Git 仓库。
+使用严格 NTFS ACL。
+OpenSSH 通过 %USERPROFILE%\.ssh\config 引用此处私钥。
+
+例外：高敏感、低变更、需要稳定路径和严格 ACL 的本机凭据，应放入 `C:\Dev\secrets`。
+
+
 ## 3. MCP 配置规则
 
 MCP 服务端可以统一放在 C:\Dev\mcp，但 MATLAB MCP 不建议写入 Codex 全局配置：

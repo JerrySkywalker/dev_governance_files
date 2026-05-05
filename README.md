@@ -25,6 +25,11 @@ dev_governance_files/
 			install_matlab_mcp_machine.ps1
 			setup_project_matlab_mcp.ps1
 			README_project_setup.md
+	secrets/
+		ssh/
+			setup_ssh_key_store.ps1
+			ssh_config.example
+			README_ssh_key_store.md
 ```
 
 ## 文档导读
@@ -33,6 +38,7 @@ dev_governance_files/
 2. `README_c_drive_rules.md`：`C:\Dev` 的目录职责与反模式。
 3. `README_v_drive_rules.md`：`V:\` 的目录职责与反模式。
 4. `mcp/matlab/README_project_setup.md`：项目级 MATLAB MCP 配置说明。
+5. `secrets/ssh/README_ssh_key_store.md`：SSH 私钥保管区、权限治理与 OpenSSH 配置说明。
 
 ## 一键初始化（目录治理）
 
@@ -47,6 +53,28 @@ pwsh -File .\create_v_devdrive_structure.ps1
 
 - 两个脚本用于创建建议目录结构。
 - 重复执行应保持幂等，不应破坏已有文件。
+
+## SSH 私钥保管区初始化
+
+本仓库只保存 SSH 密钥治理规则、脚本和模板，不保存任何真实私钥。
+
+初始化本机 SSH 私钥保管区：
+
+```powershell
+pwsh -File .\secrets\ssh\setup_ssh_key_store.ps1
+```
+
+迁移已有私钥：
+
+pwsh -File .\secrets\ssh\setup_ssh_key_store.ps1 -SourceKey "C:\Dev\ssh_key\beijing.pem"
+
+推荐实际私钥位置：
+
+C:\Dev\secrets\ssh
+
+推荐 OpenSSH 配置入口：
+
+%USERPROFILE%\.ssh\config
 
 ## MATLAB MCP 使用流程
 
@@ -98,6 +126,8 @@ pwsh -File .\mcp\matlab\setup_project_matlab_mcp.ps1 -ProjectRoot "V:\src\your-p
 - 活跃工程放 `V:\src`。
 - 构建、缓存、数据、临时内容放 `V:\build` / `V:\cache` / `V:\datasets` / `V:\scratch`。
 - MATLAB MCP 推荐项目级启用，不建议常驻全局 `~/.codex/config.toml`。
+- SSH 明文私钥放 `C:\Dev\secrets\ssh`，并设置严格 NTFS ACL。
+- OneDrive 和 Git 仓库不得保存明文私钥，只可保存说明、公钥或加密备份。
 
 ## 典型工作流
 
