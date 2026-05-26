@@ -8,6 +8,7 @@ Windows 开发机目录治理与 MATLAB MCP 集成仓库。
 - 将目录治理规则文档化、脚本化、版本化。
 - 固化 `C:\Dev` 与 `V:\` 的分层约定，降低长期维护成本。
 - 提供 MATLAB MCP 的整机安装与项目级启用脚本，避免全局配置污染。
+- 支持 C-only Python / Conda 模式，避免 Python 工具链依赖可替换 VHD。
 
 ## 仓库结构
 
@@ -19,6 +20,7 @@ dev_governance_files/
 	README_c_drive_rules.md
 	README_v_drive_rules.md
 	create_c_dev_structure.ps1
+	create_c_python_conda_structure.ps1
 	create_v_devdrive_structure.ps1
 	mcp/
 		matlab/
@@ -46,13 +48,28 @@ dev_governance_files/
 
 ```powershell
 pwsh -File .\create_c_dev_structure.ps1
+pwsh -File .\create_c_python_conda_structure.ps1
 pwsh -File .\create_v_devdrive_structure.ps1
 ```
 
 说明：
 
-- 两个脚本用于创建建议目录结构。
-- 重复执行应保持幂等，不应破坏已有文件。
+- `create_c_dev_structure.ps1` 创建 `C:\Dev` 的通用治理目录结构。
+- `create_c_python_conda_structure.ps1` 创建 C-only Python / Conda 专用目录：`C:\Dev\toolchains\miniconda3`、`C:\Dev\envs\conda`、`C:\Dev\cache\pip`、`C:\Dev\cache\conda-pkgs`。
+- `create_v_devdrive_structure.ps1` 默认不创建 `V:\cache\pip` 和 `V:\cache\conda-pkgs`；如确需 Dev Drive Python 缓存，可显式加 `-IncludePythonCaches`。
+- 脚本重复执行应保持幂等，不应破坏已有文件。
+
+## C-only Python / Conda 推荐布局
+
+```text
+C:\Dev\toolchains\miniconda3      # Miniconda 本体
+C:\Dev\envs\conda                # conda 环境
+C:\Dev\cache\conda-pkgs          # conda 包缓存
+C:\Dev\cache\pip                 # pip 缓存
+C:\Dev\backups\conda             # 迁移备份
+```
+
+该模式适用于 `V:\` 是可替换 VHD，且不希望 Python 工具链依赖 Dev Drive 缓存的机器。
 
 ## SSH 私钥保管区初始化
 
@@ -66,15 +83,21 @@ pwsh -File .\secrets\ssh\setup_ssh_key_store.ps1
 
 迁移已有私钥：
 
-pwsh -File .\secrets\ssh\setup_ssh_key_store.ps1 -SourceKey "C:\Dev\ssh_key\beijing.pem"
+```powershell
+pwsh -File .\secrets\ssh\setup_ssh_key_store.ps1 -SourceKey "<your-local-key-path>"
+```
 
 推荐实际私钥位置：
 
+```text
 C:\Dev\secrets\ssh
+```
 
 推荐 OpenSSH 配置入口：
 
+```text
 %USERPROFILE%\.ssh\config
+```
 
 ## MATLAB MCP 使用流程
 
@@ -122,11 +145,12 @@ pwsh -File .\mcp\matlab\setup_project_matlab_mcp.ps1 -ProjectRoot "V:\src\your-p
 ## 核心治理原则
 
 - 工具链本体放 `C:\Dev\toolchains`。
+- C-only Python / Conda 模式下，envs 和语言工具缓存放 `C:\Dev\envs` 与 `C:\Dev\cache`。
 - MCP 服务端本体与模板放 `C:\Dev\mcp`。
 - 活跃工程放 `V:\src`。
-- 构建、缓存、数据、临时内容放 `V:\build` / `V:\cache` / `V:\datasets` / `V:\scratch`。
+- 构建、默认缓存、数据、临时内容放 `V:\build` / `V:\cache` / `V:\datasets` / `V:\scratch`。
 - MATLAB MCP 推荐项目级启用，不建议常驻全局 `~/.codex/config.toml`。
-- SSH 明文私钥放 `C:\Dev\secrets\ssh`，并设置严格 NTFS ACL。
+- 本机敏感凭据放 `C:\Dev\secrets`，并设置严格 NTFS ACL。
 - OneDrive 和 Git 仓库不得保存明文私钥，只可保存说明、公钥或加密备份。
 
 ## 典型工作流
@@ -149,6 +173,7 @@ This section is for coding agents and automation tools.
 ### Consistency Constraints
 
 - Keep terminology stable: `C:\Dev` = governance/stable layer; `V:\` = working/high-IO layer.
+- Keep C-only Python / Conda as an explicit mode, not a silent replacement of all cache rules.
 - Do not introduce conflicting directory placement rules between markdown files.
 - If semantics are changed in one rule file, update related files in the same commit.
 
