@@ -6,6 +6,8 @@ WG_CLIENTS="/opt/server-ops/wireguard/clients.tsv"
 STATUS_CENTER="/opt/server-ops/bin/status-center.py"
 DOCS_DIR="/opt/server-ops/docs"
 EDGE_DOCS_DIR="/opt/server-ops/edge-hermes/docs"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 
 usage() {
   cat <<'USAGE'
@@ -202,7 +204,11 @@ render_windows_bootstrap() {
     exit 2
   fi
 
-  /opt/server-ops/bin/render-windows-bootstrap.py "$device"
+  if [[ -x "$SCRIPT_DIR/render-windows-bootstrap.py" || -f "$SCRIPT_DIR/render-windows-bootstrap.py" ]]; then
+    python3 "$SCRIPT_DIR/render-windows-bootstrap.py" "$device"
+  else
+    /opt/server-ops/bin/render-windows-bootstrap.py "$device"
+  fi
 }
 
 add_device() {
@@ -250,11 +256,18 @@ check_bootstrap_template() {
     exit 2
   fi
 
-  local file="/opt/server-ops/edge-hermes/generated/${device}-windows-bootstrap.ps1"
+  local generated_dir="$REPO_ROOT/server-ops/edge-hermes/generated"
+  local file="$generated_dir/${device}-windows-bootstrap.ps1"
   local fail=0
 
   echo "Rendering bootstrap template for: $device"
-  /opt/server-ops/bin/render-windows-bootstrap.py "$device"
+  mkdir -p "$generated_dir"
+  if [[ -x "$SCRIPT_DIR/render-windows-bootstrap.py" || -f "$SCRIPT_DIR/render-windows-bootstrap.py" ]]; then
+    python3 "$SCRIPT_DIR/render-windows-bootstrap.py" "$device" --output "$file"
+  else
+    /opt/server-ops/bin/render-windows-bootstrap.py "$device"
+    file="/opt/server-ops/edge-hermes/generated/${device}-windows-bootstrap.ps1"
+  fi
 
   if [[ ! -f "$file" ]]; then
     echo "[FAIL] generated file not found: $file"
@@ -288,16 +301,22 @@ check_bootstrap_template() {
     fi
   }
 
-  check_required 'Write-Step "Apply known-good Gateway and Watchdog logic"' "known-good override block"
-  check_required 'HERMES_GIT_BASH_PATH' "Git Bash path hardening"
-  check_required 'Start-Process -FilePath' "detached gateway Start-Process"
-  check_required '"gateway", "run", "--replace"' "gateway run --replace"
+  check_required 'HermesCmd' "adaptive Hermes command marker"
+  check_required 'HermesPython' "adaptive Hermes Python marker"
+  check_required 'RunnerPath' "runner path initialization"
+  check_required 'LauncherVbs' "launcher VBS path initialization"
+  check_required 'WatchdogPath' "watchdog path initialization"
+  check_required 'WatchdogVbs' "watchdog VBS path initialization"
+  check_required 'wscript.exe' "absolute wscript path"
+  check_required 'WindowsPowerShell\v1.0\powershell.exe' "absolute Windows PowerShell path"
+  check_required '--noproxy' "proxy-bypassing health checks"
   check_required 'path_precedence = [ordered]@{' "file policy path_precedence"
-  check_required 'aiohttp' "aiohttp dependency check"
+  check_required '-Audit' "Audit mode"
+  check_required '-Plan' "Plan mode"
+  check_required '-Apply' "Apply mode"
+  check_required '-Repair' "Repair mode"
 
-  check_absent 'Write-Step "Create hidden gateway runner"' "legacy gateway runner block"
-  check_absent 'Write-Step "Create watchdog"' "legacy watchdog block"
-  check_absent '$_.CommandLine -like "*hermes-edge*"' "unsafe process match pattern"
+  check_absent 'C:\Dev\tools\bin\python.exe' "legacy fake global Python path"
 
   if grep -Eq '[A-Fa-f0-9]{64}' "$file"; then
     echo "[FAIL] possible embedded 64-character hex secret found"
