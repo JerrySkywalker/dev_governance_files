@@ -1,50 +1,101 @@
 # dev_governance_files
 
-Windows 开发机目录治理与 MATLAB MCP 集成仓库。  
-本仓库用于统一管理 `C:\Dev`（治理/稳定层）与 `V:\`（工作/高 IO 层）的职责边界，并提供可执行脚本完成目录初始化和 MATLAB MCP 落地。
+Personal development governance files for Jerry's local/cloud engineering workflow.
 
-## 项目目标
+## Purpose
 
-- 将目录治理规则文档化、脚本化、版本化。
-- 固化 `C:\Dev` 与 `V:\` 的分层约定，降低长期维护成本。
-- 提供 MATLAB MCP 的整机安装与项目级启用脚本，避免全局配置污染。
-- 支持 C-only Python / Conda 模式，避免 Python 工具链依赖可替换 VHD。
+This repository stores versioned governance scripts, templates, runbooks, and tests that should not live directly inside one application repository such as SkyBridge.
 
-## 仓库结构
+It currently covers:
+
+- Windows development directory governance for `C:\Dev` and `V:\`.
+- C-only Python / Conda layout scripts.
+- SSH key storage guidance and setup helpers.
+- MATLAB MCP machine/project setup helpers.
+- Edge Hermes server-ops generator, templates, tests, and docs.
+
+## Current Contents
 
 ```text
-dev_governance_files/
-	README.md
-	LICENSE
-	README_directory_rules_full.md
-	README_c_drive_rules.md
-	README_v_drive_rules.md
-	create_c_dev_structure.ps1
-	create_c_python_conda_structure.ps1
-	create_v_devdrive_structure.ps1
-	mcp/
-		matlab/
-			install_matlab_mcp_machine.ps1
-			setup_project_matlab_mcp.ps1
-			README_project_setup.md
-	secrets/
-		ssh/
-			setup_ssh_key_store.ps1
-			ssh_config.example
-			README_ssh_key_store.md
+README.md
+LICENSE
+README_directory_rules_full.md
+README_c_drive_rules.md
+README_v_drive_rules.md
+create_c_dev_structure.ps1
+create_c_python_conda_structure.ps1
+create_v_devdrive_structure.ps1
+docs/
+  EDGE_HERMES_BOOTSTRAP_GENERATOR.md
+mcp/
+  README.md
+  matlab/
+    install_matlab_mcp_machine.ps1
+    setup_project_matlab_mcp.ps1
+    README_machine_install.md
+    README_project_setup.md
+scripts/
+  ci/
+    test-edge-bootstrap-generator.ps1
+secrets/
+  ssh/
+    setup_ssh_key_store.ps1
+    ssh_config.example
+    README_ssh_key_store.md
+server-ops/
+  bin/
+    hermes-edge-admin.sh
+    render-windows-bootstrap.py
+  edge-hermes/
+    templates/
+      windows-bootstrap.ps1.tmpl
 ```
 
-## 文档导读
+## Current Status
 
-1. `README_directory_rules_full.md`：总规则与完整归类逻辑（优先阅读）。
-2. `README_c_drive_rules.md`：`C:\Dev` 的目录职责与反模式。
-3. `README_v_drive_rules.md`：`V:\` 的目录职责与反模式。
-4. `mcp/matlab/README_project_setup.md`：项目级 MATLAB MCP 配置说明。
-5. `secrets/ssh/README_ssh_key_store.md`：SSH 私钥保管区、权限治理与 OpenSSH 配置说明。
+The adaptive Windows Edge Hermes bootstrap generator is implemented and tested in dry-run/static mode.
 
-## 一键初始化（目录治理）
+Validated:
 
-在仓库根目录执行：
+- Generated bootstrap parses as PowerShell.
+- Generated bootstrap supports `-Audit`, `-Plan`, `-Apply`, and `-Repair`.
+- `-Audit` and `-Plan` dry-run paths are tested with fake Hermes runtime files.
+- The old `C:\Dev\tools\bin\python.exe` assumption is removed.
+- Health checks use proxy bypass patterns to avoid WireGuard/private-IP proxy interception.
+- No production deployment has been performed from this repository.
+
+The directory governance, SSH key store, and MATLAB MCP scripts remain local workstation governance helpers. They should stay idempotent and conservative.
+
+## Safe Development Workflow
+
+Use this repository for generator, template, documentation, runbook, and test work.
+
+Do not:
+
+- Run generated Edge bootstrap scripts with `-Apply` or `-Repair` during normal development.
+- Stop or restart Edge Hermes.
+- Modify Windows Scheduled Tasks.
+- Modify SkyBridge from this repository.
+- Modify production `/opt/server-ops` directly from local tests.
+- Push secrets, private keys, API keys, real `.env` files, WireGuard keys, or production `agents.json`.
+
+Preferred workflow:
+
+1. Make small documentation, script, or template changes.
+2. Run targeted local tests.
+3. Inspect `git diff`.
+4. Commit focused changes.
+5. Open a PR for review.
+
+## Test Commands
+
+Edge bootstrap generator test:
+
+```powershell
+pwsh -File .\scripts\ci\test-edge-bootstrap-generator.ps1
+```
+
+Directory governance scripts are intended to be idempotent. Review each script before running it on a new machine:
 
 ```powershell
 pwsh -File .\create_c_dev_structure.ps1
@@ -52,142 +103,81 @@ pwsh -File .\create_c_python_conda_structure.ps1
 pwsh -File .\create_v_devdrive_structure.ps1
 ```
 
-说明：
-
-- `create_c_dev_structure.ps1` 创建 `C:\Dev` 的通用治理目录结构。
-- `create_c_python_conda_structure.ps1` 创建 C-only Python / Conda 专用目录：`C:\Dev\toolchains\miniconda3`、`C:\Dev\envs\conda`、`C:\Dev\cache\pip`、`C:\Dev\cache\conda-pkgs`。
-- `create_v_devdrive_structure.ps1` 默认不创建 `V:\cache\pip` 和 `V:\cache\conda-pkgs`；如确需 Dev Drive Python 缓存，可显式加 `-IncludePythonCaches`。
-- 脚本重复执行应保持幂等，不应破坏已有文件。
-
-## C-only Python / Conda 推荐布局
-
-```text
-C:\Dev\toolchains\miniconda3      # Miniconda 本体
-C:\Dev\envs\conda                # conda 环境
-C:\Dev\cache\conda-pkgs          # conda 包缓存
-C:\Dev\cache\pip                 # pip 缓存
-C:\Dev\backups\conda             # 迁移备份
-```
-
-该模式适用于 `V:\` 是可替换 VHD，且不希望 Python 工具链依赖 Dev Drive 缓存的机器。
-
-## SSH 私钥保管区初始化
-
-本仓库只保存 SSH 密钥治理规则、脚本和模板，不保存任何真实私钥。
-
-初始化本机 SSH 私钥保管区：
-
-```powershell
-pwsh -File .\secrets\ssh\setup_ssh_key_store.ps1
-```
-
-迁移已有私钥：
-
-```powershell
-pwsh -File .\secrets\ssh\setup_ssh_key_store.ps1 -SourceKey "<your-local-key-path>"
-```
-
-推荐实际私钥位置：
-
-```text
-C:\Dev\secrets\ssh
-```
-
-推荐 OpenSSH 配置入口：
-
-```text
-%USERPROFILE%\.ssh\config
-```
-
-## MATLAB MCP 使用流程
-
-### 步骤 1：整机安装 MATLAB MCP 服务
-
-执行：
+MATLAB MCP setup helpers:
 
 ```powershell
 pwsh -File .\mcp\matlab\install_matlab_mcp_machine.ps1
-```
-
-常见参数：
-
-```powershell
-pwsh -File .\mcp\matlab\install_matlab_mcp_machine.ps1 -MatlabRoot "C:\Program Files\MATLAB\R2025b"
-pwsh -File .\mcp\matlab\install_matlab_mcp_machine.ps1 -Force
-pwsh -File .\mcp\matlab\install_matlab_mcp_machine.ps1 -SkipToolkit
-```
-
-脚本作用：
-
-- 安装 MATLAB MCP Core Server 到 `C:\Dev\mcp\servers\matlab-mcp-core-server\bin`。
-- 可选克隆/更新 MATLAB Agentic Toolkit 到 `C:\Dev\mcp\toolkits\matlab-agentic-toolkit`。
-- 生成项目级模板 `C:\Dev\mcp\configs\codex\templates\matlab-project.config.toml`。
-
-### 步骤 2：在目标项目启用 MATLAB MCP
-
-在目标项目根目录运行：
-
-```powershell
-pwsh -File .\setup_project_matlab_mcp.ps1
-```
-
-或从本仓库直接指定项目路径：
-
-```powershell
 pwsh -File .\mcp\matlab\setup_project_matlab_mcp.ps1 -ProjectRoot "V:\src\your-project"
 ```
 
-脚本会生成：
+## Production Rollout Warning
 
-- `<project>\.codex\config.toml`
-- `<project>\docs\MATLAB_MCP_PROJECT.md`
+Merging this repository does not deploy anything to production.
 
-## 核心治理原则
+A future maintenance window is required before copying Edge Hermes generator files to:
 
-- 工具链本体放 `C:\Dev\toolchains`。
-- C-only Python / Conda 模式下，envs 和语言工具缓存放 `C:\Dev\envs` 与 `C:\Dev\cache`。
-- MCP 服务端本体与模板放 `C:\Dev\mcp`。
-- 活跃工程放 `V:\src`。
-- 构建、默认缓存、数据、临时内容放 `V:\build` / `V:\cache` / `V:\datasets` / `V:\scratch`。
-- MATLAB MCP 推荐项目级启用，不建议常驻全局 `~/.codex/config.toml`。
-- 本机敏感凭据放 `C:\Dev\secrets`，并设置严格 NTFS ACL。
-- OneDrive 和 Git 仓库不得保存明文私钥，只可保存说明、公钥或加密备份。
+```text
+/opt/server-ops
+```
 
-## 典型工作流
+Production rollout must include backup, render, audit, plan, and manual review before any apply/repair operation.
 
-1. 新机器初始化目录结构。
-2. 安装 MATLAB MCP 整机服务。
-3. 为具体项目生成项目级 `.codex/config.toml`。
-4. 在 Codex 中通过 `/mcp` 验证 `matlab` server 可见。
-5. 先跑只读检查，再进行小步改动与验证。
+Do not run generated bootstrap with `-Apply` or `-Repair` until SkyBridge development is not actively depending on Edge Hermes.
+
+## TODO
+
+### P0 - Next Maintenance-Window Tasks
+
+- [ ] Create a production rollout plan for copying the adaptive generator to `/opt/server-ops`.
+- [ ] Back up current `/opt/server-ops/bin/hermes-edge-admin.sh` before rollout.
+- [ ] Render a bootstrap on the cloud server using the new generator.
+- [ ] Review generated bootstrap locally before any execution.
+- [ ] Run only `-Audit` and `-Plan` first.
+- [ ] Do not run `-Apply` or `-Repair` until SkyBridge development is not actively depending on Edge Hermes.
+
+### P1 - Generator Improvements
+
+- [ ] Move device defaults out of Python constants into a versioned sample config.
+- [ ] Support multiple devices without editing code.
+- [ ] Add test cases for unknown devices and custom `--wireguard-ip`.
+- [ ] Add stronger secret scanning for generated files.
+- [ ] Add GitHub Actions CI if useful.
+
+### P2 - Edge Hermes Operations
+
+- [ ] Design a safe `jhermes-update` real maintenance-window test.
+- [ ] Document how to restore from known-good Edge Hermes runner/VBS/task.
+- [ ] Decide whether watchdog should be enabled by default or kept optional.
+- [ ] Document proxy bypass rules for WireGuard/private-IP health checks.
+
+### P3 - SkyBridge Coordination
+
+- [ ] Keep this repository separate from `skybridge-agent-hub`.
+- [ ] Do not run Edge bootstrap production rollout during active SkyBridge debugging.
+- [ ] After SkyBridge current milestone ends, schedule Edge bootstrap production rollout.
+
+## Reference Docs
+
+- `README_directory_rules_full.md`: overall `C:\Dev` and `V:\` directory governance.
+- `README_c_drive_rules.md`: `C:\Dev` responsibilities and anti-patterns.
+- `README_v_drive_rules.md`: `V:\` responsibilities and anti-patterns.
+- `docs/EDGE_HERMES_BOOTSTRAP_GENERATOR.md`: adaptive Edge Hermes bootstrap generator workflow.
+- `mcp/matlab/README_machine_install.md`: machine-level MATLAB MCP install.
+- `mcp/matlab/README_project_setup.md`: project-level MATLAB MCP setup.
+- `secrets/ssh/README_ssh_key_store.md`: SSH private key storage and OpenSSH config guidance.
 
 ## Agent Notes
 
 This section is for coding agents and automation tools.
 
-### Intent
-
 - Keep this repository as a governance baseline and script toolkit.
 - Prefer precise updates over broad rewrites.
-
-### Consistency Constraints
-
-- Keep terminology stable: `C:\Dev` = governance/stable layer; `V:\` = working/high-IO layer.
+- Keep terminology stable: `C:\Dev` is the governance/stable layer; `V:\` is the working/high-IO layer.
 - Keep C-only Python / Conda as an explicit mode, not a silent replacement of all cache rules.
-- Do not introduce conflicting directory placement rules between markdown files.
-- If semantics are changed in one rule file, update related files in the same commit.
+- Preserve script idempotency and safe defaults.
+- Avoid destructive changes unless explicitly requested and documented.
+- Suggested commit prefixes: `docs:`, `scripts:`, `governance:`, `mcp:`, `ops:`.
 
-### Script Constraints
+## License
 
-- Preserve idempotency and safety defaults.
-- Avoid destructive changes unless explicitly required and documented.
-- Validate path assumptions and provide actionable error messages.
-
-### Commit Guidance
-
-- Suggested commit prefixes: `docs:`, `scripts:`, `governance:`, `mcp:`.
-- For governance rule changes, include migration impact in commit body or PR description.
-
-## 许可证
-
-本仓库采用 MIT License，见 `LICENSE`。
+This repository uses the MIT License. See `LICENSE`.
