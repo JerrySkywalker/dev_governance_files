@@ -1,0 +1,303 @@
+[CmdletBinding()]
+param(
+  [switch]$Audit,
+  [switch]$Plan,
+  [switch]$Apply,
+  [switch]$Repair,
+  [switch]$Force,
+  [switch]$NoTask,
+  [switch]$NoStart,
+  [switch]$NoFirewall,
+  [switch]$NonInteractive,
+  [switch]$RebuildVenv,
+  [string]$HermesCommand,
+  [string]$HermesPython,
+  [string]$BasePython,
+  [string]$DeviceName = "{{DEVICE_NAME}}",
+  [string]$WireGuardIp = "{{WIREGUARD_IP}}",
+  [int]$EdgePort = {{EDGE_PORT}}
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$selectedModes = @(@($Audit, $Plan, $Apply, $Repair) | Where-Object { $_ })
+if ($selectedModes.Count -eq 0) {
+  $Audit = $true
+  $selectedModes = @($true)
+}
+if ($selectedModes.Count -gt 1) {
+  throw "Choose only one mode: -Audit, -Plan, -Apply, or -Repair."
+}
+
+$Mode = if ($Apply) { "Apply" } elseif ($Repair) { "Repair" } elseif ($Plan) { "Plan" } else { "Audit" }
+$LocalAppData = [Environment]::GetFolderPath("LocalApplicationData")
+$HermesHome = Join-Path $LocalAppData "hermes"
+$EdgeHome = Join-Path $LocalAppData "hermes-edge"
+$PolicyDir = Join-Path $EdgeHome "policy"
+$LogDir = Join-Path $EdgeHome "logs"
+
+$RunnerPath = Join-Path $EdgeHome "start-hermes-edge-runner.ps1"
+$LauncherVbs = Join-Path $EdgeHome "start-hermes-edge-hidden.vbs"
+$WatchdogPath = Join-Path $EdgeHome "watchdog-hermes-edge.ps1"
+$WatchdogVbs = Join-Path $EdgeHome "watchdog-hermes-edge-hidden.vbs"
+$PolicyPath = Join-Path $PolicyDir "file-access-policy.json"
+$EnvPath = Join-Path $HermesHome ".env"
+$WscriptPath = "C:\Windows\System32\wscript.exe"
+$WindowsPowerShellPath = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+$TaskName = "Hermes Edge Watchdog"
+$LocalHealthUrl = "http://127.0.0.1:$EdgePort/health"
+$WireGuardHealthUrl = "http://$WireGuardIp`:$EdgePort/health"
+
+function Write-Step {
+  param([string]$Message)
+  Write-Host "[$Mode] $Message"
+}
+
+function Test-WriteMode {
+  return ($Mode -eq "Apply" -or $Mode -eq "Repair")
+}
+
+function Confirm-EdgeAction {
+  param([string]$Message)
+  if ($Force) { return $true }
+  if ($NonInteractive) { throw "Confirmation required: $Message" }
+  $answer = Read-Host "$Message Type YES to continue"
+  return ($answer -eq "YES")
+}
+
+function Resolve-UserPath {
+  param(
+    [string]$Prompt,
+    [string]$ExpectedLeaf
+  )
+  if ($NonInteractive) {
+    throw "Unable to resolve $ExpectedLeaf in non-interactive mode. Pass an explicit path."
+  }
+  $candidate = Read-Host $Prompt
+  if ([string]::IsNullOrWhiteSpace($candidate) -or -not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+    throw "Path not found: $candidate"
+  }
+  return (Resolve-Path -LiteralPath $candidate).Path
+}
+
+function Resolve-HermesCommand {
+  if ($HermesCommand) {
+    if (-not (Test-Path -LiteralPath $HermesCommand -PathType Leaf)) { throw "HermesCommand not found: $HermesCommand" }
+    return (Resolve-Path -LiteralPath $HermesCommand).Path
+  }
+
+  $cmd = Get-Command hermes -ErrorAction SilentlyContinue
+  if ($cmd -and $cmd.Source) { return $cmd.Source }
+
+  $globalShim = "C:\Dev\tools\bin\hermes.cmd"
+  if (Test-Path -LiteralPath $globalShim -PathType Leaf) { return $globalShim }
+
+  $privateExe = Join-Path $HermesHome "hermes-agent\venv\Scripts\hermes.exe"
+  if (Test-Path -LiteralPath $privateExe -PathType Leaf) { return $privateExe }
+
+  return Resolve-UserPath -Prompt "Enter the full path to hermes.cmd or hermes.exe" -ExpectedLeaf "hermes"
+}
+
+function Resolve-HermesPython {
+  param([string]$ResolvedHermesCommand)
+  if ($HermesPython) {
+    if (-not (Test-Path -LiteralPath $HermesPython -PathType Leaf)) { throw "HermesPython not found: $HermesPython" }
+    return (Resolve-Path -LiteralPath $HermesPython).Path
+  }
+
+  $privatePython = Join-Path $HermesHome "hermes-agent\venv\Scripts\python.exe"
+  if (Test-Path -LiteralPath $privatePython -PathType Leaf) { return $privatePython }
+
+  if ($ResolvedHermesCommand -like "*.exe") {
+    $siblingPython = Join-Path (Split-Path -Parent $ResolvedHermesCommand) "python.exe"
+    if (Test-Path -LiteralPath $siblingPython -PathType Leaf) { return $siblingPython }
+  }
+
+  return Resolve-UserPath -Prompt "Enter the full path to Hermes private python.exe" -ExpectedLeaf "python.exe"
+}
+
+function Resolve-BasePython {
+  if ($BasePython) {
+    if (-not (Test-Path -LiteralPath $BasePython -PathType Leaf)) { throw "BasePython not found: $BasePython" }
+    return (Resolve-Path -LiteralPath $BasePython).Path
+  }
+
+  $roots = @()
+  if ($env:UV_PYTHON_INSTALL_DIR) { $roots += $env:UV_PYTHON_INSTALL_DIR }
+  $roots += "C:\Dev\tools\uv-python"
+  foreach ($root in $roots) {
+    if (-not (Test-Path -LiteralPath $root -PathType Container)) { continue }
+    $candidate = Get-ChildItem -LiteralPath $root -Directory -Filter "cpython-3.11*-windows-*" -ErrorAction SilentlyContinue |
+      ForEach-Object { Join-Path $_.FullName "python.exe" } |
+      Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
+      Select-Object -First 1
+    if ($candidate) { return $candidate }
+  }
+
+  $py = Get-Command py -ErrorAction SilentlyContinue
+  if ($py) { return "py -3.11" }
+
+  return Resolve-UserPath -Prompt "Enter the full path to base Python 3.11 python.exe" -ExpectedLeaf "python.exe"
+}
+
+function Convert-ToSingleQuotedPowerShell {
+  param([string]$Value)
+  return "'" + ($Value -replace "'", "''") + "'"
+}
+
+function Get-PolicyJson {
+  $policy = [ordered]@{
+    version = 1
+    device = $DeviceName
+    path_precedence = [ordered]@{
+      hermes_home = $HermesHome
+      edge_home = $EdgeHome
+      policy_dir = $PolicyDir
+      log_dir = $LogDir
+    }
+    allowed_roots = @(
+      $HermesHome,
+      $EdgeHome
+    )
+  }
+  return ($policy | ConvertTo-Json -Depth 6)
+}
+
+function Get-RunnerContent {
+  param([string]$ResolvedHermesCommand)
+  $hermesLiteral = Convert-ToSingleQuotedPowerShell $ResolvedHermesCommand
+  @"
+`$ErrorActionPreference = "Stop"
+`$HermesCmd = $hermesLiteral
+`$env:HERMES_EDGE_DEVICE = "$DeviceName"
+`$env:HERMES_EDGE_URL = "http://$WireGuardIp`:$EdgePort"
+& `$HermesCmd gateway run
+"@
+}
+
+function Get-LauncherVbsContent {
+  @"
+Set WshShell = CreateObject("WScript.Shell")
+WshShell.Run """$WindowsPowerShellPath"" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""$RunnerPath""", 0, False
+"@
+}
+
+function Get-WatchdogContent {
+  @"
+`$ErrorActionPreference = "Stop"
+`$RunnerPath = "$RunnerPath"
+`$LocalHealthUrl = "$LocalHealthUrl"
+`$WireGuardHealthUrl = "$WireGuardHealthUrl"
+try {
+  curl.exe --noproxy "*" -sS `$LocalHealthUrl | Out-Null
+} catch {
+  & "$WindowsPowerShellPath" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `$RunnerPath
+}
+try {
+  curl.exe --noproxy "*" -sS `$WireGuardHealthUrl | Out-Null
+} catch {
+  Write-Verbose "WireGuard health check failed. Plain curl may return proxy-related 502 Bad Gateway on private IPs."
+}
+"@
+}
+
+function Get-WatchdogVbsContent {
+  @"
+Set WshShell = CreateObject("WScript.Shell")
+WshShell.Run """$WindowsPowerShellPath"" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""$WatchdogPath""", 0, False
+"@
+}
+
+function Write-ManagedFile {
+  param(
+    [string]$Path,
+    [string]$Content
+  )
+  if ($Mode -eq "Plan") {
+    Write-Step "Would write $Path"
+    return
+  }
+  Set-Content -LiteralPath $Path -Value $Content -Encoding UTF8
+}
+
+function Show-Audit {
+  param(
+    [string]$ResolvedHermesCommand,
+    [string]$ResolvedHermesPython
+  )
+  Write-Step "Device: $DeviceName"
+  Write-Step "Edge URL: http://$WireGuardIp`:$EdgePort"
+  Write-Step "HermesCmd: $ResolvedHermesCommand"
+  Write-Step "HermesPython: $ResolvedHermesPython"
+  Write-Step "RunnerPath: $RunnerPath"
+  Write-Step "LauncherVbs: $LauncherVbs"
+  Write-Step "WatchdogPath: $WatchdogPath"
+  Write-Step "WatchdogVbs: $WatchdogVbs"
+  Write-Step "PolicyPath: $PolicyPath"
+  Write-Step "Health checks use curl.exe --noproxy `"*`"; plain curl may return proxy-related 502 Bad Gateway on WireGuard/private IPs."
+}
+
+function Show-Plan {
+  Write-Step "File access policy scope:"
+  Get-PolicyJson | Write-Host
+  Write-Step "Would use scheduled task executable $WscriptPath with VBS target $WatchdogVbs"
+  if ($NoTask) { Write-Step "NoTask is set; scheduled task registration would be skipped." }
+  if ($NoStart) { Write-Step "NoStart is set; runner startup would be skipped." }
+  if ($NoFirewall) { Write-Step "NoFirewall is set; firewall changes would be skipped." }
+}
+
+$ResolvedHermesCommand = Resolve-HermesCommand
+$ResolvedHermesPython = Resolve-HermesPython -ResolvedHermesCommand $ResolvedHermesCommand
+$ResolvedBasePython = $null
+if ($RebuildVenv) {
+  $ResolvedBasePython = Resolve-BasePython
+}
+
+Show-Audit -ResolvedHermesCommand $ResolvedHermesCommand -ResolvedHermesPython $ResolvedHermesPython
+if ($ResolvedBasePython) { Write-Step "BasePython: $ResolvedBasePython" }
+
+if ($Mode -eq "Audit") {
+  return
+}
+
+Show-Plan
+
+if (-not (Test-WriteMode)) {
+  return
+}
+
+if (-not (Confirm-EdgeAction "This will update Edge Hermes bootstrap files for $DeviceName.")) {
+  throw "Cancelled."
+}
+
+New-Item -ItemType Directory -Force -Path $HermesHome, $EdgeHome, $PolicyDir, $LogDir | Out-Null
+
+if ($Apply) {
+  if (-not (Test-Path -LiteralPath $EnvPath -PathType Leaf) -or (Confirm-EdgeAction "Overwrite $EnvPath?")) {
+    $apiKey = Read-Host "Enter Edge API key"
+    $envContent = @"
+HERMES_EDGE_DEVICE=$DeviceName
+HERMES_EDGE_URL=http://$WireGuardIp`:$EdgePort
+HERMES_EDGE_API_KEY=$apiKey
+"@
+    Write-ManagedFile -Path $EnvPath -Content $envContent
+  }
+}
+
+Write-ManagedFile -Path $PolicyPath -Content (Get-PolicyJson)
+Write-ManagedFile -Path $RunnerPath -Content (Get-RunnerContent -ResolvedHermesCommand $ResolvedHermesCommand)
+Write-ManagedFile -Path $LauncherVbs -Content (Get-LauncherVbsContent)
+Write-ManagedFile -Path $WatchdogPath -Content (Get-WatchdogContent)
+Write-ManagedFile -Path $WatchdogVbs -Content (Get-WatchdogVbsContent)
+
+if (-not $NoTask) {
+  $action = New-ScheduledTaskAction -Execute $WscriptPath -Argument "`"$WatchdogVbs`""
+  $trigger = New-ScheduledTaskTrigger -AtLogOn
+  $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+  Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Settings $settings -Force:$Force | Out-Null
+}
+
+if (-not $NoStart) {
+  Start-Process -FilePath $WscriptPath -ArgumentList "`"$LauncherVbs`"" -WindowStyle Hidden
+}
