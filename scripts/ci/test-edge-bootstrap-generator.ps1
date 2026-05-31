@@ -9,6 +9,9 @@ $RenderScript = Join-Path $RepoRoot "server-ops\bin\render-windows-bootstrap.py"
 $TemplatePath = Join-Path $RepoRoot "server-ops\edge-hermes\templates\windows-bootstrap.ps1.tmpl"
 $GeneratedDir = Join-Path $RepoRoot "server-ops\edge-hermes\generated\tests"
 $GeneratedPath = Join-Path $GeneratedDir "laptop-zenbookduo-windows-bootstrap.ps1"
+$FakeRuntimeDir = Join-Path $GeneratedDir "fake-runtime"
+$FakeHermesCommand = Join-Path $FakeRuntimeDir "hermes.cmd"
+$FakeHermesPython = Join-Path $FakeRuntimeDir "python.exe"
 
 function Assert-Contains {
   param(
@@ -36,7 +39,9 @@ if (-not (Test-Path -LiteralPath $TemplatePath -PathType Leaf)) {
   throw "Template not found: $TemplatePath"
 }
 
-New-Item -ItemType Directory -Force -Path $GeneratedDir | Out-Null
+New-Item -ItemType Directory -Force -Path $GeneratedDir, $FakeRuntimeDir | Out-Null
+Set-Content -LiteralPath $FakeHermesCommand -Value "@echo off`r`nexit /b 0" -Encoding ASCII
+Set-Content -LiteralPath $FakeHermesPython -Value "" -Encoding ASCII
 python $RenderScript laptop-zenbookduo --output $GeneratedPath
 
 if (-not (Test-Path -LiteralPath $GeneratedPath -PathType Leaf)) {
@@ -68,6 +73,9 @@ foreach ($marker in $RequiredMarkers) {
 }
 
 [scriptblock]::Create($Rendered) | Out-Null
+
+& pwsh -NoLogo -NoProfile -File $GeneratedPath -Audit -NonInteractive -HermesCommand $FakeHermesCommand -HermesPython $FakeHermesPython | Out-Host
+& pwsh -NoLogo -NoProfile -File $GeneratedPath -Plan -NonInteractive -HermesCommand $FakeHermesCommand -HermesPython $FakeHermesPython | Out-Host
 
 $SecretPatterns = @(
   "sk-[A-Za-z0-9_-]{20,}",

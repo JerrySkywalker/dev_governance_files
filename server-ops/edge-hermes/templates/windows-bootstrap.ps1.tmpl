@@ -21,7 +21,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$selectedModes = @($Audit, $Plan, $Apply, $Repair) | Where-Object { $_ }
+$selectedModes = @(@($Audit, $Plan, $Apply, $Repair) | Where-Object { $_ })
 if ($selectedModes.Count -eq 0) {
   $Audit = $true
   $selectedModes = @($true)

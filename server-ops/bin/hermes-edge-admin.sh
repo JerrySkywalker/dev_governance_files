@@ -168,7 +168,7 @@ print(data["agents"][sys.argv[2]].get("url","").rstrip("/"))
 PY
 )"
   if [[ -n "$url" ]]; then
-    curl -sS --max-time 10 "$url/health" || true
+    curl --noproxy "*" -sS --max-time 10 "$url/health" || true
     echo
   else
     echo "(no URL)"
