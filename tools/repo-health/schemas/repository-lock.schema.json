@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-repository-lock.v1",
+  "type": "object",
+  "required": ["schema", "repository", "session_id", "acquired_utc"],
+  "properties": {
+    "schema": {"const": "repository-lock.v1"},
+    "repository": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "session_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "acquired_utc": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}

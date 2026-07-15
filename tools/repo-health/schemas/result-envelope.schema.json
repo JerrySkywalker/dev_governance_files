@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-result-envelope.v1",
+  "type": "object",
+  "required": ["schema", "role", "repository", "outcome", "product_repository_write", "git_mutation", "sanitized_summary"],
+  "properties": {
+    "schema": {"const": "repo-health-result-envelope.v1"},
+    "role": {"enum": ["Implementer", "Supervisor"]},
+    "repository": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "outcome": {"enum": ["PASS", "BLOCKED", "HOLD"]},
+    "product_repository_write": {"type": "boolean"},
+    "git_mutation": {"type": "boolean"},
+    "sanitized_summary": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

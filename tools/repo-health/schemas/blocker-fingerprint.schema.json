@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-blocker-fingerprint.v1",
+  "type": "object",
+  "required": ["repository_or_scope", "phase", "finite_classification", "failing_contract", "normalized_exit_code", "source_head_sha_when_applicable", "safe_path_digest_when_applicable"],
+  "properties": {
+    "repository_or_scope": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "phase": {"type": "string"},
+    "finite_classification": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "failing_contract": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "normalized_exit_code": {"type": "integer", "minimum": 0, "maximum": 255},
+    "source_head_sha_when_applicable": {"type": "string", "pattern": "^$|^[0-9a-f]{40}$"},
+    "safe_path_digest_when_applicable": {"type": "string", "pattern": "^$|^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}

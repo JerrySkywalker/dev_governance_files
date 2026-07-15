@@ -1,0 +1,20 @@
+{
+  "schema": "repo-health-dependency-graph.v1",
+  "edge_semantics": "evidenced-provider-to-consumer",
+  "nodes": ["codex-ntfy-notifier","dev_governance_files","hithesis","jerry-devops-access","jerry-devops-android","jerry-glance-dashboard","jerry-message-gateway","jerry-proxy-client","jerry-proxy-control","jerry-proxy-edge","jerry-telemetry-agent","jerry-telemetry-hub","jerry-workstation-config","skybridge-agent-hub","wearos-healthprobe-app","wearos-healthprobe-preflight","workstation-manager"],
+  "edges": [
+    {"from":"jerry-message-gateway","to":"jerry-telemetry-agent","status":"EVIDENCED","contract":"OPTIONAL_DEFAULT_OFF_READINESS_CONTRACT"},
+    {"from":"jerry-telemetry-agent","to":"jerry-telemetry-hub","status":"EVIDENCED","contract":"ACTIVE_EVENT_INGEST_CONTRACT"},
+    {"from":"jerry-telemetry-hub","to":"jerry-glance-dashboard","status":"EVIDENCED","contract":"READ_ONLY_SUMMARY_CONSUMER_CONTRACT"},
+    {"from":"jerry-devops-access","to":"jerry-message-gateway","status":"EVIDENCED","contract":"OPTIONAL_POLICY_DECISION_CONTRACT"},
+    {"from":"jerry-message-gateway","to":"jerry-devops-android","status":"EVIDENCED","contract":"DEBUG_ONLY_ANDROID_PULL_CONTRACT"},
+    {"from":"jerry-devops-access","to":"jerry-devops-android","status":"EVIDENCED","contract":"DEBUG_ONLY_ACCESS_CONTRACT"},
+    {"from":"jerry-proxy-edge","to":"jerry-proxy-control","status":"EVIDENCED","contract":"PUBLIC_SAFE_STATUS_ARTIFACT_CONTRACT"},
+    {"from":"jerry-proxy-control","to":"jerry-proxy-client","status":"EVIDENCED","contract":"OPTIONAL_DEFAULT_OFF_PAIRING_CONTRACT"},
+    {"from":"jerry-workstation-config","to":"workstation-manager","status":"EVIDENCED","contract":"DECLARATIVE_INPUT_CONTRACT"},
+    {"from":"jerry-telemetry-hub","to":"jerry-message-gateway","status":"TOPOLOGY_REVIEW_REQUIRED","contract":"PASSIVE_HUB_NO_POLL_CONTRACT"},
+    {"from":"jerry-proxy-client","to":"skybridge-agent-hub","status":"TOPOLOGY_REVIEW_REQUIRED","contract":"NO_DIRECT_SOURCE_REFERENCE"},
+    {"from":"wearos-healthprobe-preflight","to":"wearos-healthprobe-app","status":"TOPOLOGY_REVIEW_REQUIRED","contract":"NO_DIRECT_SOURCE_REFERENCE"}
+  ],
+  "topology_review_required": ["jerry-telemetry-hub->jerry-message-gateway","jerry-proxy-client->skybridge-agent-hub","wearos-healthprobe-preflight->wearos-healthprobe-app"]
+}
