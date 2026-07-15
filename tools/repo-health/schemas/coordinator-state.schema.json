@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-coordinator-state.v1",
+  "type": "object",
+  "required": ["schema", "repository", "current_state", "writer_session_id", "automatic_session_launch_supported", "blockers", "milestone_status", "revision", "updated_utc"],
+  "properties": {
+    "schema": {"const": "repo-health-coordinator-state.v1"},
+    "repository": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "current_state": {"enum": ["DISCOVER", "CLASSIFY_BRANCHES", "PLAN_CONVERGENCE", "IMPLEMENT", "VERIFY_LOCAL", "VERIFY_CI", "SUPERVISOR_AUDIT", "MERGE_MAIN", "MERGE_DEV", "ARCHIVE", "DELETE_BRANCH", "WORKTREE_CLEANUP", "REPO_HEALTHY", "BLOCKED_ROUND_1", "BLOCKED_ROUND_2", "HUMAN_REQUIRED"]},
+    "writer_session_id": {"type": "string"},
+    "automatic_session_launch_supported": {"type": "boolean"},
+    "blockers": {"type": "array"},
+    "milestone_status": {"type": "array"},
+    "revision": {"type": "integer", "minimum": 1},
+    "updated_utc": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}

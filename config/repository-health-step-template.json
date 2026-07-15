@@ -1,0 +1,30 @@
+{
+  "schema": "repo-health-step-template.v1",
+  "subphases": [
+    {"id": "REPO-A", "name": "READ_ONLY_DISCOVERY"},
+    {"id": "REPO-B", "name": "AGENTS_MD_GOVERNANCE_UPDATE"},
+    {"id": "REPO-C", "name": "BRANCH_CONVERGENCE_CLASSIFICATION"},
+    {"id": "REPO-D", "name": "IMPLEMENTATION_AND_VALIDATION"},
+    {"id": "REPO-E", "name": "BRANCH_PR_AND_WORKTREE_CLEANUP"},
+    {"id": "REPO-F", "name": "AGENTS_COMPLIANCE_AUDIT"},
+    {"id": "REPO-G", "name": "HEALTHY_RECEIPT"}
+  ],
+  "healthy_receipt_required_fields": [
+    "repository",
+    "main_sha",
+    "dev_sha_or_absent",
+    "remaining_local_branches",
+    "remaining_remote_branches",
+    "remaining_open_prs",
+    "remaining_worktrees",
+    "AGENTS_md_sha256",
+    "branch_policy_compliant",
+    "repo_healthy",
+    "secrets_visible",
+    "output_private_connection_metadata"
+  ],
+  "healthy_receipt_safety_values": {
+    "secrets_visible": false,
+    "output_private_connection_metadata": 0
+  }
+}

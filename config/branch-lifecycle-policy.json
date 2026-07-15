@@ -1,0 +1,45 @@
+{
+  "schema": "repo-health-branch-lifecycle-policy.v1",
+  "main": {
+    "required": true,
+    "purpose": "stable-source-integration"
+  },
+  "dev": {
+    "required": false,
+    "allowed_when": [
+      "tested-code-waiting-downstream-contract",
+      "tested-code-waiting-physical-device-evidence",
+      "tested-code-waiting-external-service-evidence",
+      "tested-code-waiting-production-promotion",
+      "temporary-tested-integration"
+    ],
+    "prohibited_uses": [
+      "red-ci-branch",
+      "experiment-dump",
+      "archive-branch",
+      "branch-cleanup-replacement"
+    ]
+  },
+  "short_lived_branch_lifecycle": [
+    "create",
+    "implement",
+    "validate",
+    "audit",
+    "PR",
+    "merge_to_main_or_dev",
+    "delete_remote_branch",
+    "delete_local_branch",
+    "remove_worktree"
+  ],
+  "unmerged_branch_classifications": [
+    "MERGE_TO_MAIN",
+    "MERGE_TO_DEV",
+    "CLOSE_SUPERSEDED",
+    "ARCHIVE_TAG_AND_CLOSE",
+    "DELETE_NO_UNIQUE_COMMITS",
+    "HOLD_EXTERNAL_EVIDENCE"
+  ],
+  "agents_md_update_required_per_repository": true,
+  "repo_health_requires_agents_md_compliance": true,
+  "prohibited_classification": "UNKNOWN"
+}
