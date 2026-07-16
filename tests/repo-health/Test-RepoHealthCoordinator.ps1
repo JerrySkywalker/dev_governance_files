@@ -129,7 +129,7 @@ try {
     $dry = & 'V:\src\dev_governance_files\tools\repo-health\Invoke-RepoHealthCoordinator.ps1' -Mode DryRun -Repository synthetic
     Assert-True (($dry | ConvertFrom-Json).product_writing_session_started -eq $false) 'DryRun product write guard'
 
-    $coordinatorFiles = Get-ChildItem -LiteralPath 'V:\src\dev_governance_files\tools\repo-health','V:\src\dev_governance_files\tests\repo-health' -File -Include '*.ps1','*.psm1'
+    $coordinatorFiles = Get-ChildItem -Path 'V:\src\dev_governance_files\tools\repo-health','V:\src\dev_governance_files\tests\repo-health' -Recurse -File | Where-Object { $_.Extension -in @('.ps1','.psm1') }
     foreach ($file in $coordinatorFiles) {
         $tokens = $null
         $errors = $null
