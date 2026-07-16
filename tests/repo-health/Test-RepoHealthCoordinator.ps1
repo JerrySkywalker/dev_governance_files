@@ -24,6 +24,14 @@ try {
     $plan = Get-Content -LiteralPath 'V:\src\dev_governance_files\config\repo-health-master-wave-plan.json' -Raw | ConvertFrom-Json
     Assert-True ($plan.plan_id -eq 'repo-health-master-wave-plan') 'master-plan parse'
     Assert-True ($plan.waves.Count -eq 14 -and $plan.waves[0].steps.Count -eq 4 -and $plan.deferred_wave.wave_id -eq 'P') 'master-plan wave coverage'
+    Assert-True ($plan.version -eq '1.1' -and $plan.active_branch_policy.version -eq '2.0' -and $plan.active_branch_policy.path -eq 'policy/main-dev-policy-v2.json') 'master-plan active policy amendment'
+    $wave1 = @($plan.waves | Where-Object { $_.wave_id -eq 'W1' })[0]
+    $wave2 = @($plan.waves | Where-Object { $_.wave_id -eq 'W2' })[0]
+    Assert-True ($wave1.status -eq 'COMPLETED' -and $wave1.milestone_status -eq 'ACHIEVED' -and $wave2.status -eq 'PLANNED' -and $wave2.not_started) 'Wave 1 completion does not start Wave 2'
+
+    $policyV2 = Get-Content -LiteralPath 'V:\src\dev_governance_files\policy\main-dev-policy-v2.json' -Raw | ConvertFrom-Json
+    Assert-True ($policyV2.schema -eq 'repo-health-main-dev-policy.v2' -and $policyV2.status -eq 'ACTIVE' -and $policyV2.supersedes.path -eq 'config/branch-lifecycle-policy.json') 'main-dev policy v2 amendment parse'
+    Assert-True ($policyV2.admission.status_values -contains 'UNKNOWN_DIRT' -and $policyV2.admission.status_values -contains 'SNAPSHOT_REQUIRED') 'main-dev policy admission states'
 
     $registry = Get-Content -LiteralPath 'V:\src\dev_governance_files\config\repository-registry.json' -Raw | ConvertFrom-Json
     $registryIds = @($registry.repositories.repository_id)
@@ -69,9 +77,22 @@ try {
     $admissionRoot = Join-Path $testRoot 'admission'
     New-Item -ItemType Directory -Path $admissionRoot -Force | Out-Null
     @('Branch Model','Branch Target Rules','Short-Lived Branch Lifecycle','Single-Writer Rule','Agent Allocation','Blocker Handling','Repository-Specific Preservation Rules') | Set-Content -LiteralPath (Join-Path $admissionRoot 'AGENTS.md')
-    $admission = Test-RepoHealthAdmission -RepositoryRoot $admissionRoot -BranchInventory ([pscustomobject]@{main='healthy';dev='absent';unclassified_non_main_dev=0})
-    Assert-True $admission.admitted 'AGENTS and branch admission'
-    $badAdmission = Test-RepoHealthAdmission -RepositoryRoot $admissionRoot -BranchInventory ([pscustomobject]@{main='healthy';dev='red';unclassified_non_main_dev=1})
+    $cleanEvidence = [pscustomobject]@{tracked_clean=$true;approved_preserved_evidence_count=0;unknown_dirt_count=0;preservation_ledger_verified=$false;preserved_evidence_boundary_verified=$false;reviewer_must_not_access_original_worktree_evidence=$false;snapshot_required=$false;tracked_snapshot_isolated=$false;snapshot_source_sha_bound=$false;snapshot_tree_digest_verified=$false}
+    $admission = Test-RepoHealthAdmission -RepositoryRoot $admissionRoot -BranchInventory ([pscustomobject]@{main='healthy';dev='absent';unclassified_non_main_dev=0}) -EvidenceInventory $cleanEvidence
+    Assert-True ($admission.admitted -and $admission.evidence_states -contains 'TRACKED_CLEAN') 'AGENTS branch and tracked-clean admission'
+    $approvedEvidence = [pscustomobject]@{tracked_clean=$true;approved_preserved_evidence_count=1;unknown_dirt_count=0;preservation_ledger_verified=$true;preserved_evidence_boundary_verified=$true;reviewer_must_not_access_original_worktree_evidence=$false;snapshot_required=$false;tracked_snapshot_isolated=$false;snapshot_source_sha_bound=$false;snapshot_tree_digest_verified=$false}
+    $approvedAdmission = Test-RepoHealthAdmission -RepositoryRoot $admissionRoot -BranchInventory ([pscustomobject]@{main='healthy';dev='absent';unclassified_non_main_dev=0}) -EvidenceInventory $approvedEvidence
+    Assert-True ($approvedAdmission.admitted -and $approvedAdmission.evidence_states -contains 'APPROVED_PRESERVED_EVIDENCE') 'approved preserved evidence is distinct from dirt'
+    $unknownEvidence = [pscustomobject]@{tracked_clean=$true;approved_preserved_evidence_count=0;unknown_dirt_count=1;preservation_ledger_verified=$false;preserved_evidence_boundary_verified=$false;reviewer_must_not_access_original_worktree_evidence=$false;snapshot_required=$false;tracked_snapshot_isolated=$false;snapshot_source_sha_bound=$false;snapshot_tree_digest_verified=$false}
+    $unknownAdmission = Test-RepoHealthAdmission -RepositoryRoot $admissionRoot -BranchInventory ([pscustomobject]@{main='healthy';dev='absent';unclassified_non_main_dev=0}) -EvidenceInventory $unknownEvidence
+    Assert-True (-not $unknownAdmission.admitted -and $unknownAdmission.evidence_states -contains 'UNKNOWN_DIRT' -and $unknownAdmission.reasons -contains 'unknown_dirt_present') 'unknown dirt blocks admission'
+    $unisolatedSnapshotEvidence = [pscustomobject]@{tracked_clean=$true;approved_preserved_evidence_count=1;unknown_dirt_count=0;preservation_ledger_verified=$true;preserved_evidence_boundary_verified=$true;reviewer_must_not_access_original_worktree_evidence=$true;snapshot_required=$false;tracked_snapshot_isolated=$false;snapshot_source_sha_bound=$false;snapshot_tree_digest_verified=$false}
+    $unisolatedSnapshotAdmission = Test-RepoHealthAdmission -RepositoryRoot $admissionRoot -BranchInventory ([pscustomobject]@{main='healthy';dev='absent';unclassified_non_main_dev=0}) -EvidenceInventory $unisolatedSnapshotEvidence
+    Assert-True (-not $unisolatedSnapshotAdmission.admitted -and $unisolatedSnapshotAdmission.evidence_states -contains 'SNAPSHOT_REQUIRED') 'reviewer restriction requires tracked-snapshot isolation'
+    $isolatedSnapshotEvidence = [pscustomobject]@{tracked_clean=$true;approved_preserved_evidence_count=1;unknown_dirt_count=0;preservation_ledger_verified=$true;preserved_evidence_boundary_verified=$true;reviewer_must_not_access_original_worktree_evidence=$true;snapshot_required=$true;tracked_snapshot_isolated=$true;snapshot_source_sha_bound=$true;snapshot_tree_digest_verified=$true}
+    $isolatedSnapshotAdmission = Test-RepoHealthAdmission -RepositoryRoot $admissionRoot -BranchInventory ([pscustomobject]@{main='healthy';dev='absent';unclassified_non_main_dev=0}) -EvidenceInventory $isolatedSnapshotEvidence
+    Assert-True ($isolatedSnapshotAdmission.admitted -and $isolatedSnapshotAdmission.evidence_states -contains 'SNAPSHOT_REQUIRED') 'bound tracked snapshot satisfies reviewer restriction'
+    $badAdmission = Test-RepoHealthAdmission -RepositoryRoot $admissionRoot -BranchInventory ([pscustomobject]@{main='healthy';dev='red';unclassified_non_main_dev=1}) -EvidenceInventory $cleanEvidence
     Assert-True (-not $badAdmission.admitted) 'branch convergence admission rejection'
 
     $stateRoot = Join-Path $testRoot 'state'
@@ -128,6 +149,9 @@ try {
     Assert-True (-not $launch.automatic_session_launch_supported -and $launch.mode -eq 'queue-file-manual-attach') 'manual attach adapter fallback'
     $dry = & 'V:\src\dev_governance_files\tools\repo-health\Invoke-RepoHealthCoordinator.ps1' -Mode DryRun -Repository synthetic
     Assert-True (($dry | ConvertFrom-Json).product_writing_session_started -eq $false) 'DryRun product write guard'
+
+    $manifestCoordinatorSource = Get-Content -LiteralPath 'V:\src\dev_governance_files\tools\repo-health\RepoHealthManifestCoordinator.psm1' -Raw
+    Assert-True ($manifestCoordinatorSource -notmatch 'TimeoutSeconds' -and $manifestCoordinatorSource -notmatch '\.Kill\(') 'native role lifecycle has no automatic hard timeout or kill path'
 
     $coordinatorFiles = Get-ChildItem -Path 'V:\src\dev_governance_files\tools\repo-health','V:\src\dev_governance_files\tests\repo-health' -Recurse -File | Where-Object { $_.Extension -in @('.ps1','.psm1') }
     foreach ($file in $coordinatorFiles) {

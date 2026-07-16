@@ -445,7 +445,7 @@ function Invoke-RepoHealthRoleProcess {
     param(
         [Parameter(Mandatory)][string]$ManifestPath,[Parameter(Mandatory)][string]$RunId,[Parameter(Mandatory)][string]$GoalPath,
         [Parameter(Mandatory)][ValidateSet('Architect','Implementer','Supervisor','Auditor','Mechanical')][string]$Role,
-        [int]$TimeoutSeconds=1800,[string]$InventoryRoot='V:\src\integration-inventory\repo-health',[string]$LogRoot='V:\src\codex-run-logs\repo-health',[string]$StateRoot='V:\src\integration-inventory\repo-health\state'
+        [string]$InventoryRoot='V:\src\integration-inventory\repo-health',[string]$LogRoot='V:\src\codex-run-logs\repo-health',[string]$StateRoot='V:\src\integration-inventory\repo-health\state'
     )
     $request = Assert-RepoHealthRunStepRequest -ManifestPath $ManifestPath -RunId $RunId -GoalPath $GoalPath -Role $Role -InventoryRoot $InventoryRoot
     $header = $request.header; $profile = Get-RepoHealthRoleProfile -Role $Role
@@ -465,7 +465,8 @@ function Invoke-RepoHealthRoleProcess {
         Assert-RepoHealthLaunchArguments -Arguments $arguments
         foreach ($argument in $arguments) { [void]$psi.ArgumentList.Add([string]$argument) }
         $process=[System.Diagnostics.Process]::Start($psi); $process.StandardInput.Write($request.goal.content); $process.StandardInput.Close(); $stdoutTask=$process.StandardOutput.ReadToEndAsync();$stderrTask=$process.StandardError.ReadToEndAsync()
-        if (-not $process.WaitForExit($TimeoutSeconds*1000)) { $process.Kill($true);$process.WaitForExit();throw 'Role process timed out.' }
+        # Native interactive-TUI roles are operator-managed. The coordinator never imposes a hard deadline or kills a role process.
+        $process.WaitForExit()
         $stdout=$stdoutTask.GetAwaiter().GetResult();$stderr=$stderrTask.GetAwaiter().GetResult()
         if (-not (Test-Path -LiteralPath $tempResult)) { throw 'Role process did not write a result envelope.' }
         $rawEnvelope=Get-Content -LiteralPath $tempResult -Raw; try { $envelope=$rawEnvelope | ConvertFrom-Json } catch { throw 'Role process result is not JSON.' }
