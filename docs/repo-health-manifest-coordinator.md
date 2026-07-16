@@ -1,9 +1,11 @@
 # Process-isolated repository-health manifest coordinator
 
-`Invoke-RepoHealthManifestCoordinator.ps1` adds a versioned manifest control plane without changing the legacy queue-file coordinator or its v1 state and envelope schemas.
+`Invoke-RepoHealthManifestCoordinator.ps1` is the interactive-TUI control plane. It does not use the detached runner scripts.
 
-It validates the manifest, live routing, and W1-S01 receipt before creating a durable manifest state. Every external role launch is delivered through standard input, uses the mapped profile with an explicit working directory, and rejects sandbox, approval, and bypass overrides. Process stdout and stderr are never persisted; only validated v2 envelopes and bounded counters are durable.
+Each generated Goal starts with one compact JSON header containing the exact binding fields: run, wave, step, phase, role, working directory, repository identity, stable branch, expected SHAs, write surfaces, path, and canonical Goal SHA-256. The SHA covers the header with its SHA field blank plus the complete body; this avoids an impossible self-hash while detecting any header or body change.
 
-An Implementer product phase must hold both `product-writer.lock` and the repository lock. Architect, Supervisor, Auditor, and Mechanical envelopes reject Git or product-source mutations. A deadline with fewer than 45 minutes remaining prevents a new phase; `Stop` writes a resumable safe-pause request.
+Before every launch, `RunStep` reloads the exact manifest and Goal, verifies the header/path/hash/repository/working-directory/role/dependencies/prior milestones/resume state, independently checks the local repository root and GitHub remote, and requires the declared expected-input SHA to equal `HEAD`. Every role receives `codex exec --profile <mapped-profile> -C <header working_directory>` with no sandbox, approval, or bypass override.
 
-The manifest control plane is deliberately separate from `start-overnight-run.ps1` and `start-foreground-run.ps1`; those runners are not part of this interactive TUI path.
+Process envelopes are v3 objects with an exact whitelist. Unknown fields, duplicate semantic JSON fields, missing fields, unsafe summaries, unbound identities, malformed SHAs, read-only mutation claims, and missing Supervisor `audited_sha` all fail closed. The coordinator independently compares before/after Git state for non-Implementers.
+
+Implementer launch holds the global writer and repository locks. A post-Implementer candidate SHA is independently observed before a Supervisor Goal is generated. `Assert-RepoHealthBranchStability` rejects moved candidates or a PR/base/audited/expected-merge mismatch before merge. Process stdout/stderr are represented only by bounded counts in a sanitized log.

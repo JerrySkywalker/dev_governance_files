@@ -6,82 +6,87 @@ $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot '../../tools/repo-health/RepoHealthManifestCoordinator.psm1') -Force
 
 $passed = 0
-function Assert-True {
-    param([bool]$Condition, [string]$Message)
-    if (-not $Condition) { throw $Message }
-    $script:passed++
-}
-function Assert-Fails {
-    param([scriptblock]$Action, [string]$Message)
-    $failed = $false
-    try { & $Action } catch { $failed = $true }
-    Assert-True -Condition $failed -Message $Message
+function Assert-True { param([bool]$Condition,[string]$Message) if (-not $Condition) { throw $Message }; $script:passed++ }
+function Assert-Fails { param([scriptblock]$Action,[string]$Message) $failed=$false;try { & $Action } catch { $failed=$true };Assert-True $failed $Message }
+function New-StepRecord {
+    param([object]$Goal,[string]$Dependency='')
+    [ordered]@{
+        goal_id=$Goal.header.goal_id;wave_id=$Goal.header.wave_id;step_id=$Goal.header.step_id;phase_id=$Goal.header.phase_id;role=$Goal.header.role
+        repository_id=$Goal.header.repository_id;goal_file_path=$Goal.header.goal_file_path;goal_sha256=$Goal.header.goal_sha256
+        expected_input_sha=$Goal.header.expected_input_sha;expected_output_sha_or_empty=$Goal.header.expected_output_sha_or_empty
+        allowed_write_surfaces=@($Goal.header.allowed_write_surfaces);prohibited_write_surfaces=@($Goal.header.prohibited_write_surfaces)
+        dependency_goal_ids=$(if($Dependency){@($Dependency)}else{@()});completion_state='pending'
+    }
 }
 
-$root = 'V:\src\dev_governance_files'
-$runId = 'synthetic-run-20260716'
 $testRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('repo-health-manifest-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
 try {
-    $manifestPath = 'V:\src\goals\repo-health\w1-w6-20260716-042454\run-manifest.json'
-    $manifestResult = Test-RepoHealthRunManifest -ManifestPath $manifestPath
-    Assert-True $manifestResult.valid 'manifest hashes and execution policy'
-    Assert-True (Test-RepoHealthRoutingContract -RoutingPath 'C:\Users\jerry\.codex\profile-routing.meta.json').valid 'routing role permissions'
-    Assert-True (Test-RepoHealthPriorReceipt -ReceiptPath 'V:\src\integration-inventory\repo-health\w1-s01-completion-checkpoint.json').valid 'prior receipt gate'
-
-    $newRepositoryDeadline = Get-RepoHealthNewRepositoryDeadline -ManifestPath $manifestPath
-    Assert-True ($newRepositoryDeadline -eq '2026-07-16T06:24:55.0164783+00:00') 'bootstrap new repository deadline'
-    $state = New-RepoHealthManifestState -RunId $runId -Manifest $manifestResult.manifest -AdmittedGovernanceHead ('a' * 40) -NewRepositoryDeadlineUtc $newRepositoryDeadline
-    Assert-True ((Test-RepoHealthManifestDeadline -State $state -Now ([datetimeoffset]::Parse('2026-07-16T05:30:00Z'))).start_allowed) 'deadline start allowed'
-    Assert-True (-not (Test-RepoHealthManifestDeadline -State $state -Now ([datetimeoffset]::Parse('2026-07-16T06:10:00Z'))).start_allowed) 'deadline start rejected'
-    $waiver = Get-RepoHealthGithubActionsClassification -WorkflowResult QUOTA_EXHAUSTED -ExecutedStepCount 0 -QuotaProven $true -LocalExactHeadEquivalent $true -ExactMainRetest $true -SecretPackageChecks $true -SupervisorApproved $true
-    Assert-True ($waiver.classification -eq 'WAIVED_EXTERNAL_QUOTA_EXHAUSTED' -and -not $waiver.github_ci_pass_claimed) 'quota zero step waiver'
-    $notWaived = Get-RepoHealthGithubActionsClassification -WorkflowResult QUOTA_EXHAUSTED -ExecutedStepCount 1 -QuotaProven $true -LocalExactHeadEquivalent $true -ExactMainRetest $true -SecretPackageChecks $true -SupervisorApproved $true
-    Assert-True ($notWaived.classification -eq 'GITHUB_CI_NOT_WAIVED') 'quota actual test failure rejection'
-    Save-RepoHealthManifestState -State $state -InventoryRoot $testRoot | Out-Null
-    Assert-True ((Read-RepoHealthManifestState -RunId $runId -InventoryRoot $testRoot).run_id -eq $runId) 'manifest durable resume'
-    Assert-True ($state.pending_steps[0] -eq 'W1-S02' -and $state.completed_steps[0] -eq 'W1-S01') 'manifest deterministic ordering'
-    Assert-Fails { Invoke-RepoHealthManifestStep -RunId $runId -Wave W1 -Step W1-S03 -Repository synthetic -RepositoryPath $root -GoalPath $manifestPath -InventoryRoot $testRoot } 'manifest dependency order rejection'
-    Request-RepoHealthManifestStop -State $state | Out-Null
-    Assert-True ([bool]$state.stop_requested -and [string]$state.run_status -eq 'SAFE_PAUSE_REQUESTED') 'safe stop request'
-
-    $architect = New-RepoHealthProcessEnvelope -Role Architect -RunId $runId -Wave W0 -Step PLAN -Scope governance -AdmittedHead ('b' * 40) -Outcome PASS -SanitizedSummary 'architect_plan_ready'
-    Assert-True (Test-RepoHealthProcessEnvelope -Envelope $architect).valid 'architect envelope'
-    $supervisor = New-RepoHealthProcessEnvelope -Role Supervisor -RunId $runId -Wave W0 -Step AUDIT -Scope governance -AdmittedHead ('c' * 40) -Outcome PASS -SanitizedSummary 'supervisor_audit_ready'
-    Assert-True (Test-RepoHealthProcessEnvelope -Envelope $supervisor).valid 'supervisor outcome envelope'
-    $supervisor.git_mutation = $true
-    Assert-True (-not (Test-RepoHealthProcessEnvelope -Envelope $supervisor).valid) 'supervisor mutation rejection'
-    Assert-Fails { Assert-RepoHealthLaunchRequest -Role Architect -Profile jerry-implementer -WorkingDirectory $root -GoalText 'safe_goal' } 'role profile mismatch rejection'
-    Assert-Fails { Assert-RepoHealthLaunchArguments -Arguments @('--yolo') } 'forbidden override rejection'
-    Assert-RepoHealthLaunchRequest -Role Architect -Profile jerry-architect -WorkingDirectory $root -GoalText 'safe_goal'
-    Assert-Fails { Invoke-RepoHealthManifestStep -RunId $runId -Wave W7A -Step W7A-S01 -Repository synthetic -RepositoryPath $root -GoalPath $manifestPath -InventoryRoot $testRoot } 'wave seven rejection'
-    Assert-True ((Resolve-RepoHealthCodexHost).file_name.Length -gt 0) 'fresh process host resolution'
-
-    $stateRoot = Join-Path $testRoot 'state'
-    $lease = Enter-RepoHealthWriterLease -Repository repoone -SessionId writerone -StateRoot $stateRoot
-    try {
-        Assert-Fails { Enter-RepoHealthWriterLease -Repository repotwo -SessionId writertwo -StateRoot $stateRoot } 'global writer lease exclusion'
+    $repo = Join-Path $testRoot 'synthetic-repo'; New-Item -ItemType Directory -Path $repo | Out-Null
+    git -C $repo init --initial-branch=main | Out-Null; git -C $repo config user.email 'repo-health-test@example.invalid'; git -C $repo config user.name 'repo-health-test'
+    Set-Content -LiteralPath (Join-Path $repo 'README.md') -Value 'synthetic' -NoNewline
+    git -C $repo add README.md; git -C $repo commit -m 'synthetic root' | Out-Null
+    git -C $repo remote add origin 'https://github.com/JerrySkywalker/synthetic-repo.git'
+    $sha = (git -C $repo rev-parse HEAD).Trim()
+    $goals = Join-Path $testRoot 'goals'; $runId='synthetic-run-20260716'; $goalPath=Join-Path $goals 'architect.md'
+    $goal=New-RepoHealthBoundGoal -GoalId 'goal-architect' -ParentGoalId 'root-goal' -RunId $runId -WaveId W1 -StepId W1-S02 -PhaseId ARCHITECT_PLAN -Role Architect -WorkingDirectory $repo -RepositoryId synthetic-repo -RepositoryPath $repo -GithubRepository JerrySkywalker/synthetic-repo -StableBranch main -ExpectedInputSha $sha -AllowedWriteSurfaces @('none') -ProhibitedWriteSurfaces @('all-product-writes') -GoalFilePath $goalPath -Body 'Read-only architecture plan. Return a strict v3 envelope.'
+    $manifest=[ordered]@{
+        schema='repo-health-run-manifest.v2';run_id=$runId;execution_mode='process-isolated';execution_surface='interactive-tui';detached_runner_enabled=$false;interactive_resume_required=$true;single_product_writer=$true
+        repositories=@([ordered]@{repository_id='synthetic-repo';repository_path=$repo;github_repository='JerrySkywalker/synthetic-repo';stable_branch='main'})
+        steps=@(New-StepRecord $goal);required_prior_milestones=@('PRIOR_COMPLETE');initial_completed_milestones=@('PRIOR_COMPLETE')
     }
+    $manifestPath=Join-Path $goals 'run-manifest.json';$manifest | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $manifestPath -NoNewline
+    $manifestResult=Test-RepoHealthRunManifest -ManifestPath $manifestPath
+    Assert-True $manifestResult.valid ('strict manifest and bound Goal validate: ' + ($manifestResult.reasons -join ','))
+    $pathMismatch=$manifest | ConvertTo-Json -Depth 10 | ConvertFrom-Json;$pathMismatch.repositories[0].repository_path=$testRoot;$pathMismatchPath=Join-Path $goals 'path-mismatch.json';$pathMismatch | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $pathMismatchPath -NoNewline
+    Assert-True (-not (Test-RepoHealthRunManifest -ManifestPath $pathMismatchPath).valid) 'manifest repository path mismatch rejected'
+    $repositoryMismatch=$manifest | ConvertTo-Json -Depth 10 | ConvertFrom-Json;$repositoryMismatch.steps[0].repository_id='other-repository';$repositoryMismatchPath=Join-Path $goals 'repository-mismatch.json';$repositoryMismatch | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $repositoryMismatchPath -NoNewline
+    Assert-True (-not (Test-RepoHealthRunManifest -ManifestPath $repositoryMismatchPath).valid) 'manifest repository id mismatch rejected'
+    $badHeader=[ordered]@{};foreach($property in $goal.header.PSObject.Properties){$badHeader[$property.Name]=$property.Value};$badHeader.working_directory=$testRoot;$badGoalPath=Join-Path $goals 'working-directory-mismatch.md';((ConvertTo-Json -InputObject $badHeader -Compress -Depth 8)+"`n"+'bad goal'+"`n") | Set-Content -LiteralPath $badGoalPath -NoNewline
+    Assert-Fails { Read-RepoHealthBoundGoal -GoalFilePath $badGoalPath } 'Goal working directory mismatch rejected'
+    $state=Initialize-RepoHealthRun -ManifestPath $manifestPath -InventoryRoot $testRoot
+    Assert-True ($state.completed_milestones -contains 'PRIOR_COMPLETE') 'prior milestone persisted for resume'
+    $request=Assert-RepoHealthRunStepRequest -ManifestPath $manifestPath -RunId $runId -GoalPath $goalPath -Role Architect -InventoryRoot $testRoot
+    Assert-True ($request.observed_head -eq $sha -and $request.header.working_directory -eq $repo) 'RunStep binds repository and working directory'
+    Assert-Fails { Assert-RepoHealthRunStepRequest -ManifestPath $manifestPath -RunId $runId -GoalPath $goalPath -Role Implementer -InventoryRoot $testRoot } 'role-phase mismatch rejection'
+    Assert-Fails { Assert-RepoHealthRunStepRequest -ManifestPath $manifestPath -RunId 'wrong-run' -GoalPath $goalPath -Role Architect -InventoryRoot $testRoot } 'manifest run mismatch rejection'
+
+    $supervisorGoal=New-RepoHealthBoundGoal -GoalId 'goal-supervisor' -ParentGoalId 'root-goal' -RunId $runId -WaveId W1 -StepId W1-S02 -PhaseId SUPERVISOR_AUDIT -Role Supervisor -WorkingDirectory $repo -RepositoryId synthetic-repo -RepositoryPath $repo -GithubRepository JerrySkywalker/synthetic-repo -StableBranch main -ExpectedInputSha $sha -AllowedWriteSurfaces @('none') -ProhibitedWriteSurfaces @('all-writes') -GoalFilePath (Join-Path $goals 'supervisor.md') -Body 'Read-only supervisor. Return a strict v3 envelope.'
+    $envelope=[pscustomobject](New-RepoHealthProcessEnvelope -GoalHeader $supervisorGoal.header -Outcome PASS -ObservedSha $sha -AuditedSha $sha -SanitizedSummary 'supervisor_audit_ready')
+    Assert-True (Test-RepoHealthProcessEnvelope -Envelope $envelope).valid 'strict supervisor envelope accepts exact whitelist'
+    $extra=[pscustomobject]@{};foreach($property in $envelope.PSObject.Properties){$extra | Add-Member -NotePropertyName $property.Name -NotePropertyValue $property.Value};$extra | Add-Member -NotePropertyName harmless_extra -NotePropertyValue 'one'
+    Assert-True (-not (Test-RepoHealthProcessEnvelope -Envelope $extra).valid) 'harmless extra envelope field rejected'
+    $duplicateRaw='{"schema":"repo-health-process-envelope.v3","schema":"repo-health-process-envelope.v3"}'
+    Assert-True (-not (Test-RepoHealthProcessEnvelope -Envelope $envelope -RawJson $duplicateRaw).valid) 'duplicate semantic envelope field rejected'
+    $envelope.git_mutation=$true
+    Assert-True (-not (Test-RepoHealthProcessEnvelope -Envelope $envelope).valid) 'supervisor mutation envelope rejected'
+
+    $implementerGoal=New-RepoHealthBoundGoal -GoalId 'goal-implementer' -ParentGoalId 'root-goal' -RunId $runId -WaveId W1 -StepId W1-S02 -PhaseId IMPLEMENT -Role Implementer -WorkingDirectory $repo -RepositoryId synthetic-repo -RepositoryPath $repo -GithubRepository JerrySkywalker/synthetic-repo -StableBranch main -ExpectedInputSha $sha -AllowedWriteSurfaces @($repo) -ProhibitedWriteSurfaces @('all-other-product-repositories') -GoalFilePath (Join-Path $goals 'implementer.md') -Body 'Implementer. Return a strict v3 envelope.'
+    $implementerEnvelope=[pscustomobject](New-RepoHealthProcessEnvelope -GoalHeader $implementerGoal.header -Outcome PASS -ObservedSha $sha -SanitizedSummary 'implementer_candidate_ready' -ProductRepositoryWrite $true -GitMutation $true)
+    Assert-RepoHealthPostImplementerSha -ImplementerEnvelope $implementerEnvelope -ObservedCandidateSha $sha
+    Assert-True $true 'post-Implementer exact candidate SHA accepted'
+    Assert-Fails { Assert-RepoHealthPostImplementerSha -ImplementerEnvelope $implementerEnvelope -ObservedCandidateSha ('b'*40) } 'post-Implementer SHA mismatch rejected'
+    Assert-RepoHealthBranchStability -LocalCandidateSha $sha -RemoteCandidateSha $sha -PrHeadSha $sha -SupervisorAuditedSha $sha -ExpectedMergeHeadSha $sha -PrBaseBranch main -StableBranch main
+    Assert-True $true 'audited branch stability accepted'
+    Assert-Fails { Assert-RepoHealthBranchStability -LocalCandidateSha $sha -RemoteCandidateSha ('c'*40) -PrHeadSha $sha -SupervisorAuditedSha $sha -ExpectedMergeHeadSha $sha -PrBaseBranch main -StableBranch main } 'candidate movement after supervisor rejected'
+
+    $state.completed_goal_ids=@('goal-architect');Save-RepoHealthManifestState -State $state -InventoryRoot $testRoot | Out-Null
+    Assert-Fails { Assert-RepoHealthRunStepRequest -ManifestPath $manifestPath -RunId $runId -GoalPath $goalPath -Role Architect -InventoryRoot $testRoot } 'completed Goal cannot resume as a new launch'
+    Assert-True ((Read-RepoHealthManifestState -RunId $runId -InventoryRoot $testRoot).completed_goal_ids -contains 'goal-architect') 'durable resume state retained'
+
+    $stateRoot=Join-Path $testRoot 'state';$lease=Enter-RepoHealthWriterLease -Repository synthetic-repo -SessionId writerone -StateRoot $stateRoot
+    try { Assert-Fails { Enter-RepoHealthWriterLease -Repository othertarget -SessionId writertwo -StateRoot $stateRoot } 'global one-writer lock exclusion' }
     finally { Exit-RepoHealthWriterLease -Lease $lease }
+    Assert-Fails { Assert-RepoHealthLaunchArguments -Arguments @('--yolo') } 'yolo override rejected'
+    Assert-Fails { Assert-RepoHealthLaunchArguments -Arguments @('--sandbox','danger-full-access') } 'sandbox override rejected'
+    Assert-True ((Resolve-RepoHealthCodexHost).file_name.Length -gt 0) 'Codex host resolved without override'
 
-    $logPath = Join-Path $testRoot 'bounded-log.json'
-    Write-RepoHealthProcessLog -Path $logPath -Role Architect -ExitCode 0 -StdOutCharacters 10 -StdErrCharacters 0 -Outcome PASS -Profile jerry-architect -ChildProcessId 123
-    $log = Get-Content -LiteralPath $logPath -Raw | ConvertFrom-Json
-    Assert-True ($log.secrets_visible -eq $false -and $log.private_connection_metadata_count -eq 0 -and $log.launch_profile -eq 'jerry-architect') 'bounded safe log'
-
-    $dry = & (Join-Path $root 'tools/repo-health/Invoke-RepoHealthManifestCoordinator.ps1') -Mode DryRun -RunId $runId -ManifestPath $manifestPath
-    Assert-True (-not (($dry | ConvertFrom-Json).product_writing_session_started)) 'manifest dry run write guard'
-
-    foreach ($file in Get-ChildItem -Path (Join-Path $root 'tools/repo-health'),(Join-Path $root 'tests/repo-health') -Recurse -File | Where-Object { $_.Extension -in @('.ps1','.psm1') }) {
-        $tokens = $null; $errors = $null
-        [System.Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors) | Out-Null
-        Assert-True ($errors.Count -eq 0) ('PowerShell AST ' + $file.Name)
+    foreach($file in Get-ChildItem -Path (Join-Path $PSScriptRoot '../../tools/repo-health'),$PSScriptRoot -Recurse -File | Where-Object {$_.Extension -in @('.ps1','.psm1')}) {
+        $tokens=$null;$errors=$null;[System.Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)|Out-Null;Assert-True ($errors.Count -eq 0) ('PowerShell AST '+$file.Name)
     }
+    foreach($file in Get-ChildItem -Path (Join-Path $PSScriptRoot '../../tools/repo-health/schemas') -Filter '*.json') { Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json | Out-Null;Assert-True $true ('JSON parse '+$file.Name) }
 }
 finally {
-    $resolved = (Resolve-Path -LiteralPath $testRoot).Path
-    if (-not $resolved.StartsWith([System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()), [System.StringComparison]::OrdinalIgnoreCase)) { throw 'Synthetic fixture cleanup escaped temp root.' }
-    Remove-Item -LiteralPath $resolved -Recurse -Force
+    if(Test-Path -LiteralPath $testRoot){$resolved=(Resolve-Path -LiteralPath $testRoot).Path;if(-not $resolved.StartsWith([System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()),[System.StringComparison]::OrdinalIgnoreCase)){throw 'Synthetic fixture cleanup escaped temp root.'};Remove-Item -LiteralPath $resolved -Recurse -Force}
 }
-
 Write-Output ('PASS repo-health manifest tests=' + $passed)

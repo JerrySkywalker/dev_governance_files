@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-process-envelope.v3",
+  "type": "object",
+  "required": ["schema", "run_id", "wave_id", "step_id", "phase_id", "role", "working_directory", "repository_id", "repository_path", "github_repository", "stable_branch", "expected_input_sha", "expected_output_sha_or_empty", "observed_sha", "audited_sha", "remote_candidate_sha", "pr_head_sha", "pr_base_branch", "outcome", "product_repository_write", "git_mutation", "sanitized_summary", "blocker_fingerprint", "secrets_visible", "private_connection_metadata_count"],
+  "properties": {
+    "schema": {"const": "repo-health-process-envelope.v3"},
+    "run_id": {"type": "string"}, "wave_id": {"type": "string"}, "step_id": {"type": "string"}, "phase_id": {"type": "string"},
+    "role": {"enum": ["Architect", "Implementer", "Supervisor", "Auditor", "Mechanical"]},
+    "working_directory": {"type": "string"}, "repository_id": {"type": "string"}, "repository_path": {"type": "string"}, "github_repository": {"type": "string"}, "stable_branch": {"type": "string"},
+    "expected_input_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "expected_output_sha_or_empty": {"type": "string", "pattern": "^(|[0-9a-f]{40})$"}, "observed_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "audited_sha": {"type": "string", "pattern": "^(|[0-9a-f]{40})$"}, "remote_candidate_sha": {"type": "string", "pattern": "^(|[0-9a-f]{40})$"}, "pr_head_sha": {"type": "string", "pattern": "^(|[0-9a-f]{40})$"}, "pr_base_branch": {"type": "string"},
+    "outcome": {"type": "string"}, "product_repository_write": {"type": "boolean"}, "git_mutation": {"type": "boolean"}, "sanitized_summary": {"type": "string", "minLength": 1}, "blocker_fingerprint": {"type": "string"}, "secrets_visible": {"const": false}, "private_connection_metadata_count": {"const": 0}
+  },
+  "additionalProperties": false
+}
