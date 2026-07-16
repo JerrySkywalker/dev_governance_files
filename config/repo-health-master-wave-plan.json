@@ -1,8 +1,30 @@
 {
   "plan_id": "repo-health-master-wave-plan",
   "schema": "repo-health-master-wave-plan.v1",
-  "version": "1.0",
+  "version": "1.1",
   "status": "ACTIVE",
+  "active_branch_policy": {
+    "policy_id": "main-dev-policy",
+    "version": "2.0",
+    "status": "ACTIVE",
+    "path": "policy/main-dev-policy-v2.json",
+    "amendment_id": "W1-R01-MAIN-DEV-POLICY-V2",
+    "supersedes_policy_path": "config/branch-lifecycle-policy.json",
+    "preserves_policy_v1": true
+  },
+  "amendments": [
+    {
+      "amendment_id": "W1-R01-MAIN-DEV-POLICY-V2",
+      "version": "1.1",
+      "status": "ACTIVE",
+      "scope": "governance-only Wave 1 retrospective and Main/Dev Policy V2",
+      "preserves": [
+        "config/branch-lifecycle-policy.json",
+        "integration-inventory repo-health Wave 1 historical receipts"
+      ],
+      "wave_2_started": false
+    }
+  ],
   "global_policy": {
     "product_source_write_allowed_in_wave_0": false,
     "permanent_delete_allowed": false,
@@ -26,20 +48,24 @@
     {
       "wave_id": "W1",
       "name": "UPSTREAM_DATA_AND_IDENTITY",
-      "status": "PLANNED",
+      "status": "COMPLETED",
       "steps": [
         {"step_id": "W1-S01", "name": "jerry-telemetry-agent repository health"},
         {"step_id": "W1-S02", "name": "jerry-telemetry-hub repository health"},
         {"step_id": "W1-S03", "name": "jerry-devops-access repository health"},
         {"step_id": "W1-S04", "name": "upstream contract freeze report"}
       ],
-      "milestone": "M1_UPSTREAM_CONTRACTS_CONVERGED"
+      "milestone": "M1_UPSTREAM_CONTRACTS_CONVERGED",
+      "milestone_status": "ACHIEVED",
+      "completion_evidence": "V:/src/integration-inventory/repo-health/wave1-upstream-contracts-converged.json",
+      "next_wave_disposition": "W2_PLANNED_NOT_STARTED"
     },
     {
       "wave_id": "W2",
       "name": "MESSAGE_GATEWAY_CORE",
       "status": "PLANNED",
       "repositories": ["jerry-message-gateway"],
+      "not_started": true,
       "steps": [
         {"step_id": "W2-S01", "name": "Gateway PR and branch recovery planning"},
         {"step_id": "W2-S02", "name": "Gateway implementation, rebase and validation"},

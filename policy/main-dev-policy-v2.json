@@ -1,0 +1,124 @@
+{
+  "schema": "repo-health-main-dev-policy.v2",
+  "policy_id": "main-dev-policy",
+  "version": "2.0",
+  "status": "ACTIVE",
+  "amendment_id": "W1-R01-MAIN-DEV-POLICY-V2",
+  "scope": "Repository-health governance source and deterministic coordinator only.",
+  "supersedes": {
+    "path": "config/branch-lifecycle-policy.json",
+    "schema": "repo-health-branch-lifecycle-policy.v1",
+    "preserved": true
+  },
+  "main": {
+    "definition": "Accepted and fully validated source baseline that is safe for downstream contracts.",
+    "does_not_imply": [
+      "production deployment"
+    ],
+    "protection": [
+      "direct_push_prohibited",
+      "force_push_prohibited"
+    ]
+  },
+  "dev": {
+    "required": false,
+    "definition": "Optional named integration branch for tested, coherent work not yet eligible for main.",
+    "creation_requirements": [
+      "named_integration_train",
+      "owner",
+      "milestone",
+      "CI",
+      "promotion_conditions",
+      "exit_policy"
+    ],
+    "prohibited_uses": [
+      "historical_evidence",
+      "speculative_ideas",
+      "secrets"
+    ]
+  },
+  "feature_branches": {
+    "lifecycle": "short_lived",
+    "default_target": "main",
+    "dev_target_condition": "Only when the named integration train requires dev."
+  },
+  "release": {
+    "represented_by": [
+      "release_tags",
+      "artifacts",
+      "deployment_receipts"
+    ],
+    "not_inferred_from": [
+      "branch_name_only"
+    ]
+  },
+  "decision_rules": {
+    "CREATE_DEV": [
+      "multiple_interdependent_changes_need_continuous_integration",
+      "cross_repository_acceptance_remains_pending",
+      "main_must_remain_a_stable_downstream_contract_baseline",
+      "candidate_is_coherent_and_testable"
+    ],
+    "DO_NOT_CREATE_DEV": [
+      "one_bounded_PR_can_be_fully_validated",
+      "only_remaining_action_is_production_deployment",
+      "content_is_historical_evidence",
+      "content_is_speculative_or_superseded",
+      "no_coherent_integrated_candidate_exists"
+    ]
+  },
+  "promotion": {
+    "feature_to_dev": [
+      "PR",
+      "exact_head_gates"
+    ],
+    "dev_to_main": [
+      "dedicated_promotion_PR",
+      "full_CI",
+      "cross_contract_validation",
+      "fresh_Supervisor",
+      "exact_audited_SHA_equality"
+    ]
+  },
+  "cleanup": {
+    "requirements": [
+      "no_unnamed_long_lived_branches",
+      "no_dev_without_active_integration_train",
+      "archive_tags_for_history",
+      "backlog_records_for_follow_up_product_work",
+      "every_Wave_has_explicit_main_dev_disposition"
+    ]
+  },
+  "proof_model": {
+    "exact_head": "The literal reviewed PR-head SHA; never a synthetic merge result.",
+    "exact_main": "A fresh post-merge audit whose audited SHA equals the accepted main SHA.",
+    "required_for_claim": [
+      "audited_SHA",
+      "branch_or_PR_context",
+      "proof_class"
+    ]
+  },
+  "ci_claim_rules": {
+    "hosted_CI_green": "Claim only when the named hosted CI run passed for the exact claimed SHA.",
+    "local_gate": "Claim as local proof only; it is not hosted CI or production proof.",
+    "no_configured_CI": "State NOT_CONFIGURED rather than inferring green status.",
+    "production": "Never infer deployment from main, a PR merge, or CI alone."
+  },
+  "admission": {
+    "status_values": [
+      "UNKNOWN_DIRT",
+      "APPROVED_PRESERVED_EVIDENCE",
+      "TRACKED_CLEAN",
+      "SNAPSHOT_REQUIRED"
+    ],
+    "TRACKED_CLEAN": "Required tracked-worktree cleanliness state.",
+    "APPROVED_PRESERVED_EVIDENCE": "Non-blocking only with a verified preservation ledger and verified access boundary.",
+    "UNKNOWN_DIRT": "Blocking unclassified dirt; it cannot be relabeled as approved evidence without evidence and review.",
+    "SNAPSHOT_REQUIRED": "Required whenever a reviewer must not access original worktree evidence; the reviewer receives only a tracked snapshot bound to the exact source SHA and deterministic tree digest."
+  },
+  "runtime": {
+    "preferred_execution_surface": "interactive-tui-native-subagents",
+    "automatic_hard_timeout": false,
+    "automatic_role_process_kill": false
+  }
+}

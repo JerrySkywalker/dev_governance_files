@@ -431,7 +431,9 @@ function Test-RepoHealthAdmission {
         [Parameter(Mandatory)]
         [string]$RepositoryRoot,
         [Parameter(Mandatory)]
-        [object]$BranchInventory
+        [object]$BranchInventory,
+        [Parameter(Mandatory)]
+        [object]$EvidenceInventory
     )
 
     $agentsPath = Join-Path $RepositoryRoot 'AGENTS.md'
@@ -449,7 +451,67 @@ function Test-RepoHealthAdmission {
     if ([string]$BranchInventory.main -ne 'healthy') { $reasons.Add('main_not_healthy') }
     if ([string]$BranchInventory.dev -notin @('healthy', 'absent')) { $reasons.Add('dev_not_healthy_or_absent') }
     if ([int]$BranchInventory.unclassified_non_main_dev -ne 0) { $reasons.Add('unclassified_branches') }
-    return [pscustomobject]@{ admitted = ($reasons.Count -eq 0); reasons = @($reasons) }
+
+    function Get-AdmissionEvidenceBoolean {
+        param([Parameter(Mandatory)][string]$Name, [bool]$Default = $false)
+        $property = $EvidenceInventory.PSObject.Properties[$Name]
+        if ($null -eq $property) { return $Default }
+        return [bool]$property.Value
+    }
+    function Get-AdmissionEvidenceInteger {
+        param([Parameter(Mandatory)][string]$Name, [int]$Default = 0)
+        $property = $EvidenceInventory.PSObject.Properties[$Name]
+        if ($null -eq $property) { return $Default }
+        return [int]$property.Value
+    }
+
+    $evidenceStates = New-Object System.Collections.Generic.List[string]
+    $trackedClean = Get-AdmissionEvidenceBoolean -Name 'tracked_clean'
+    $approvedPreservedEvidenceCount = Get-AdmissionEvidenceInteger -Name 'approved_preserved_evidence_count'
+    $unknownDirtCount = Get-AdmissionEvidenceInteger -Name 'unknown_dirt_count'
+    $preservationLedgerVerified = Get-AdmissionEvidenceBoolean -Name 'preservation_ledger_verified'
+    $preservedEvidenceBoundaryVerified = Get-AdmissionEvidenceBoolean -Name 'preserved_evidence_boundary_verified'
+    $reviewerMustNotAccessOriginalWorktreeEvidence = Get-AdmissionEvidenceBoolean -Name 'reviewer_must_not_access_original_worktree_evidence'
+    $snapshotRequired = $reviewerMustNotAccessOriginalWorktreeEvidence -or (Get-AdmissionEvidenceBoolean -Name 'snapshot_required')
+    $trackedSnapshotIsolated = Get-AdmissionEvidenceBoolean -Name 'tracked_snapshot_isolated'
+    $snapshotSourceShaBound = Get-AdmissionEvidenceBoolean -Name 'snapshot_source_sha_bound'
+    $snapshotTreeDigestVerified = Get-AdmissionEvidenceBoolean -Name 'snapshot_tree_digest_verified'
+
+    if ($trackedClean) { $evidenceStates.Add('TRACKED_CLEAN') }
+    else { $reasons.Add('tracked_not_clean') }
+
+    if ($approvedPreservedEvidenceCount -gt 0) {
+        $evidenceStates.Add('APPROVED_PRESERVED_EVIDENCE')
+        if (-not $preservationLedgerVerified) { $reasons.Add('approved_preserved_evidence_ledger_unverified') }
+        if (-not $preservedEvidenceBoundaryVerified) { $reasons.Add('approved_preserved_evidence_boundary_unverified') }
+    }
+
+    if ($unknownDirtCount -gt 0) {
+        $evidenceStates.Add('UNKNOWN_DIRT')
+        $reasons.Add('unknown_dirt_present')
+    }
+
+    if ($snapshotRequired) {
+        $evidenceStates.Add('SNAPSHOT_REQUIRED')
+        if (-not $trackedSnapshotIsolated) { $reasons.Add('tracked_snapshot_isolation_required') }
+        if (-not $snapshotSourceShaBound) { $reasons.Add('tracked_snapshot_source_sha_unbound') }
+        if (-not $snapshotTreeDigestVerified) { $reasons.Add('tracked_snapshot_tree_digest_unverified') }
+    }
+
+    return [pscustomobject]@{
+        admitted = ($reasons.Count -eq 0)
+        reasons = @($reasons | Select-Object -Unique)
+        evidence_states = @($evidenceStates | Select-Object -Unique)
+        evidence = [pscustomobject]@{
+            tracked_clean = $trackedClean
+            approved_preserved_evidence_count = $approvedPreservedEvidenceCount
+            unknown_dirt_count = $unknownDirtCount
+            snapshot_required = $snapshotRequired
+            tracked_snapshot_isolated = $trackedSnapshotIsolated
+            snapshot_source_sha_bound = $snapshotSourceShaBound
+            snapshot_tree_digest_verified = $snapshotTreeDigestVerified
+        }
+    }
 }
 
 function New-RepoHealthGoalContent {
