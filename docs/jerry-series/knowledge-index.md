@@ -9,18 +9,21 @@ This index lists durable governance knowledge captured from Jerry series develop
 ## Playbooks
 
 - `playbooks/lesson-capture-playbook.md` — How to capture future lessons into this repository.
-- `playbooks/protected-evidence-playbook.md` — How to handle unknown or protected evidence without losing it.
-- `playbooks/self-hosted-ci-playbook.md` — How to preflight and recover self-hosted GitHub Actions failures.
+- `playbooks/protected-evidence-playbook.md` — How to handle unknown or protected evidence, retained evidence worktrees, and post-relocation metadata side effects without losing evidence.
+- `playbooks/self-hosted-ci-playbook.md` — How to preflight and recover self-hosted GitHub Actions failures with exact-SHA and causal CI accounting.
 - `playbooks/github-private-read-audit-playbook.md` — How to perform authenticated private GitHub reads without credential exposure or mutation.
-- `playbooks/branch-worktree-convergence-playbook.md` — How to converge branches, PRs, worktrees, and archive tags safely.
+- `playbooks/branch-worktree-convergence-playbook.md` — How to converge complete live local/remote branch, PR, worktree, archive, and retained-state inventories safely.
+- `playbooks/git-operation-marker-reconciliation-playbook.md` — How to distinguish coherent active Git operations from orphan markers and preserve stale metadata safely.
 
 ## Retrospectives
 
 - `retrospectives/waves-1-to-3-lessons.md` — Lessons from the upstream, Gateway, and consumer waves.
+- `retrospectives/wave-4-lessons.md` — Lessons from control-plane topology, no-op product convergence, live-state revalidation, evidence dispositions, and final audit recovery.
 
 ## Patterns
 
 - `patterns/blocker-taxonomy.md` — Standard blocker classes and expected dispositions.
+- `patterns/recovery-goal-evidence-binding.md` — How recovery Goals bind to the last proven stage without requiring artifacts that could not yet exist.
 
 ## Non-goals
 
