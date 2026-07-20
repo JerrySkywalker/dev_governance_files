@@ -1,7 +1,7 @@
 {
   "plan_id": "repo-health-master-wave-plan",
   "schema": "repo-health-master-wave-plan.v1",
-  "version": "1.2",
+  "version": "1.3",
   "status": "ACTIVE",
   "active_branch_policy": {
     "policy_id": "main-dev-policy",
@@ -34,6 +34,18 @@
         "the original W6-S04 identifier for plan history"
       ],
       "wave_6_started": false
+    },
+    {
+      "amendment_id": "W6-R01-LONG-RUN-PLAN-OUTCOME-LESSONS",
+      "version": "1.3",
+      "status": "ACTIVE",
+      "scope": "Wave 6 closeout, long-running multi-step orchestration, runtime override and evidence-disposition lessons, and lightweight Plan/Outcome repository guidance",
+      "preserves": [
+        "Wave 6 local checkpoints, reports, validation evidence, blockers, and overrides",
+        "the original Wave 6 plan and execution orchestrator",
+        "the W6-S04 external-not-owned disposition"
+      ],
+      "wave_7_started": false
     }
   ],
   "global_policy": {
@@ -44,7 +56,12 @@
     "unknown_classification_prohibited": true,
     "one_owner_visible_goal_per_repository_preferred": true,
     "compact_report_and_checkpoint_preferred": true,
-    "external_not_owned_repositories_excluded_from_canonical_debt": true
+    "external_not_owned_repositories_excluded_from_canonical_debt": true,
+    "long_running_wave_orchestrator_allowed": true,
+    "runtime_owner_overrides_are_append_only": true,
+    "rejected_evidence_requires_explicit_disposition": true,
+    "lightweight_plan_outcome_repository_convention_preferred": true,
+    "heavy_execution_platform_not_required_for_active_health_train": true
   },
   "waves": [
     {
@@ -136,20 +153,32 @@
     {
       "wave_id": "W6",
       "name": "INDEPENDENT_PRODUCTS",
-      "status": "PLANNED_NOT_STARTED",
+      "status": "COMPLETED",
       "scope": "owner-controlled canonical repositories only",
       "plan_path": "docs/jerry-series/plans/wave-6-independent-products-plan.md",
+      "orchestrator_path": "docs/jerry-series/plans/wave-6-execution-orchestrator.md",
+      "retrospective_path": "docs/jerry-series/retrospectives/wave-6-lessons.md",
       "steps": [
-        {"step_id": "W6-S01", "name": "codex-ntfy-notifier repository convergence", "status": "PLANNED"},
-        {"step_id": "W6-S02", "name": "wearos-healthprobe-preflight repository convergence", "status": "PLANNED"},
-        {"step_id": "W6-S03", "name": "wearos-healthprobe-app repository convergence", "status": "PLANNED", "depends_on": ["W6-S02"]},
+        {"step_id": "W6-S01", "name": "codex-ntfy-notifier repository convergence", "status": "COMPLETED", "product_outcome": "MINIMAL_PRODUCT_DELTA_IMPLEMENTED"},
+        {"step_id": "W6-S02", "name": "wearos-healthprobe-preflight repository convergence", "status": "COMPLETED", "product_outcome": "NO_PRODUCT_DELTA_REQUIRED", "contract_frozen": true},
+        {"step_id": "W6-S03", "name": "wearos-healthprobe-app repository convergence", "status": "COMPLETED", "depends_on": ["W6-S02"], "product_outcome": "NO_PRODUCT_DELTA_REQUIRED", "provider_consumer_compatible": true},
         {"step_id": "W6-S04", "name": "hithesis external repository disposition", "status": "SKIPPED_EXTERNAL_NOT_OWNED", "milestone_blocking": false, "product_write_allowed": false},
-        {"step_id": "W6-S05", "name": "remaining owner-controlled canonical repository review", "status": "PLANNED"},
-        {"step_id": "W6-S06", "name": "all-owner-repository health audit", "status": "PLANNED"}
+        {"step_id": "W6-S05", "name": "remaining owner-controlled canonical repository review", "status": "COMPLETED"},
+        {"step_id": "W6-S06", "name": "all-owner-repository health audit", "status": "COMPLETED"}
       ],
       "milestone": "M6_REPOSITORY_HEALTH_TRAIN_COMPLETE",
+      "milestone_status": "ACHIEVED",
       "milestone_scope": "owner-controlled canonical repositories",
-      "external_not_owned_objects_block_milestone": false
+      "completion_evidence": "V:/src/integration-inventory/repo-health/w6-repository-health-train-checkpoint.json",
+      "external_not_owned_objects_block_milestone": false,
+      "unclassified_object_count": 0,
+      "unresolved_repository_health_debt": 0,
+      "force_push_performed": false,
+      "history_rewrite": false,
+      "device_mutation": false,
+      "windows_service_mutation": false,
+      "production_action": false,
+      "next_wave_disposition": "W7_REQUIRES_DETAILED_REPLANNING_NOT_STARTED"
     },
     {
       "wave_id": "W7A",
