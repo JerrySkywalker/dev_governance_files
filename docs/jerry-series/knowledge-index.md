@@ -24,6 +24,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 ## Plans
 
 - `plans/wave-6-independent-products-plan.md` — Revised six-step Wave 6 plan for owner-controlled independent products, with `hithesis` explicitly skipped as external and not owner-controlled.
+- `plans/wave-6-execution-orchestrator.md` — Durable one-invocation Wave 6 state machine for sequential autonomous execution, checkpointed resume, bounded recovery, external-repository skip handling, and final M6 audit.
 
 ## Patterns
 
