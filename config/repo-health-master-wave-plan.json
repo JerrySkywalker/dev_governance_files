@@ -1,7 +1,7 @@
 {
   "plan_id": "repo-health-master-wave-plan",
   "schema": "repo-health-master-wave-plan.v1",
-  "version": "1.1",
+  "version": "1.2",
   "status": "ACTIVE",
   "active_branch_policy": {
     "policy_id": "main-dev-policy",
@@ -23,6 +23,17 @@
         "integration-inventory repo-health Wave 1 historical receipts"
       ],
       "wave_2_started": false
+    },
+    {
+      "amendment_id": "W5-R01-SINGLE-GOAL-AND-W6-OWNERSHIP-SCOPE",
+      "version": "1.2",
+      "status": "ACTIVE",
+      "scope": "Wave 5 closeout, single-goal recovery lessons, and Wave 6 owner-controlled repository scope",
+      "preserves": [
+        "Wave 5 local evidence and exact-SHA receipts",
+        "the original W6-S04 identifier for plan history"
+      ],
+      "wave_6_started": false
     }
   ],
   "global_policy": {
@@ -30,7 +41,10 @@
     "permanent_delete_allowed": false,
     "agents_md_update_required_per_repository": true,
     "repo_health_requires_agents_md_compliance": true,
-    "unknown_classification_prohibited": true
+    "unknown_classification_prohibited": true,
+    "one_owner_visible_goal_per_repository_preferred": true,
+    "compact_report_and_checkpoint_preferred": true,
+    "external_not_owned_repositories_excluded_from_canonical_debt": true
   },
   "waves": [
     {
@@ -105,28 +119,37 @@
     {
       "wave_id": "W5",
       "name": "WORKSTATION_SOURCE_CONVERGENCE",
-      "status": "PLANNED",
+      "status": "COMPLETED",
       "steps": [
-        {"step_id": "W5-S01", "name": "workstation-manager repository health"},
-        {"step_id": "W5-S02", "name": "jerry-workstation-config repository health"},
-        {"step_id": "W5-S03", "name": "deferred production backlog persistence"}
+        {"step_id": "W5-S01", "name": "workstation-manager repository health", "status": "COMPLETED"},
+        {"step_id": "W5-S02", "name": "jerry-workstation-config repository health", "status": "COMPLETED"},
+        {"step_id": "W5-S03", "name": "deferred production backlog persistence", "status": "COMPLETED"}
       ],
       "milestone": "M5_WORKSTATION_SOURCE_CONVERGED",
-      "production_service_installation": "NOT_IN_SCOPE"
+      "milestone_status": "ACHIEVED",
+      "completion_evidence": "V:/src/integration-inventory/repo-health/w5-workstation-closeout-checkpoint.json",
+      "production_service_installation": "NOT_PERFORMED_DEFERRED",
+      "real_executor_enablement": "DEFERRED",
+      "workstation_apply": "DISABLED",
+      "next_wave_disposition": "W6_PLANNED_NOT_STARTED"
     },
     {
       "wave_id": "W6",
       "name": "INDEPENDENT_PRODUCTS",
-      "status": "PLANNED",
+      "status": "PLANNED_NOT_STARTED",
+      "scope": "owner-controlled canonical repositories only",
+      "plan_path": "docs/jerry-series/plans/wave-6-independent-products-plan.md",
       "steps": [
-        {"step_id": "W6-S01", "name": "codex-ntfy-notifier repository health"},
-        {"step_id": "W6-S02", "name": "wearos-healthprobe-preflight repository health"},
-        {"step_id": "W6-S03", "name": "wearos-healthprobe-app repository health"},
-        {"step_id": "W6-S04", "name": "hithesis branch and worktree hygiene"},
-        {"step_id": "W6-S05", "name": "remaining canonical repository review"},
-        {"step_id": "W6-S06", "name": "all-repository health audit"}
+        {"step_id": "W6-S01", "name": "codex-ntfy-notifier repository convergence", "status": "PLANNED"},
+        {"step_id": "W6-S02", "name": "wearos-healthprobe-preflight repository convergence", "status": "PLANNED"},
+        {"step_id": "W6-S03", "name": "wearos-healthprobe-app repository convergence", "status": "PLANNED", "depends_on": ["W6-S02"]},
+        {"step_id": "W6-S04", "name": "hithesis external repository disposition", "status": "SKIPPED_EXTERNAL_NOT_OWNED", "milestone_blocking": false, "product_write_allowed": false},
+        {"step_id": "W6-S05", "name": "remaining owner-controlled canonical repository review", "status": "PLANNED"},
+        {"step_id": "W6-S06", "name": "all-owner-repository health audit", "status": "PLANNED"}
       ],
-      "milestone": "M6_REPOSITORY_HEALTH_TRAIN_COMPLETE"
+      "milestone": "M6_REPOSITORY_HEALTH_TRAIN_COMPLETE",
+      "milestone_scope": "owner-controlled canonical repositories",
+      "external_not_owned_objects_block_milestone": false
     },
     {
       "wave_id": "W7A",
