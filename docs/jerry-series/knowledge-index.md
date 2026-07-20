@@ -14,12 +14,14 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `playbooks/github-private-read-audit-playbook.md` — How to perform authenticated private GitHub reads without credential exposure or mutation.
 - `playbooks/branch-worktree-convergence-playbook.md` — How to converge complete live local/remote branch, PR, worktree, archive, and retained-state inventories safely.
 - `playbooks/git-operation-marker-reconciliation-playbook.md` — How to distinguish coherent active Git operations from orphan markers and preserve stale metadata safely.
+- `playbooks/lightweight-plan-outcome-repository-playbook.md` — Lightweight GitHub conventions for concrete Plans, Goals, Outcomes, blockers, overrides, and SkyBridge status.
 
 ## Retrospectives
 
 - `retrospectives/waves-1-to-3-lessons.md` — Lessons from the upstream, Gateway, and consumer waves.
 - `retrospectives/wave-4-lessons.md` — Lessons from control-plane topology, no-op product convergence, live-state revalidation, evidence dispositions, and final audit recovery.
 - `retrospectives/wave-5-lessons.md` — Lessons from workstation source convergence, single-goal execution, automatic recovery budgets, private cross-repository CI, and complete branch retirement.
+- `retrospectives/wave-6-lessons.md` — Lessons from long-running Wave orchestration, runtime overrides, evidence replacement, safe validation, lightweight Plan/Outcome repositories, and SkyBridge boundaries.
 
 ## Plans
 
