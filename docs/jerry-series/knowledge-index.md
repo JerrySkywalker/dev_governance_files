@@ -5,6 +5,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 ## Decisions
 
 - `decisions/JD-0001-web-supervisor-github-governance-writes.md` — Defines the authority split between ChatGPT web and local Codex.
+- `decisions/JD-0002-current-repository-health-train-keeps-wave-6-execution-model.md` — Makes the Wave 6 execution model mandatory for the remaining repository-health Waves through M9 instead of requiring the generic Plan/Outcome task-group repository lifecycle.
 
 ## Playbooks
 
