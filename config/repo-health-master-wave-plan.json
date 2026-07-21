@@ -1,7 +1,7 @@
 {
   "plan_id": "repo-health-master-wave-plan",
   "schema": "repo-health-master-wave-plan.v1",
-  "version": "1.3",
+  "version": "1.4",
   "status": "ACTIVE",
   "active_branch_policy": {
     "policy_id": "main-dev-policy",
@@ -46,6 +46,19 @@
         "the W6-S04 external-not-owned disposition"
       ],
       "wave_7_started": false
+    },
+    {
+      "amendment_id": "W7A-R01-DETAILED-CODEX-USAGE-CHAIN",
+      "version": "1.4",
+      "status": "ACTIVE",
+      "scope": "detailed Wave 7A safe Codex usage change-message chain and one-invocation execution orchestrator",
+      "preserves": [
+        "the original W7A identifier and M7A milestone",
+        "completed Wave 1 through Wave 6 evidence",
+        "the Wave 6 execution model required by JD-0002"
+      ],
+      "wave_7a_started": false,
+      "wave_7b_started": false
     }
   ],
   "global_policy": {
@@ -61,7 +74,8 @@
     "runtime_owner_overrides_are_append_only": true,
     "rejected_evidence_requires_explicit_disposition": true,
     "lightweight_plan_outcome_repository_convention_preferred": true,
-    "heavy_execution_platform_not_required_for_active_health_train": true
+    "heavy_execution_platform_not_required_for_active_health_train": true,
+    "remaining_health_waves_use_wave_6_execution_model": true
   },
   "waves": [
     {
@@ -178,19 +192,38 @@
       "device_mutation": false,
       "windows_service_mutation": false,
       "production_action": false,
-      "next_wave_disposition": "W7_REQUIRES_DETAILED_REPLANNING_NOT_STARTED"
+      "next_wave_disposition": "W7A_READY_NOT_STARTED"
     },
     {
       "wave_id": "W7A",
-      "name": "CODEX_USAGE_DATA_CHAIN",
-      "status": "PLANNED",
-      "steps": [
-        {"step_id": "W7A-S01", "name": "Agent to Hub"},
-        {"step_id": "W7A-S02", "name": "Hub to Gateway"},
-        {"step_id": "W7A-S03", "name": "Gateway to Android"},
-        {"step_id": "W7A-S04", "name": "full-chain read-only audit"}
+      "name": "CODEX_USAGE_SAFE_MESSAGE_CHAIN",
+      "status": "READY_NOT_STARTED",
+      "chain_semantics": "SAFE_USAGE_CHANGE_MESSAGE",
+      "plan_path": "docs/jerry-series/plans/wave-7a-codex-usage-chain-plan.md",
+      "orchestrator_path": "docs/jerry-series/plans/wave-7a-execution-orchestrator.md",
+      "repositories": [
+        "jerry-telemetry-agent",
+        "jerry-telemetry-hub",
+        "jerry-message-gateway",
+        "jerry-devops-android"
       ],
-      "milestone": "M7A_CODEX_USAGE_CHAIN_GREEN"
+      "expected_baseline": {
+        "jerry-telemetry-agent": "e2eefd1630d6231ea5fe7388c3caf1394576c8f6",
+        "jerry-telemetry-hub": "8960abd64f1736de5a31788f8a65e31c76ed6971",
+        "jerry-message-gateway": "6ee6b1bc9ae3045a42d94df943ce77331178c3ec",
+        "jerry-devops-android": "c856e4f8ee476002b3a17858a1873fe945322ef6"
+      },
+      "steps": [
+        {"step_id": "W7A-S01", "name": "Agent to Hub exact integration", "status": "READY_NOT_STARTED"},
+        {"step_id": "W7A-S02", "name": "Hub to Gateway exact integration", "status": "READY_NOT_STARTED", "depends_on": ["W7A-S01"]},
+        {"step_id": "W7A-S03", "name": "Gateway to Android exact contract", "status": "READY_NOT_STARTED", "depends_on": ["W7A-S02"]},
+        {"step_id": "W7A-S04", "name": "full-chain live audit", "status": "READY_NOT_STARTED", "depends_on": ["W7A-S01", "W7A-S02", "W7A-S03"]}
+      ],
+      "milestone": "M7A_CODEX_USAGE_CHAIN_GREEN",
+      "full_android_usage_dashboard": false,
+      "production_polling": false,
+      "physical_phone_validation": false,
+      "w7b_started": false
     },
     {
       "wave_id": "W7B",
