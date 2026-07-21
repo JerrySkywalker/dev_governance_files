@@ -28,6 +28,8 @@ This index lists durable governance knowledge captured from Jerry series develop
 
 - `plans/wave-6-independent-products-plan.md` — Revised six-step Wave 6 plan for owner-controlled independent products, with `hithesis` explicitly skipped as external and not owner-controlled.
 - `plans/wave-6-execution-orchestrator.md` — Durable one-invocation Wave 6 state machine for sequential autonomous execution, checkpointed resume, bounded recovery, external-repository skip handling, and final M6 audit.
+- `plans/wave-7a-codex-usage-chain-plan.md` — Detailed exact-SHA plan for the Agent → Hub → Gateway → Android safe Codex usage change-message chain.
+- `plans/wave-7a-execution-orchestrator.md` — Durable one-invocation W7A state machine for exact cross-repository integration, bounded correction, no-signing Android validation, and final M7A audit.
 
 ## Patterns
 
