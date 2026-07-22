@@ -23,6 +23,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `retrospectives/wave-4-lessons.md` — Lessons from control-plane topology, no-op product convergence, live-state revalidation, evidence dispositions, and final audit recovery.
 - `retrospectives/wave-5-lessons.md` — Lessons from workstation source convergence, single-goal execution, automatic recovery budgets, private cross-repository CI, and complete branch retirement.
 - `retrospectives/wave-6-lessons.md` — Lessons from long-running Wave orchestration, runtime overrides, evidence replacement, safe validation, lightweight Plan/Outcome repositories, and SkyBridge boundaries.
+- `retrospectives/wave-7a-lessons.md` — Lessons from exact cross-repository E2E, provider-contract repair, Gradle supply-chain proof, task-graph semantic classification, evidence disposition, and the need for a durable authenticated visual-validation channel.
 
 ## Plans
 
@@ -30,6 +31,8 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `plans/wave-6-execution-orchestrator.md` — Durable one-invocation Wave 6 state machine for sequential autonomous execution, checkpointed resume, bounded recovery, external-repository skip handling, and final M6 audit.
 - `plans/wave-7a-codex-usage-chain-plan.md` — Detailed exact-SHA plan for the Agent → Hub → Gateway → Android safe Codex usage change-message chain.
 - `plans/wave-7a-execution-orchestrator.md` — Durable one-invocation W7A state machine for exact cross-repository integration, bounded correction, no-signing Android validation, and final M7A audit.
+- `plans/wave-7v-dual-dashboard-visual-validation-plan.md` — Inserts a production/canary dual Glance Dashboard, safe Wave visual packets, 1Panel/Authelia owner gate, cloud Playwright screenshots, and human visual acceptance between W7A and W7B.
+- `plans/wave-7v-execution-orchestrator.md` — Durable one-invocation W7V state machine for topology admission, Dashboard source work, local screenshots, isolated Beijing canary deployment, owner-controlled public routing, authenticated cloud Playwright validation, and final visual acceptance.
 
 ## Patterns
 
@@ -42,4 +45,4 @@ This knowledge base does not replace product repository documentation, release n
 
 ## Update policy
 
-Small docs-only additions may be performed from ChatGPT web through a pull request in `dev_governance_files`. Product code, local evidence, local Git state, CI recovery, and protected evidence operations remain local-Codex work.
+Small docs-only additions may be performed from ChatGPT web through a pull request in `dev_governance_files`. Product code, local evidence, local Git state, CI recovery, protected evidence operations, server deployment, 1Panel owner actions, and Playwright authenticated state remain local-Codex or owner-controlled work.
