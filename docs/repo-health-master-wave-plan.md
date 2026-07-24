@@ -63,8 +63,18 @@ It also requires four owner gates:
 3. production-shaped preview, duplicate-title, and panel-depth decisions; and
 4. owner-controlled production deployment, validation, and rollback proof.
 
-One root Implementer is the only writer. Every PR uses a short-lived branch,
-normal push and merge, self-hosted exact-head and exact-main proof, fresh
+One root Implementer is the only writer. Stage G in `dev_governance_files` uses
+the bounded proof class `GOVERNANCE_REPOSITORY_NO_CI_PROOF` because a live
+capability check proves zero tracked workflows, zero attached runners, and zero
+expected checks. It still requires exact-SHA deterministic validation, a normal
+PR, fresh separately launched read-only exact-head and exact-main audits, clean
+worktrees, and normal branch retirement. It does not authorize a workflow,
+runner, hosted compute, branch-protection change, skipped validation, or direct
+unreviewed merge. Future governance CI remains a separate infrastructure
+decision.
+
+All Phase A through Phase C product PRs continue to use short-lived branches,
+normal push and merge, self-hosted exact-head and exact-main CI, fresh
 independent read-only review, and normal remote plus local branch retirement.
 No force push, hosted-runner fallback, cross-phase combined PR, or automatic
 empty-commit rerun is permitted.
@@ -84,10 +94,11 @@ must not contain credentials, personal identity details, cookies, tokens,
 storage-state contents, raw authentication errors, secret-bearing command lines,
 or private keys.
 
-The interlude returns to the W7B authorization boundary only after all three
-phase milestones, all four owner gates, four distinct merged PRs, self-hosted
-exact-head/exact-main proof, rollback evidence, and a fresh final read-only audit
-set `M_PRE_W7B_DASHBOARD_HARDENING_COMPLETE=true`. It does not start W7B.
+The interlude returns to the W7B authorization boundary only after the Stage G
+governance no-CI capability proof, all three phase milestones, all four owner
+gates, four distinct product PRs with self-hosted exact-head/exact-main CI,
+rollback evidence, and a fresh final read-only audit set
+`M_PRE_W7B_DASHBOARD_HARDENING_COMPLETE=true`. It does not start W7B.
 
 Wave 1 remains `COMPLETED`: `M1_UPSTREAM_CONTRACTS_CONVERGED` is achieved by the recorded Agent, Hub, and Access exact-main evidence. Wave 2 remains `PLANNED` and explicitly `not_started`; this amendment does not authorize or start W2-S01.
 

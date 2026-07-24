@@ -217,15 +217,72 @@ At minimum:
 
 ### G.4 Review and delivery
 
-Use one planned coherent commit. Obtain a fresh independent read-only exact-head
-governance review. Push normally, open a normal PR, require exact-head
-self-hosted CI, merge normally, validate exact main, delete the remote branch
-normally, and delete the local branch with `git branch -d`.
+Use one planned coherent commit and at most the authorized bounded corrective
+governance commit. Push normally and use a normal PR.
 
-If the repository lacks an in-scope self-hosted exact-head CI path, do not count
-local tests, Copilot review, or a hosted runner as CI. Stop with
-`PREW7B_DASH_HARDENING_OWNER_DECISION_REQUIRED` before adding workflow or runner
-scope.
+For `dev_governance_files` Stage G only, use:
+
+```text
+EXACT_HEAD_PROOF_CLASS=GOVERNANCE_REPOSITORY_NO_CI_PROOF
+```
+
+This is a repository-capability proof, not a CI waiver. Before merge, bind all
+validation to the exact PR head and require:
+
+```text
+PR_STATE=open
+PR_MERGEABLE=true
+PR_BASE_SHA=<admitted exact base>
+PR_HEAD_SHA=<corrected exact head>
+PR_COMMIT_COUNT_WITHIN_AUTHORIZED_BUDGET=true
+CHANGED_FILES_SUBSET_OF_AUTHORIZED_FIVE=true
+GOVERNANCE_TRACKED_WORKFLOW_COUNT=0
+GOVERNANCE_ATTACHED_RUNNER_COUNT=0
+GOVERNANCE_STATUS_CHECK_COUNT=0
+GOVERNANCE_NO_CI_CAPABILITY_PROVEN=true
+JSON_PARSE_PASS=true
+STRUCTURAL_ASSERTIONS_PASS=true
+MASTER_PLAN_VERSION_PASS=true
+AMENDMENT_IDENTIFIER_UNIQUE=true
+W7V_FINAL_EVIDENCE_BINDING_PASS=true
+W7B_IDENTITY_PRESERVED=true
+W7B_DEPENDENCY_PRESERVED=true
+W7B_STARTED=false
+PROHIBITED_SECRET_SCAN_PASS=true
+GIT_DIFF_CHECK_PASS=true
+WORKTREE_CLEAN=true
+WRITER_LOCK_ABSENT=true
+ACTIVE_GIT_OPERATION=false
+INDEPENDENT_READ_ONLY_EXACT_HEAD_AUDITOR=PASS
+AUDITOR_FINDING_COUNT=0
+```
+
+The writer lease may be held during correction, but it must be released and
+proven absent before the independent exact-head audit. A separately launched
+read-only process is mandatory; same-process review, Copilot review, and
+unbound local output are not substitutes.
+
+Do not add a workflow, attach/register a runner, change branch protection, or
+use hosted compute. Future governance CI is a separate infrastructure decision.
+
+After the exact-head proof passes, merge normally. Synchronize local `main`
+safely and require local main, cached `origin/main`, and live remote main to equal
+the merge SHA. Rerun the complete deterministic validation and launch a fresh
+separately launched read-only exact-main Auditor. Require:
+
+```text
+GOVERNANCE_PLAN_MERGED=true
+GOVERNANCE_EXACT_MAIN_PROOF_CLASS=GOVERNANCE_REPOSITORY_NO_CI_PROOF
+GOVERNANCE_EXACT_MAIN_VALIDATION=PASS
+GOVERNANCE_EXACT_MAIN_AUDIT=PASS
+W7B_STARTED=false
+```
+
+Only then delete the remote feature branch normally, delete the local branch
+with `git branch -d`, and leave the governance worktree clean.
+
+This Stage G proof class does not change the Product PR Lifecycle below: Phase A
+through Phase C continue to require self-hosted exact-head and exact-main CI.
 
 No Dashboard branch starts until:
 

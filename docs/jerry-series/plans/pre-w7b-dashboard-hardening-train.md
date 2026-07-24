@@ -409,18 +409,62 @@ overflow, and absence of retained credentials, cookies, or state.
 Only accepted deploy and rollback evidence sets
 `M_DASH_PRODUCTION_UI_HARMONIZED=true`.
 
-## 14. CI, PR, and branch contract
+## 14. Exact-state proof, PR, and branch contract
 
-All CI used for acceptance is self-hosted and exact-SHA bound. Hosted-runner
-fallback is prohibited. An unchanged-head infrastructure rerun is allowed only
-after explicit infrastructure classification; empty trigger commits are not.
+### 14.1 Stage G governance repository proof
 
-Each branch follows:
+Stage G uses
+`EXACT_HEAD_PROOF_CLASS=GOVERNANCE_REPOSITORY_NO_CI_PROOF` and
+`GOVERNANCE_EXACT_MAIN_PROOF_CLASS=GOVERNANCE_REPOSITORY_NO_CI_PROOF`.
+This proof class applies only to `dev_governance_files`, and only while an
+independent live capability check proves all of:
+
+```text
+GOVERNANCE_TRACKED_WORKFLOW_COUNT=0
+GOVERNANCE_ATTACHED_RUNNER_COUNT=0
+GOVERNANCE_STATUS_CHECK_COUNT=0
+GOVERNANCE_NO_CI_CAPABILITY_PROVEN=true
+```
+
+This is a bounded repository-capability proof, not a CI waiver. Exact-head proof
+still requires an open and mergeable normal PR bound to its base and head SHAs;
+the authorized file/commit budget; deterministic JSON, structural, master-plan,
+W7V/W7B, prohibited-secret, and diff validation; a clean worktree; no writer
+lock or active Git operation; and a separately launched read-only exact-head
+Auditor with zero findings.
+
+After normal merge, exact-main proof requires local `main`, cached
+`origin/main`, and live remote `main` to equal the merge SHA; the complete
+deterministic validation to pass again; and a fresh separately launched
+read-only exact-main Auditor to pass before branch retirement.
+
+The proof class never permits:
+
+- GitHub-hosted or other hosted-runner fallback;
+- skipped deterministic validation;
+- a same-process audit substitute;
+- local output that is not bound to the exact commit;
+- a dirty worktree or active Git operation;
+- force push, history rewrite, or direct unreviewed merge; or
+- adding a workflow, attaching/registering a runner, or changing branch
+  protection as an implicit part of this amendment.
+
+Future governance-repository CI is a separate infrastructure decision and is not
+authorized by this train.
+
+### 14.2 Product repository CI
+
+All Phase A through Phase C product CI remains self-hosted and exact-SHA bound.
+Hosted-runner fallback is prohibited. An unchanged-head infrastructure rerun is
+allowed only after explicit infrastructure classification; empty trigger
+commits are not.
+
+Each product branch follows:
 
 ```text
 admit -> implement -> local validate -> independent read-only review
--> push -> normal PR -> exact-head CI -> normal merge
--> exact-main validation -> remote delete -> local git branch -d
+-> push -> normal PR -> self-hosted exact-head CI -> normal merge
+-> self-hosted exact-main validation -> remote delete -> local git branch -d
 ```
 
 Force push, history rewrite, force deletion, synthetic combined phase PRs, and
