@@ -33,6 +33,8 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `plans/wave-7a-execution-orchestrator.md` — Durable one-invocation W7A state machine for exact cross-repository integration, bounded correction, no-signing Android validation, and final M7A audit.
 - `plans/wave-7v-dual-dashboard-visual-validation-plan.md` — Inserts a production/canary dual Glance Dashboard, safe Wave visual packets, 1Panel/Authelia owner gate, cloud Playwright screenshots, and human visual acceptance between W7A and W7B.
 - `plans/wave-7v-execution-orchestrator.md` — Durable one-invocation W7V state machine for topology admission, Dashboard source work, local screenshots, isolated Beijing canary deployment, owner-controlled public routing, authenticated cloud Playwright validation, and final visual acceptance.
+- `plans/pre-w7b-dashboard-hardening-train.md` — Defines the four-PR, four-owner-gate Dashboard authentication and UI hardening interlude required after completed W7V and before W7B authorization.
+- `plans/pre-w7b-dashboard-hardening-execution-orchestrator.md` — Checkpointed one-writer state machine for governance-first delivery, repository-local auth automation, UI contract and previews, owner-controlled production confirmation, and final read-only acceptance.
 
 ## Patterns
 
