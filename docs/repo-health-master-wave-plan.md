@@ -2,7 +2,7 @@
 
 Plan ID: repo-health-master-wave-plan
 Schema: repo-health-master-wave-plan.v1
-Version: 1.6
+Version: 1.7
 Status: ACTIVE
 
 The machine-readable canonical plan is config/repo-health-master-wave-plan.json. Wave 0 persists governance and inventory, safely converges only proven-safe worktrees, and adds the deterministic coordinator. Its milestone is M0_FOUNDATION_READY.
@@ -12,11 +12,10 @@ The machine-readable canonical plan is config/repo-health-master-wave-plan.json.
 `W1-R01-MAIN-DEV-POLICY-V2` activates [Main/Dev Policy V2](governance/main-dev-policy-v2.md) and its machine-readable source at `policy/main-dev-policy-v2.json`. It supersedes the active branch-policy interpretation while preserving `config/branch-lifecycle-policy.json` as the historical V1 policy and leaving all Wave 1 receipts untouched.
 
 The current amendment is
-`W7V-R02-PRE-W7B-DASHBOARD-HARDENING`, version `1.6`. It preserves all earlier
-amendments and records the final Wave 7V closure before inserting the named
-`PRE-W7B-DASHBOARD-HARDENING` interlude. It does not add a Wave or change the
-existing W7B identifier, steps, visual channel, dependency direction, or
-milestone.
+`W7V-R03-PHASE-A-CLOSEOUT-AND-COMPRESSED-WAVE7-TRAIN`, version `1.7`. It
+preserves all earlier amendments, closes Pre-W7B Phase A, moves the
+owner-deferred Dashboard UI work after W7E, and authorizes materialization of
+the `W7-COMPRESSED-001` run bundle. It does not start W7B or authorize W8/W9.
 
 Wave 7V is `COMPLETED`. Its final closure is bound to:
 
@@ -25,80 +24,77 @@ Wave 7V is `COMPLETED`. Its final closure is bound to:
 - `V:/src/integration-inventory/repo-health/w7v-dual-dashboard-checkpoint.json`, SHA-256 `5845d381a74546a5b79d71e70c3e40ca30383d441942a5fe2221909447768c4b`; and
 - `V:/src/integration-inventory/repo-health/w7v-dual-dashboard-report.md`, SHA-256 `618155e9d71eb6d384561af545a9789aafd370c186c99e6ab9bbd19d161c3f6e`.
 
-The final facts are
+The Wave 7V closure facts remain
 `W7V_FORMAL_CONFORMANCE=PASS`, `W7V_OVERALL_STATUS=COMPLETE`,
 `DASHBOARD_EXACT_MAIN=c3f0e309ec26238d5d61972b5024d76d478c8adc`, and
 `W7B_STARTED=false`.
 
-## Pre-W7B Dashboard hardening interlude
+## Pre-W7B Phase A closeout
 
-The interlude is defined by:
+The original interlude remains documented by:
 
 - `docs/jerry-series/plans/pre-w7b-dashboard-hardening-train.md`; and
 - `docs/jerry-series/plans/pre-w7b-dashboard-hardening-execution-orchestrator.md`.
 
-Its overall milestone is
-`M_PRE_W7B_DASHBOARD_HARDENING_COMPLETE`. The existing W7B remains
-`PLANNED_NOT_STARTED` and now requires that milestone as an explicit entry gate
-in addition to its preserved dependency on W7V.
+The accepted current facts are:
 
-The train has three sequential phase milestones:
+```text
+M_DASH_AUTH_AUTOMATION_READY=true
+PHASE_A_COMPLETE=true
+G1_COMPLETE=true
+DASHBOARD_EXACT_MAIN=88b9b8e41b992887f832c5c31e230f373700ab5c
+PHASE_B_STATUS=DEFERRED_BY_OWNER
+PHASE_C_STATUS=DEFERRED_BY_OWNER
+M_PRE_W7B_DASHBOARD_HARDENING_COMPLETE=false
+```
 
-1. `M_DASH_AUTH_AUTOMATION_READY`;
-2. `M_DASH_UI_CONTRACT_V1_READY`; and
-3. `M_DASH_PRODUCTION_UI_HARMONIZED`.
+Phases B and C move to `POST_WAVE7_DASHBOARD_UI_HARDENING`, positioned after
+W7E and before any later W8 decision. They are not execution-authorized and no
+longer block W7B.
 
-It requires four separate Dashboard product pull requests:
+## W7B admission
 
-1. repository-local authentication automation;
-2. Dashboard UI contract v1;
-3. production-shaped fixture-backed Canary preview; and
-4. accepted production-only UI harmonization.
+W7B remains `PLANNED_NOT_STARTED`. It may start only when a fresh live
+admission proves:
 
-It also requires four owner gates:
+```text
+W7V_OVERALL_STATUS=COMPLETE
+M_DASH_AUTH_AUTOMATION_READY=true
+W7B_OWNER_AUTHORIZATION=true
+W7B_STARTED=false
+```
 
-1. dedicated non-personal Canary E2E identity, exact-Canary policy, and local
-   credential provisioning;
-2. UI contract and three-viewport fixture-preview acceptance;
-3. production-shaped preview, duplicate-title, and panel-depth decisions; and
-4. owner-controlled production deployment, validation, and rollback proof.
+Materializing this governance package and run bundle is not W7B owner
+authorization.
 
-One root Implementer is the only writer. Stage G in `dev_governance_files` uses
-the bounded proof class `GOVERNANCE_REPOSITORY_NO_CI_PROOF` because a live
-capability check proves zero tracked workflows, zero attached runners, and zero
-expected checks. It still requires exact-SHA deterministic validation, a normal
-PR, fresh separately launched read-only exact-head and exact-main audits, clean
-worktrees, and normal branch retirement. It does not authorize a workflow,
-runner, hosted compute, branch-protection change, skipped validation, or direct
-unreviewed merge. Future governance CI remains a separate infrastructure
-decision.
+## Compressed W7B-through-W7E train
 
-All Phase A through Phase C product PRs continue to use short-lived branches,
-normal push and merge, self-hosted exact-head and exact-main CI, fresh
-independent read-only review, and normal remote plus local branch retirement.
-No force push, hosted-runner fallback, cross-phase combined PR, or automatic
-empty-commit rerun is permitted.
+The governance contract is
+`docs/jerry-series/plans/wave-7-compressed-train-governance.md`. The compact
+durable mailbox is the private repository
+`JerrySkywalker/jerry-wave7-train`, run `W7-COMPRESSED-001`.
 
-The governance change permits one planned commit and one bounded corrective
-docs/schema commit. Each product PR permits at most two planned commits, two
-corrective product commits, and one test/harness-only corrective commit. G2 and
-G3 permit one bounded correction round each. Authentication permits one login
-submission per invocation and no automatic password retry. Production permits
-one owner apply and one automatic rollback; another apply requires a fresh owner
-decision.
+One continuous checkpointed root Implementer will execute W7B, W7C, W7D, and
+W7E only after a later W7B authorization. Each Wave keeps a distinct identity,
+outcome, real adjacent-implementation replay, fresh independent audit, and safe
+Canary packet. `NO_PRODUCT_DELTA_REQUIRED` is the default. A deterministic
+defect is the only basis for a product PR, and a changed product requires
+exact-head plus exact-main proof.
 
-The Implementer may prepare deployment inputs but may not deploy production,
-modify Authelia or OpenResty, create the dedicated identity, access credential
-values, or retain authentication state as evidence. Governance and CI evidence
-must not contain credentials, personal identity details, cookies, tokens,
-storage-state contents, raw authentication errors, secret-bearing command lines,
-or private keys.
+The run uses an owner-designated validation machine; it does not require every
+development laptop to be initialized. Multi-machine initialization remains
+backlog. Production authentication is validation-only, and automated
+Production credential acquisition is prohibited. The completed web-auth helper
+is Canary-only.
 
-The interlude returns to the W7B authorization boundary only after the Stage G
-governance no-CI capability proof, all three phase milestones, all four owner
-gates, four distinct product PRs with self-hosted exact-head/exact-main CI,
-rollback evidence, and a fresh final read-only audit set
-`M_PRE_W7B_DASHBOARD_HARDENING_COMPLETE=true`. It does not start W7B.
+After W7E, the run performs combined Canary visual acceptance, records a Wave 7
+retrospective, and stops. W8 and W9 remain planned but not authorized.
+
+One root Implementer is the only writer. Governance and coordination repository
+changes use normal PR/merge flows as applicable, exact-SHA validation, fresh
+separately launched read-only exact-head and exact-main audits, clean
+worktrees, and normal branch retirement. GitHub issue comments are notification
+only and never executable authorization.
 
 Wave 1 remains `COMPLETED`: `M1_UPSTREAM_CONTRACTS_CONVERGED` is achieved by the recorded Agent, Hub, and Access exact-main evidence. Wave 2 remains `PLANNED` and explicitly `not_started`; this amendment does not authorize or start W2-S01.
 
