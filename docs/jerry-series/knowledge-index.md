@@ -35,6 +35,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `plans/wave-7v-execution-orchestrator.md` — Durable one-invocation W7V state machine for topology admission, Dashboard source work, local screenshots, isolated Beijing canary deployment, owner-controlled public routing, authenticated cloud Playwright validation, and final visual acceptance.
 - `plans/pre-w7b-dashboard-hardening-train.md` — Defines the four-PR, four-owner-gate Dashboard authentication and UI hardening interlude required after completed W7V and before W7B authorization.
 - `plans/pre-w7b-dashboard-hardening-execution-orchestrator.md` — Checkpointed one-writer state machine for governance-first delivery, repository-local auth automation, UI contract and previews, owner-controlled production confirmation, and final read-only acceptance.
+- `plans/wave-7-compressed-train-governance.md` — Governance 1.7 closeout for completed Dashboard auth automation, owner-deferred UI hardening, and the authorized but not-started continuous W7B-through-W7E run bundle.
 
 ## Patterns
 

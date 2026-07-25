@@ -1,5 +1,13 @@
 # Pre-W7B Dashboard Hardening Train
 
+> Governance 1.7 closeout: amendment
+> `W7V-R03-PHASE-A-CLOSEOUT-AND-COMPRESSED-WAVE7-TRAIN` records Phase A and G1
+> complete at Dashboard exact main
+> `88b9b8e41b992887f832c5c31e230f373700ab5c`. The owner deferred Phases B and C
+> to `POST_WAVE7_DASHBOARD_UI_HARDENING`; therefore
+> `M_PRE_W7B_DASHBOARD_HARDENING_COMPLETE=false` is no longer a W7B admission
+> blocker. The original design below is retained as historical specification.
+
 ## 1. Identity and purpose
 
 | Field | Value |

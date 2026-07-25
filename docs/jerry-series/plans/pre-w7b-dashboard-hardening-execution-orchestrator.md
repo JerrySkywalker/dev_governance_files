@@ -1,5 +1,11 @@
 # Pre-W7B Dashboard Hardening Execution Orchestrator
 
+> Governance 1.7 closeout: Phase A and G1 are complete at Dashboard exact main
+> `88b9b8e41b992887f832c5c31e230f373700ab5c`. Phases B and C are
+> `DEFERRED_BY_OWNER` to `POST_WAVE7_DASHBOARD_UI_HARDENING`. This orchestrator
+> is preserved as the historical Phase A-through-C design and is not executable
+> authorization for the deferred phases.
+
 ## Identity
 
 ```text
