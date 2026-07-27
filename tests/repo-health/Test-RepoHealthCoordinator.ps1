@@ -24,7 +24,7 @@ try {
     $plan = Get-Content -LiteralPath 'V:\src\dev_governance_files\config\repo-health-master-wave-plan.json' -Raw | ConvertFrom-Json
     Assert-True ($plan.plan_id -eq 'repo-health-master-wave-plan') 'master-plan parse'
     Assert-True ($plan.waves.Count -eq 15 -and $plan.waves[0].steps.Count -eq 4 -and $plan.deferred_wave.wave_id -eq 'P') 'master-plan wave coverage'
-    Assert-True ($plan.version -eq '1.7' -and $plan.active_branch_policy.version -eq '2.0' -and $plan.active_branch_policy.path -eq 'policy/main-dev-policy-v2.json') 'master-plan active policy amendment'
+    Assert-True ($plan.version -eq '1.8' -and $plan.active_branch_policy.version -eq '2.0' -and $plan.active_branch_policy.path -eq 'policy/main-dev-policy-v2.json') 'master-plan active policy amendment'
     $amendment = @($plan.amendments | Where-Object { $_.amendment_id -eq 'W7V-R03-PHASE-A-CLOSEOUT-AND-COMPRESSED-WAVE7-TRAIN' })[0]
     Assert-True ($amendment.phase_a_complete -and $amendment.g1_complete -and $amendment.dashboard_exact_main -eq '88b9b8e41b992887f832c5c31e230f373700ab5c') 'Wave 7 Phase A closeout'
     Assert-True ($amendment.phase_b_status -eq 'DEFERRED_BY_OWNER' -and $amendment.phase_c_status -eq 'DEFERRED_BY_OWNER' -and -not $amendment.m_pre_w7b_dashboard_hardening_complete) 'Dashboard Phase B and C deferral'
@@ -34,6 +34,10 @@ try {
     $runBundle = @($plan.run_bundles | Where-Object { $_.run_id -eq 'W7-COMPRESSED-001' })[0]
     Assert-True (($runBundle.waves -join '|') -eq 'W7B|W7C|W7D|W7E' -and $runBundle.default_product_outcome -eq 'NO_PRODUCT_DELTA_REQUIRED') 'compressed Wave 7 run bundle'
     Assert-True ($runBundle.stop_after_wave -eq 'W7E' -and $runBundle.retrospective_required_before_w8_or_w9 -and -not $runBundle.w8_authorized -and -not $runBundle.w9_authorized) 'compressed Wave 7 stop boundary'
+    $postW7 = $plan.post_w7_canary_parity
+    Assert-True ($postW7.run_id -eq 'POST-W7-CANARY-PARITY-001' -and $postW7.position.after_wave -eq 'W7E' -and $postW7.position.before_wave -eq 'W8') 'post-W7 Canary parity position'
+    Assert-True ($postW7.wave7_historical_status -eq 'COMPLETE' -and $postW7.w7_acceptance_history_immutable -and $postW7.owner_intent_conformance_gap -eq 'DISCOVERED_POST_ACCEPTANCE') 'post-W7 immutable historical closure'
+    Assert-True ($postW7.w8_entry_gate -eq 'BLOCKED_BY_POST_W7_CANARY_PARITY' -and -not $postW7.w9_started -and -not $postW7.w8_started) 'post-W7 Wave 8 and Wave 9 gate'
     $wave1 = @($plan.waves | Where-Object { $_.wave_id -eq 'W1' })[0]
     $wave2 = @($plan.waves | Where-Object { $_.wave_id -eq 'W2' })[0]
     Assert-True ($wave1.status -eq 'COMPLETED' -and $wave1.milestone_status -eq 'ACHIEVED' -and $wave2.status -eq 'PLANNED' -and $wave2.not_started) 'Wave 1 completion does not start Wave 2'
