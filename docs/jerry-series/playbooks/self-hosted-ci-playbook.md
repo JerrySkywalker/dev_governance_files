@@ -34,6 +34,32 @@ Before relying on CI, verify:
 
 Runner visibility in GitHub is not sufficient. A runner can be online while its service process has stale proxy or environment configuration.
 
+## Runner inventory, lifecycle, and capacity
+
+Before queuing a repository gate, record a sanitized runner-service inventory
+for that repository: the logical labels, runner registration state, service
+lifecycle state, configured repository scope, and the class of dedicated work
+root. Do not record host names, private paths, environment values, or service
+output in the governance receipt.
+
+Prove the intended runner is both `online` and `idle` immediately before the
+job is queued. A logical label is a routing request, not proof of physical
+capacity. Capacity is proven only when an online, idle runner is bound to the
+repository's required tools and has a separate work root from other repository
+jobs.
+
+Classify queue age rather than assuming a matching label will start work:
+
+```text
+QUEUED_FRESH
+QUEUED_WAITING_FOR_CAPACITY
+QUEUED_STALE_REQUIRES_RUNNER_LIFECYCLE_REVIEW
+```
+
+Use the repository-specific lifecycle to distinguish a normal occupied runner
+from a stale service, stale environment, missing work root, or missing physical
+capacity. Do not create an empty commit to retrigger a queued or failed run.
+
 ## Exact-head rule
 
 For pull requests, the workflow must check out the literal PR head SHA and verify that the actual checkout SHA matches the expected SHA.
