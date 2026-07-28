@@ -2,7 +2,7 @@
 
 Plan ID: repo-health-master-wave-plan
 Schema: repo-health-master-wave-plan.v1
-Version: 1.8
+Version: 1.9
 Status: ACTIVE
 
 The machine-readable canonical plan is config/repo-health-master-wave-plan.json. Wave 0 persists governance and inventory, safely converges only proven-safe worktrees, and adds the deterministic coordinator. Its milestone is M0_FOUNDATION_READY.
@@ -11,32 +11,39 @@ The machine-readable canonical plan is config/repo-health-master-wave-plan.json.
 
 `W1-R01-MAIN-DEV-POLICY-V2` activates [Main/Dev Policy V2](governance/main-dev-policy-v2.md) and its machine-readable source at `policy/main-dev-policy-v2.json`. It supersedes the active branch-policy interpretation while preserving `config/branch-lifecycle-policy.json` as the historical V1 policy and leaving all Wave 1 receipts untouched.
 
-The current amendment is `POST-W7-CANARY-PARITY-001`, version `1.8`. It
-preserves all earlier amendments and the immutable accepted Wave 7 closure,
-records the owner-intent conformance gap as discovered after acceptance, and
-inserts the production-shaped Canary parity interlude after completed Wave 7
-and before Wave 8. It blocks W8 entry and does not start W9.
+The current amendment is `POST-W7-DASHBOARD-UI-HARDENING-001`, version `1.9`.
+It preserves all earlier amendments and the immutable accepted Wave 7 closure,
+records the owner rejection of the technically passing production-shaped Canary
+baseline, and inserts the bounded Dashboard UI hardening interlude after
+`POST-W7-CANARY-PARITY-001` and before
+`POST-W7-DASHBOARD-HANDOFF-001` and Wave 8. It blocks W8 entry and does not
+start W9.
 
-## Post-W7 Canary parity gate
+## Post-W7 Dashboard UI hardening gate
 
 The authoritative interlude plan is
-`docs/jerry-series/plans/post-w7-canary-parity-interlude.md`. Its durable
-facts are:
+`docs/jerry-series/plans/post-w7-dashboard-ui-hardening-interlude.md`. Its
+durable facts are:
 
 ```text
 WAVE7_HISTORICAL_STATUS=COMPLETE
 W7_ACCEPTANCE_HISTORY_IMMUTABLE=true
 OWNER_INTENT_CONFORMANCE_GAP=DISCOVERED_POST_ACCEPTANCE
-W8_ENTRY_GATE=BLOCKED_BY_POST_W7_CANARY_PARITY
+CURRENT_PARITY_TECHNICAL_STATUS=PASS
+CURRENT_PARITY_OWNER_UX_DECISION=REJECTED
+UI_HARDENING_REQUIRED=true
+PRODUCTION_MUTATION=false
+W8_ENTRY_GATE=BLOCKED_BY_DASHBOARD_UI_HARDENING
+W8_STARTED=false
 W9_STARTED=false
 ```
 
-The accepted Wave 7 closure remains historical evidence and is not reopened.
-The interlude may create only a production-shaped, explicitly marked Canary
-candidate and must leave Production source, generated output, runtime anchors,
-authentication, and routes unchanged. Completion stops for
-`OWNER_PRODUCTION_SHAPED_CANARY_ACCEPTANCE_REQUIRED`; it does not start Wave 8,
-Wave 9, or `POST-W7-DASHBOARD-HANDOFF-001`.
+The accepted Wave 7 closure and the parity technical PASS remain historical
+evidence and are not reopened. The owner rejection requires a finite UI
+contract and preview-only Canary correction. Production source, generated
+output, runtime anchors, authentication, and routes remain unchanged. Completion
+stops for `OWNER_DASHBOARD_UI_HARDENING_ACCEPTANCE_REQUIRED`; it does not start
+`POST-W7-DASHBOARD-HANDOFF-001`, Wave 8, or Wave 9.
 
 Wave 7V is `COMPLETED`. Its final closure is bound to:
 
@@ -69,9 +76,10 @@ PHASE_C_STATUS=DEFERRED_BY_OWNER
 M_PRE_W7B_DASHBOARD_HARDENING_COMPLETE=false
 ```
 
-Phases B and C move to `POST_WAVE7_DASHBOARD_UI_HARDENING`, positioned after
-W7E and before any later W8 decision. They are not execution-authorized and no
-longer block W7B.
+That deferral is preserved as history. `POST-W7-DASHBOARD-UI-HARDENING-001`
+now activates Phase B and the Canary-preview C1 portion after the rejected
+technical-PASS parity baseline; Production C2 remains unauthorized. The new
+interlude is positioned before any later W8 decision and does not start W7B.
 
 ## W7B admission
 

@@ -37,6 +37,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `plans/pre-w7b-dashboard-hardening-execution-orchestrator.md` — Checkpointed one-writer state machine for governance-first delivery, repository-local auth automation, UI contract and previews, owner-controlled production confirmation, and final read-only acceptance.
 - `plans/wave-7-compressed-train-governance.md` — Governance 1.7 closeout for completed Dashboard auth automation, owner-deferred UI hardening, and the authorized but not-started continuous W7B-through-W7E run bundle.
 - `plans/post-w7-canary-parity-interlude.md` — Durable post-acceptance Canary parity gate: preserves the immutable completed Wave 7 closure, blocks W8, and requires a production-shaped but explicitly non-Production candidate Dashboard before owner acceptance.
+- `plans/post-w7-dashboard-ui-hardening-interlude.md` — Activates the deferred Dashboard UI contract and Canary-preview correction after the owner rejected the technically passing parity baseline; Production Phase C2, W8, and W9 remain blocked.
 
 ## Patterns
 
