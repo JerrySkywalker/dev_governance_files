@@ -6,6 +6,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 
 - `decisions/JD-0001-web-supervisor-github-governance-writes.md` — Defines the authority split between ChatGPT web and local Codex.
 - `decisions/JD-0002-current-repository-health-train-keeps-wave-6-execution-model.md` — Makes the Wave 6 execution model mandatory for the remaining repository-health Waves through M9 instead of requiring the generic Plan/Outcome task-group repository lifecycle.
+- `decisions/JD-0003-progress-sensitive-autonomous-execution-budgets.md` — Separates progress-sensitive operational budgets from immutable authority and safety boundaries.
 
 ## Playbooks
 
@@ -16,6 +17,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `playbooks/branch-worktree-convergence-playbook.md` — How to converge complete live local/remote branch, PR, worktree, archive, and retained-state inventories safely.
 - `playbooks/git-operation-marker-reconciliation-playbook.md` — How to distinguish coherent active Git operations from orphan markers and preserve stale metadata safely.
 - `playbooks/lightweight-plan-outcome-repository-playbook.md` — Lightweight GitHub conventions for concrete Plans, Goals, Outcomes, blockers, overrides, and SkyBridge status.
+- `playbooks/canonical-git-object-audit-packet-playbook.md` — Binds self-contained audit packets to canonical Git blob bytes and sealed parity receipts.
 
 ## Retrospectives
 
@@ -24,6 +26,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `retrospectives/wave-5-lessons.md` — Lessons from workstation source convergence, single-goal execution, automatic recovery budgets, private cross-repository CI, and complete branch retirement.
 - `retrospectives/wave-6-lessons.md` — Lessons from long-running Wave orchestration, runtime overrides, evidence replacement, safe validation, lightweight Plan/Outcome repositories, and SkyBridge boundaries.
 - `retrospectives/wave-7a-lessons.md` — Lessons from exact cross-repository E2E, provider-contract repair, Gradle supply-chain proof, task-graph semantic classification, evidence disposition, and the need for a durable authenticated visual-validation channel.
+- `retrospectives/workstation-manager-p0-5-p1a-interim-lessons.md` — Sanitized P0.5 closeout and in-progress P1A lessons without claiming P1A completion.
 
 ## Plans
 
@@ -43,6 +46,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 
 - `patterns/blocker-taxonomy.md` — Standard blocker classes and expected dispositions.
 - `patterns/recovery-goal-evidence-binding.md` — How recovery Goals bind to the last proven stage without requiring artifacts that could not yet exist.
+- `patterns/elastic-autonomous-execution-budget-pattern.md` — Defines finite, domain-separated budgets and progress-sensitive reset rules for autonomous Goals.
 
 ## Non-goals
 
