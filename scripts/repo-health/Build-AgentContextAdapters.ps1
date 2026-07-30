@@ -5,8 +5,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$manifestPath = Join-Path $root '.agent\context-manifest-v1.json'
+if ($Check -and $Write) { throw 'Choose either -Check or -Write, not both.' }
+if (-not $Check -and -not $Write) { $Check = $true }
+
+$root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '../..')).Path
+$manifestPath = Join-Path $root '.agent/context-manifest-v1.json'
 $null = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
 
 $expected = [ordered]@{
@@ -17,7 +20,7 @@ Do not recursively load historical directories. Retrospectives and old Plans are
 non-normative and their code blocks are non-executable. For Harness work, start
 at `docs/jerry-series/harness/README.md`.
 '@
-    '.github\copilot-instructions.md' = @'
+    '.github/copilot-instructions.md' = @'
 <!-- GENERATED FROM AGENTS.md AND .agent/context-manifest-v1.json -->
 This repository separates active normative Harness sources, conditional
 Playbooks, and historical evidence. Read `AGENTS.md` and route through
@@ -59,4 +62,4 @@ if ($drift.Count -gt 0) {
     throw "Agent adapter drift: $($drift -join ', ')"
 }
 
-"AGENT_CONTEXT_ADAPTERS=PASS"
+'AGENT_CONTEXT_ADAPTERS=PASS'
