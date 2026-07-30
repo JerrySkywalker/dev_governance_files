@@ -1,0 +1,54 @@
+name: Merged Branch Health Cleanup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/merged-branch-health-cleanup.yml
+      - scripts/repo-health/Invoke-MergedBranchCleanup.ps1
+  pull_request:
+    types:
+      - closed
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Delete branches classified as merged same-repository PR heads
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: merged-branch-health-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Classify and clean merged PR head branches
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANUAL_APPLY: ${{ inputs.apply || 'false' }}
+        run: |
+          $apply = $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:MANUAL_APPLY -eq 'true'
+          ./scripts/repo-health/Invoke-MergedBranchCleanup.ps1 `
+            -Repository $env:GITHUB_REPOSITORY `
+            -Token $env:GH_TOKEN `
+            -Apply:$apply
