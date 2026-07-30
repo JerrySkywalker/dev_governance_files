@@ -64,14 +64,18 @@ if ($branches.Count -lt 1) { throw 'Branch inventory is empty' }
 if ($closedPullRequests.Count -lt 1) { throw 'Closed pull-request inventory is empty' }
 
 $mergedHeads = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$mergedHeadShas = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($pullRequest in $closedPullRequests) {
     if ($null -ne $pullRequest.merged_at -and
         [string]$pullRequest.head.repo.full_name -eq $Repository) {
         $null = $mergedHeads.Add([string]$pullRequest.head.ref)
+        $null = $mergedHeadShas.Add([string]$pullRequest.head.sha)
     }
 }
 
-if ($mergedHeads.Count -lt 1) { throw 'No merged same-repository PR heads were discovered' }
+if ($mergedHeads.Count -lt 1 -or $mergedHeadShas.Count -lt 1) {
+    throw 'No merged same-repository PR heads were discovered'
+}
 
 $openHeads = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($pullRequest in $openPullRequests) {
@@ -83,6 +87,7 @@ foreach ($pullRequest in $openPullRequests) {
 $results = [System.Collections.Generic.List[object]]::new()
 foreach ($branch in ($branches | Sort-Object name)) {
     $name = [string]$branch.name
+    $sha = [string]$branch.commit.sha
     $classification = if ($name -eq $defaultBranch) {
         'HOLD_DEFAULT'
     }
@@ -98,12 +103,19 @@ foreach ($branch in ($branches | Sort-Object name)) {
     elseif ($mergedHeads.Contains($name)) {
         'DELETE_MERGED_PR_HEAD'
     }
+    elseif ($mergedHeadShas.Contains($sha)) {
+        'DELETE_DUPLICATE_MERGED_HEAD'
+    }
     else {
         'HOLD_UNMERGED_OR_UNCLASSIFIED'
     }
 
+    $isDeleteCandidate = $classification -in @(
+        'DELETE_MERGED_PR_HEAD',
+        'DELETE_DUPLICATE_MERGED_HEAD'
+    )
     $deleted = $false
-    if ($Apply -and $classification -eq 'DELETE_MERGED_PR_HEAD') {
+    if ($Apply -and $isDeleteCandidate) {
         $refPath = ConvertTo-RefPath -BranchName $name
         Invoke-RestMethod -Method Delete -Uri "$apiRoot/repos/$Repository/git/refs/heads/$refPath" -Headers $headers
         $deleted = $true
@@ -114,7 +126,7 @@ foreach ($branch in ($branches | Sort-Object name)) {
         classification = $classification
         deleted        = $deleted
         protected      = [bool]$branch.protected
-        sha            = [string]$branch.commit.sha
+        sha            = $sha
     })
 }
 
@@ -124,7 +136,9 @@ if ($results.Count -ne $branches.Count) {
 
 $results | Sort-Object classification, branch | Format-Table -AutoSize
 
-$deleteCandidates = @($results | Where-Object classification -eq 'DELETE_MERGED_PR_HEAD')
+$deleteCandidates = @($results | Where-Object {
+    $_.classification -in @('DELETE_MERGED_PR_HEAD', 'DELETE_DUPLICATE_MERGED_HEAD')
+})
 $deletedCount = @($results | Where-Object deleted).Count
 $heldUnclassified = @($results | Where-Object classification -eq 'HOLD_UNMERGED_OR_UNCLASSIFIED')
 
@@ -132,6 +146,7 @@ $heldUnclassified = @($results | Where-Object classification -eq 'HOLD_UNMERGED_
 "BRANCH_COUNT=$($branches.Count)"
 "CLOSED_PR_COUNT=$($closedPullRequests.Count)"
 "MERGED_HEAD_COUNT=$($mergedHeads.Count)"
+"MERGED_HEAD_SHA_COUNT=$($mergedHeadShas.Count)"
 "OPEN_PR_HEAD_COUNT=$($openHeads.Count)"
 "DELETE_CANDIDATE_COUNT=$($deleteCandidates.Count)"
 "DELETED_COUNT=$deletedCount"
