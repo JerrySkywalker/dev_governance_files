@@ -1,0 +1,5 @@
+# GENERATED FROM .agent/context-manifest-v1.json
+docs/jerry-series/retrospectives/**
+docs/jerry-series/plans/**
+**/generated/**
+# Explicitly add a historical file for a history/calibration task when required.
