@@ -1,1 +1,113 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://jerryskywalker.space/schemas/repo-health-harness-v1.schema.json","title":"Jerry Repository-Health Harness V1","type":"object","additionalProperties":false,"required":["schema_version","model_id","baseline_id","context_manifest_id","status","parameter_family_count","parameter_families","axes","layer_vectors","global_invariants","micro_operation_defaults","budget_domains","budget_tuple","budget_domain_units","budget_matrix_contract","profiles","risk_modifiers","calibration_targets","retuning_policy"],"properties":{"schema_version":{"const":1},"model_id":{"const":"JERRY_HARNESS_MODEL_V1"},"baseline_id":{"const":"JERRY_AUTONOMY_CI_PARAMS_V1"},"context_manifest_id":{"const":"JERRY_AGENT_CONTEXT_V1"},"status":{"enum":["provisional","active","deprecated"]},"effective_date":{"type":"string"},"parameter_family_count":{"const":16},"parameter_families":{"type":"array","minItems":16,"maxItems":16,"uniqueItems":true},"axes":{"type":"object","required":["A","B","P","V","E","F","G","L"]},"layer_vectors":{"type":"object"},"global_invariants":{"type":"object"},"micro_operation_defaults":{"type":"object"},"budget_domains":{"type":"array","minItems":23,"maxItems":23,"uniqueItems":true},"budget_tuple":{"type":"array","minItems":3,"maxItems":3},"budget_domain_units":{"type":"object"},"budget_matrix_contract":{"type":"string"},"profiles":{"type":"object","required":["DOCS_CAPTURE_V2","INTERACTIVE_REPOSITORY_V1","HIGH_ASSURANCE_WAVE_V1","COMPRESSED_TRAIN_V1","PROTECTED_PREFLIGHT_V2","PROTECTED_TRANSACTION_V2"],"additionalProperties":false,"properties":{"DOCS_CAPTURE_V2":{"$ref":"#/$defs/profile"},"INTERACTIVE_REPOSITORY_V1":{"$ref":"#/$defs/profile"},"HIGH_ASSURANCE_WAVE_V1":{"$ref":"#/$defs/profile"},"COMPRESSED_TRAIN_V1":{"$ref":"#/$defs/profile"},"PROTECTED_PREFLIGHT_V2":{"$ref":"#/$defs/profile"},"PROTECTED_TRANSACTION_V2":{"$ref":"#/$defs/profile"}}},"risk_modifiers":{"type":"array"},"calibration_targets":{"type":"object"},"retuning_policy":{"type":"object"}},"$defs":{"profile":{"type":"object","additionalProperties":true,"required":["allowed_authority_classes","elasticity_grade","initial_progress_state","allowed_layers","default_proof_vectors","budget_matrix"],"properties":{"allowed_authority_classes":{"type":"array","minItems":1,"items":{"enum":["A0","A1","A2","A3","A4","A5","OWNER"]}},"elasticity_grade":{"enum":["B0","B1","B2","B3","B4"]},"initial_progress_state":{"const":"P_INIT"},"allowed_layers":{"type":"array","minItems":1,"items":{"enum":["L0","L1","L2","L3","L4","L5"]}},"default_proof_vectors":{"type":"array","minItems":1},"budget_matrix":{"type":"array","minItems":23,"maxItems":23,"items":{"type":"array","minItems":3,"maxItems":3,"prefixItems":[{"type":"integer","minimum":0},{"type":"integer","minimum":0},{"type":"integer","minimum":0}]}}}}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jerryskywalker.space/schemas/repo-health-harness-v1.schema.json",
+  "title": "Jerry Repository-Health Harness V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "model_id",
+    "baseline_id",
+    "context_manifest_id",
+    "status",
+    "parameter_family_count",
+    "parameter_families",
+    "axes",
+    "layer_vectors",
+    "global_invariants",
+    "micro_operation_defaults",
+    "budget_domains",
+    "budget_tuple",
+    "budget_domain_units",
+    "budget_matrix_contract",
+    "profiles",
+    "risk_modifiers",
+    "calibration_targets",
+    "retuning_policy"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "model_id": {"const": "JERRY_HARNESS_MODEL_V1"},
+    "baseline_id": {"const": "JERRY_AUTONOMY_CI_PARAMS_V1"},
+    "context_manifest_id": {"const": "JERRY_AGENT_CONTEXT_V1"},
+    "status": {"enum": ["provisional", "active", "deprecated"]},
+    "effective_date": {"type": "string"},
+    "parameter_family_count": {"const": 16},
+    "parameter_families": {"type": "array", "minItems": 16, "maxItems": 16, "uniqueItems": true},
+    "axes": {"type": "object", "required": ["A", "B", "P", "V", "E", "F", "G", "L"]},
+    "layer_vectors": {"type": "object"},
+    "global_invariants": {"type": "object"},
+    "micro_operation_defaults": {"type": "object"},
+    "budget_domains": {"type": "array", "minItems": 23, "maxItems": 23, "uniqueItems": true},
+    "budget_tuple": {"type": "array", "minItems": 3, "maxItems": 3},
+    "budget_domain_units": {"type": "object"},
+    "budget_matrix_contract": {"type": "string"},
+    "profiles": {
+      "type": "object",
+      "required": [
+        "DOCS_CAPTURE_V2",
+        "INTERACTIVE_REPOSITORY_V1",
+        "HIGH_ASSURANCE_WAVE_V1",
+        "COMPRESSED_TRAIN_V1",
+        "PROTECTED_PREFLIGHT_V2",
+        "PROTECTED_TRANSACTION_V2"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "DOCS_CAPTURE_V2": {"$ref": "#/$defs/profile"},
+        "INTERACTIVE_REPOSITORY_V1": {"$ref": "#/$defs/profile"},
+        "HIGH_ASSURANCE_WAVE_V1": {"$ref": "#/$defs/profile"},
+        "COMPRESSED_TRAIN_V1": {"$ref": "#/$defs/profile"},
+        "PROTECTED_PREFLIGHT_V2": {"$ref": "#/$defs/profile"},
+        "PROTECTED_TRANSACTION_V2": {"$ref": "#/$defs/profile"}
+      }
+    },
+    "risk_modifiers": {"type": "array"},
+    "calibration_targets": {"type": "object"},
+    "retuning_policy": {"type": "object"}
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "allowed_authority_classes",
+        "elasticity_grade",
+        "initial_progress_state",
+        "allowed_layers",
+        "default_proof_vectors",
+        "budget_matrix"
+      ],
+      "properties": {
+        "allowed_authority_classes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"enum": ["A0", "A1", "A2", "A3", "A4", "A5", "OWNER"]}
+        },
+        "elasticity_grade": {"enum": ["B0", "B1", "B2", "B3", "B4"]},
+        "initial_progress_state": {"const": "P_INIT"},
+        "allowed_layers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"enum": ["L0", "L1", "L2", "L3", "L4", "L5"]}
+        },
+        "default_proof_vectors": {"type": "array", "minItems": 1},
+        "budget_matrix": {
+          "type": "array",
+          "minItems": 23,
+          "maxItems": 23,
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "prefixItems": [
+              {"type": "integer", "minimum": 0},
+              {"type": "integer", "minimum": 0},
+              {"type": "integer", "minimum": 0}
+            ]
+          }
+        }
+      }
+    }
+  }
+}
