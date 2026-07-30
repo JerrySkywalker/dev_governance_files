@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: governance-contract-${{ github.event.pull_request.number || github.ref }}
@@ -73,3 +74,12 @@ jobs:
       - name: Run Agent-context contract
         shell: pwsh
         run: ./tests/repo-health/Test-AgentContextContract.ps1
+
+      - name: Dry-run merged branch health cleanup
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ./scripts/repo-health/Invoke-MergedBranchCleanup.ps1 `
+            -Repository $env:GITHUB_REPOSITORY `
+            -Token $env:GH_TOKEN
