@@ -53,6 +53,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `patterns/incremental-resume-goal-pattern.md` — How long-running Goals resume from durable pointers and a compact Accepted Delta.
 - `patterns/elastic-autonomous-execution-budget-pattern.md` — Defines immutable authority classes, graduated elasticity grades, domain ledgers with window/renewal/lifetime caps, progress states, and protected transaction budgets.
 - `patterns/validation-depth-and-gate-selection.md` — Models every gate as proof depth × execution environment × cadence × criticality, with canonical layered defaults and duplicate-graph controls.
+- `patterns/autonomous-budget-and-ci-hyperparameter-baseline.md` — Versioned empirical starting values for micro-retries, source and audit budgets, CI reruns, runner recovery, protected transactions, and future Wave calibration.
 
 ## Non-goals
 
