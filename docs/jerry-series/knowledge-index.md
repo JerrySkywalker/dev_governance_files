@@ -26,6 +26,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `retrospectives/wave-5-lessons.md` — Lessons from workstation source convergence, single-goal execution, automatic recovery budgets, private cross-repository CI, and complete branch retirement.
 - `retrospectives/wave-6-lessons.md` — Lessons from long-running Wave orchestration, runtime overrides, evidence replacement, safe validation, lightweight Plan/Outcome repositories, and SkyBridge boundaries.
 - `retrospectives/wave-7a-lessons.md` — Lessons from exact cross-repository E2E, provider-contract repair, Gradle supply-chain proof, task-graph semantic classification, evidence disposition, and the need for a durable authenticated visual-validation channel.
+- `retrospectives/post-w7-dashboard-production-release-closeout.md` — Final Glance v0.8.5 Production Dashboard release and Post-W7 train closeout.
 - `retrospectives/workstation-manager-p0-5-p1a-interim-lessons.md` — Sanitized P0.5 closeout and in-progress P1A lessons without claiming P1A completion.
 
 ## Plans
