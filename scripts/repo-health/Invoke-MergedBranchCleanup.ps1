@@ -36,7 +36,10 @@ function Get-GitHubPagedItems {
         foreach ($item in $response) { $items.Add($item) }
         if ($response.Count -lt 100) { break }
     }
-    return $items.ToArray()
+
+    foreach ($item in $items) {
+        Write-Output -InputObject $item
+    }
 }
 
 function ConvertTo-RefPath {
@@ -57,6 +60,9 @@ $branches = @(Get-GitHubPagedItems -Path "/repos/$Repository/branches")
 $closedPullRequests = @(Get-GitHubPagedItems -Path "/repos/$Repository/pulls?state=closed&sort=updated&direction=desc")
 $openPullRequests = @(Get-GitHubPagedItems -Path "/repos/$Repository/pulls?state=open&sort=updated&direction=desc")
 
+if ($branches.Count -lt 1) { throw 'Branch inventory is empty' }
+if ($closedPullRequests.Count -lt 1) { throw 'Closed pull-request inventory is empty' }
+
 $mergedHeads = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($pullRequest in $closedPullRequests) {
     if ($null -ne $pullRequest.merged_at -and
@@ -64,6 +70,8 @@ foreach ($pullRequest in $closedPullRequests) {
         $null = $mergedHeads.Add([string]$pullRequest.head.ref)
     }
 }
+
+if ($mergedHeads.Count -lt 1) { throw 'No merged same-repository PR heads were discovered' }
 
 $openHeads = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($pullRequest in $openPullRequests) {
@@ -110,6 +118,10 @@ foreach ($branch in ($branches | Sort-Object name)) {
     })
 }
 
+if ($results.Count -ne $branches.Count) {
+    throw "Branch classification mismatch: branches=$($branches.Count) results=$($results.Count)"
+}
+
 $results | Sort-Object classification, branch | Format-Table -AutoSize
 
 $deleteCandidates = @($results | Where-Object classification -eq 'DELETE_MERGED_PR_HEAD')
@@ -118,6 +130,9 @@ $heldUnclassified = @($results | Where-Object classification -eq 'HOLD_UNMERGED_
 
 "BRANCH_CLEANUP_MODE=$(if ($Apply) { 'APPLY' } else { 'DRY_RUN' })"
 "BRANCH_COUNT=$($branches.Count)"
+"CLOSED_PR_COUNT=$($closedPullRequests.Count)"
+"MERGED_HEAD_COUNT=$($mergedHeads.Count)"
+"OPEN_PR_HEAD_COUNT=$($openHeads.Count)"
 "DELETE_CANDIDATE_COUNT=$($deleteCandidates.Count)"
 "DELETED_COUNT=$deletedCount"
 "HOLD_UNMERGED_OR_UNCLASSIFIED_COUNT=$($heldUnclassified.Count)"
