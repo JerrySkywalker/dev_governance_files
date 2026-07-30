@@ -12,7 +12,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 
 - `playbooks/lesson-capture-playbook.md` — How to capture future lessons into this repository.
 - `playbooks/protected-evidence-playbook.md` — How to handle unknown or protected evidence, retained evidence worktrees, and post-relocation metadata side effects without losing evidence.
-- `playbooks/self-hosted-ci-playbook.md` — How to preflight and recover self-hosted GitHub Actions failures with exact-SHA and causal CI accounting.
+- `playbooks/self-hosted-ci-playbook.md` — How to preflight and recover self-hosted GitHub Actions failures with exact-SHA, job-owned process cleanup, timing-test discipline, duplicate-gate review, and causal CI accounting.
 - `playbooks/github-private-read-audit-playbook.md` — How to perform authenticated private GitHub reads without credential exposure or mutation.
 - `playbooks/branch-worktree-convergence-playbook.md` — How to converge complete live local/remote branch, PR, worktree, archive, and retained-state inventories safely.
 - `playbooks/git-operation-marker-reconciliation-playbook.md` — How to distinguish coherent active Git operations from orphan markers and preserve stale metadata safely.
@@ -26,6 +26,8 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `retrospectives/wave-5-lessons.md` — Lessons from workstation source convergence, single-goal execution, automatic recovery budgets, private cross-repository CI, and complete branch retirement.
 - `retrospectives/wave-6-lessons.md` — Lessons from long-running Wave orchestration, runtime overrides, evidence replacement, safe validation, lightweight Plan/Outcome repositories, and SkyBridge boundaries.
 - `retrospectives/wave-7a-lessons.md` — Lessons from exact cross-repository E2E, provider-contract repair, Gradle supply-chain proof, task-graph semantic classification, evidence disposition, and the need for a durable authenticated visual-validation channel.
+- `retrospectives/wave-7-lessons.md` — Lessons from the compressed W7B-through-W7E train, Combined Canary acceptance, post-W7 runner contamination, and fail-closed execution.
+- `retrospectives/wave-7-end-to-end-lessons.md` — Consolidated W7A-through-Production lessons covering adjacent implementations, human acceptance, validation depth, elastic budgets, CI topology, release state machines, rollback, Finalize, and closeout.
 - `retrospectives/post-w7-dashboard-production-release-closeout.md` — Final Glance v0.8.5 Production Dashboard release and Post-W7 train closeout.
 - `retrospectives/workstation-manager-p0-5-p1a-interim-lessons.md` — Sanitized P0.5 closeout and in-progress P1A lessons without claiming P1A completion.
 
@@ -47,7 +49,9 @@ This index lists durable governance knowledge captured from Jerry series develop
 
 - `patterns/blocker-taxonomy.md` — Standard blocker classes and expected dispositions.
 - `patterns/recovery-goal-evidence-binding.md` — How recovery Goals bind to the last proven stage without requiring artifacts that could not yet exist.
-- `patterns/elastic-autonomous-execution-budget-pattern.md` — Defines finite, domain-separated budgets and progress-sensitive reset rules for autonomous Goals.
+- `patterns/incremental-resume-goal-pattern.md` — How long-running Goals resume from durable pointers and a compact Accepted Delta.
+- `patterns/elastic-autonomous-execution-budget-pattern.md` — Defines finite, domain-separated budgets, CI observation limits, and progress-sensitive reset rules for autonomous Goals.
+- `patterns/validation-depth-and-gate-selection.md` — Separates static, focused, repository, platform, adjacent-integration, runtime, protected-Apply, and Finalize proof so each delta uses the correct gate depth without duplicate full validation.
 
 ## Non-goals
 
