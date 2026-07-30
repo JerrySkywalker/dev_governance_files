@@ -28,6 +28,7 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `retrospectives/wave-7a-lessons.md` — Lessons from exact cross-repository E2E, provider-contract repair, Gradle supply-chain proof, task-graph semantic classification, evidence disposition, and the need for a durable authenticated visual-validation channel.
 - `retrospectives/wave-7-lessons.md` — Lessons from the compressed W7B-through-W7E train, Combined Canary acceptance, post-W7 runner contamination, and fail-closed execution.
 - `retrospectives/wave-7-end-to-end-lessons.md` — Consolidated W7A-through-Production lessons covering adjacent implementations, human acceptance, validation depth, elastic budgets, CI topology, release state machines, rollback, Finalize, and closeout.
+- `retrospectives/wave-7-experience-audit-addendum.md` — Second-pass Wave 7 audit that formalizes authority classes, elastic budget grades, progress states, and the four-axis CI proof vector.
 - `retrospectives/post-w7-dashboard-production-release-closeout.md` — Final Glance v0.8.5 Production Dashboard release and Post-W7 train closeout.
 - `retrospectives/workstation-manager-p0-5-p1a-interim-lessons.md` — Sanitized P0.5 closeout and in-progress P1A lessons without claiming P1A completion.
 
@@ -50,8 +51,8 @@ This index lists durable governance knowledge captured from Jerry series develop
 - `patterns/blocker-taxonomy.md` — Standard blocker classes and expected dispositions.
 - `patterns/recovery-goal-evidence-binding.md` — How recovery Goals bind to the last proven stage without requiring artifacts that could not yet exist.
 - `patterns/incremental-resume-goal-pattern.md` — How long-running Goals resume from durable pointers and a compact Accepted Delta.
-- `patterns/elastic-autonomous-execution-budget-pattern.md` — Defines finite, domain-separated budgets, CI observation limits, and progress-sensitive reset rules for autonomous Goals.
-- `patterns/validation-depth-and-gate-selection.md` — Separates static, focused, repository, platform, adjacent-integration, runtime, protected-Apply, and Finalize proof so each delta uses the correct gate depth without duplicate full validation.
+- `patterns/elastic-autonomous-execution-budget-pattern.md` — Defines immutable authority classes, graduated elasticity grades, domain ledgers with window/renewal/lifetime caps, progress states, and protected transaction budgets.
+- `patterns/validation-depth-and-gate-selection.md` — Models every gate as proof depth × execution environment × cadence × criticality, with canonical layered defaults and duplicate-graph controls.
 
 ## Non-goals
 
