@@ -1,183 +1,87 @@
 # dev_governance_files
 
-Personal development governance files for Jerry's local/cloud engineering workflow.
+[简体中文](README.zh-CN.md)
 
-## Purpose
+Versioned governance, Harness, playbooks, plans, and engineering lessons for
+Jerry's local/cloud development workflow.
 
-This repository stores versioned governance scripts, templates, runbooks, and tests that should not live directly inside one application repository such as SkyBridge.
+## What is active
 
-It currently covers:
+The repository now has an explicit Agent context contract. Not every document is
+an execution instruction.
 
-- Windows development directory governance for `C:\Dev` and `V:\`.
-- C-only Python / Conda layout scripts.
-- SSH key storage guidance and setup helpers.
-- MATLAB MCP machine/project setup helpers.
-- Edge Hermes server-ops generator, templates, tests, and docs.
+- `AGENTS.md` — short Agent routing and safety instructions.
+- `.agent/context-manifest-v1.json` — machine-readable context classification.
+- `docs/jerry-series/harness/` — active Repository-Health Harness specification.
+- `config/repo-health-harness-v1.json` — the only active Harness numeric source.
+- `docs/jerry-series/playbooks/` — conditional operational methods.
+- `docs/jerry-series/decisions/` — accepted normative rationale.
+- `docs/jerry-series/retrospectives/` — historical Wave and incident lessons.
+- `docs/jerry-series/plans/` — historical or explicitly bound plans; not defaults.
 
-## Current Contents
+Start Harness work at
+[`docs/jerry-series/harness/README.md`](docs/jerry-series/harness/README.md).
 
-```text
-README.md
-LICENSE
-README_directory_rules_full.md
-README_c_drive_rules.md
-README_v_drive_rules.md
-create_c_dev_structure.ps1
-create_c_python_conda_structure.ps1
-create_v_devdrive_structure.ps1
-docs/
-  EDGE_HERMES_BOOTSTRAP_GENERATOR.md
-mcp/
-  README.md
-  matlab/
-    install_matlab_mcp_machine.ps1
-    setup_project_matlab_mcp.ps1
-    README_machine_install.md
-    README_project_setup.md
-scripts/
-  ci/
-    test-edge-bootstrap-generator.ps1
-secrets/
-  ssh/
-    setup_ssh_key_store.ps1
-    ssh_config.example
-    README_ssh_key_store.md
-server-ops/
-  bin/
-    hermes-edge-admin.sh
-    render-windows-bootstrap.py
-  edge-hermes/
-    templates/
-      windows-bootstrap.ps1.tmpl
-```
+## Agent context classes
 
-## Current Status
+| Class | Default behavior |
+| --- | --- |
+| `AGENT_INSTRUCTION` | automatically discovered short instructions |
+| `ACTIVE_NORMATIVE` | read when the task matches; current source of truth |
+| `CONDITIONAL_OPERATIONAL` | read only when environment/layer conditions match |
+| `ACTIVE_NORMATIVE_RATIONALE` | read to understand accepted policy decisions |
+| `HISTORICAL_REFERENCE` | explicit historical review only; never execute |
+| `ARCHIVE_EXPLICIT_ONLY` | explicit audit or current Goal binding only |
+| `MACHINE_GENERATED` | edit through source/generator only |
 
-The adaptive Windows Edge Hermes bootstrap generator is implemented and tested in dry-run/static mode.
-
-Validated:
-
-- Generated bootstrap parses as PowerShell.
-- Generated bootstrap supports `-Audit`, `-Plan`, `-Apply`, and `-Repair`.
-- `-Audit` and `-Plan` dry-run paths are tested with fake Hermes runtime files.
-- The old `C:\Dev\tools\bin\python.exe` assumption is removed.
-- Health checks use proxy bypass patterns to avoid WireGuard/private-IP proxy interception.
-- No production deployment has been performed from this repository.
-
-The directory governance, SSH key store, and MATLAB MCP scripts remain local workstation governance helpers. They should stay idempotent and conservative.
-
-## Safe Development Workflow
-
-Use this repository for generator, template, documentation, runbook, and test work.
-
-Do not:
-
-- Run generated Edge bootstrap scripts with `-Apply` or `-Repair` during normal development.
-- Stop or restart Edge Hermes.
-- Modify Windows Scheduled Tasks.
-- Modify SkyBridge from this repository.
-- Modify production `/opt/server-ops` directly from local tests.
-- Push secrets, private keys, API keys, real `.env` files, WireGuard keys, or production `agents.json`.
-
-Preferred workflow:
-
-1. Make small documentation, script, or template changes.
-2. Run targeted local tests.
-3. Inspect `git diff`.
-4. Commit focused changes.
-5. Open a PR for review.
-
-## Test Commands
-
-Edge bootstrap generator test:
-
-```powershell
-pwsh -File .\scripts\ci\test-edge-bootstrap-generator.ps1
-```
-
-Directory governance scripts are intended to be idempotent. Review each script before running it on a new machine:
-
-```powershell
-pwsh -File .\create_c_dev_structure.ps1
-pwsh -File .\create_c_python_conda_structure.ps1
-pwsh -File .\create_v_devdrive_structure.ps1
-```
-
-MATLAB MCP setup helpers:
-
-```powershell
-pwsh -File .\mcp\matlab\install_matlab_mcp_machine.ps1
-pwsh -File .\mcp\matlab\setup_project_matlab_mcp.ps1 -ProjectRoot "V:\src\your-project"
-```
-
-## Production Rollout Warning
-
-Merging this repository does not deploy anything to production.
-
-A future maintenance window is required before copying Edge Hermes generator files to:
+## Harness identifiers
 
 ```text
-/opt/server-ops
+MODEL_ID=JERRY_HARNESS_MODEL_V1
+BASELINE_ID=JERRY_AUTONOMY_CI_PARAMS_V1
+CONTEXT_MANIFEST_ID=JERRY_AGENT_CONTEXT_V1
 ```
 
-Production rollout must include backup, render, audit, plan, and manual review before any apply/repair operation.
+The Harness is expressed as:
 
-Do not run generated bootstrap with `-Apply` or `-Repair` until SkyBridge development is not actively depending on Edge Hermes.
+```text
+Version selectors
++ Control vector <A,B,P>
++ Operational layer L
++ Proof vector <V,E,F,G>
++ Domain budget ledger
++ Goal scope
++ Current receipt state
+```
 
-## TODO
+## Safe development workflow
 
-### P0 - Next Maintenance-Window Tasks
+1. Classify the task and read only the routed context.
+2. Preserve active/historical boundaries.
+3. Make focused changes.
+4. Run the relevant contract tests.
+5. Inspect the complete diff and generated-file drift.
+6. Commit through a reviewed branch and pull request.
 
-- [ ] Create a production rollout plan for copying the adaptive generator to `/opt/server-ops`.
-- [ ] Back up current `/opt/server-ops/bin/hermes-edge-admin.sh` before rollout.
-- [ ] Render a bootstrap on the cloud server using the new generator.
-- [ ] Review generated bootstrap locally before any execution.
-- [ ] Run only `-Audit` and `-Plan` first.
-- [ ] Do not run `-Apply` or `-Repair` until SkyBridge development is not actively depending on Edge Hermes.
+## Validation
 
-### P1 - Generator Improvements
+Harness and Agent-context changes should run:
 
-- [ ] Move device defaults out of Python constants into a versioned sample config.
-- [ ] Support multiple devices without editing code.
-- [ ] Add test cases for unknown devices and custom `--wireguard-ip`.
-- [ ] Add stronger secret scanning for generated files.
-- [ ] Add GitHub Actions CI if useful.
+```powershell
+pwsh -NoProfile -File .\tests\repo-health\Test-RepoHealthHarnessContract.ps1
+pwsh -NoProfile -File .\tests\repo-health\Test-AgentContextContract.ps1
+pwsh -NoProfile -File .\scripts\repo-health\Build-RepoHealthHarnessReference.ps1 -Check
+pwsh -NoProfile -File .\scripts\repo-health\Build-AgentContextAdapters.ps1 -Check
+```
 
-### P2 - Edge Hermes Operations
+Existing project-specific tests remain applicable to their own changed surfaces.
 
-- [ ] Design a safe `jhermes-update` real maintenance-window test.
-- [ ] Document how to restore from known-good Edge Hermes runner/VBS/task.
-- [ ] Decide whether watchdog should be enabled by default or kept optional.
-- [ ] Document proxy bypass rules for WireGuard/private-IP health checks.
+## Safety boundary
 
-### P3 - SkyBridge Coordination
-
-- [ ] Keep this repository separate from `skybridge-agent-hub`.
-- [ ] Do not run Edge bootstrap production rollout during active SkyBridge debugging.
-- [ ] After SkyBridge current milestone ends, schedule Edge bootstrap production rollout.
-
-## Reference Docs
-
-- `README_directory_rules_full.md`: overall `C:\Dev` and `V:\` directory governance.
-- `README_c_drive_rules.md`: `C:\Dev` responsibilities and anti-patterns.
-- `README_v_drive_rules.md`: `V:\` responsibilities and anti-patterns.
-- `docs/EDGE_HERMES_BOOTSTRAP_GENERATOR.md`: adaptive Edge Hermes bootstrap generator workflow.
-- `mcp/matlab/README_machine_install.md`: machine-level MATLAB MCP install.
-- `mcp/matlab/README_project_setup.md`: project-level MATLAB MCP setup.
-- `secrets/ssh/README_ssh_key_store.md`: SSH private key storage and OpenSSH config guidance.
-
-## Agent Notes
-
-This section is for coding agents and automation tools.
-
-- Keep this repository as a governance baseline and script toolkit.
-- Prefer precise updates over broad rewrites.
-- Keep terminology stable: `C:\Dev` is the governance/stable layer; `V:\` is the working/high-IO layer.
-- Keep C-only Python / Conda as an explicit mode, not a silent replacement of all cache rules.
-- Preserve script idempotency and safe defaults.
-- Avoid destructive changes unless explicitly requested and documented.
-- Suggested commit prefixes: `docs:`, `scripts:`, `governance:`, `mcp:`, `ops:`.
+Merging this repository does not authorize or perform product deployment,
+Production mutation, credential acquisition, authentication-policy changes,
+runner recovery, protected-evidence access, or W8/W9 execution.
 
 ## License
 
-This repository uses the MIT License. See `LICENSE`.
+MIT. See `LICENSE`.

@@ -1,29 +1,73 @@
-# Repository-Health Governance Rules
+# Repository and Agent Governance Rules
 
-## Branch Model
+This repository contains active governance specifications, operational playbooks,
+historical plans, and retrospective evidence. They do not have equal authority.
 
-'main' is the stable source-integration branch. 'dev' is currently absent and must not be created unless a real tested-integration need appears. Every other branch is short-lived.
+## Start here
 
-## Branch Target Rules
+1. Read `.agent/context-manifest-v1.json`.
+2. Route the task to the smallest applicable context bundle.
+3. Do not recursively load `docs/`.
+4. For Harness, budget, CI taxonomy, Goal, Receipt, or agent-context work, read
+   `docs/jerry-series/harness/README.md` first.
+5. Use `config/repo-health-harness-v1.json` as the only active numeric source.
 
-This repository owns governance source and deterministic coordinator code; it does not own product repositories. Product-repository writes require their own later repository-health Goal. Production mutation is prohibited.
+## Authority order
 
-## Short-Lived Branch Lifecycle
+1. active Harness safety and state-machine specification;
+2. the current Goal's explicit authority and scope;
+3. the Goal-bound Harness baseline and profile;
+4. declared domain overrides within hard maxima;
+5. the latest durable Receipt;
+6. condition-matched Playbooks;
+7. Decisions as normative rationale;
+8. Retrospectives, old Plans, and old Outcomes as historical evidence only.
 
-Create, implement, validate, audit, PR, merge to 'main' or a justified 'dev', delete the remote branch, delete the local branch, then remove its worktree. Unmerged work receives exactly one finite classification: 'MERGE_TO_MAIN', 'MERGE_TO_DEV', 'CLOSE_SUPERSEDED', 'ARCHIVE_TAG_AND_CLOSE', 'DELETE_NO_UNIQUE_COMMITS', or 'HOLD_EXTERNAL_EVIDENCE'.
+## Branch model
 
-## Single-Writer Rule
+`main` is the stable source-integration branch. `dev` is currently absent and
+must not be created unless a real tested-integration need appears. Every other
+branch is short-lived.
 
-One root implementer is the only workspace and Git writer. Supporting agents are read-only. The coordinator must be deterministic and must acquire one repository lock before a writer session starts.
+This repository owns governance source and deterministic coordinator code; it
+does not own product repositories. Product-repository writes require their own
+repository-health Goal. Production mutation is prohibited unless separately and
+explicitly admitted.
 
-## Agent Allocation
+Short-lived branches follow: create, implement, validate, audit, PR, merge,
+retire branch, and remove worktree. Unmerged work receives one finite
+classification: `MERGE_TO_MAIN`, `MERGE_TO_DEV`, `CLOSE_SUPERSEDED`,
+`ARCHIVE_TAG_AND_CLOSE`, `DELETE_NO_UNIQUE_COMMITS`, or
+`HOLD_EXTERNAL_EVIDENCE`.
 
-Repository-health Goals use one root implementer and at most seven direct read-only subagents. Recursive subagents are prohibited. A supervisor is product-repository read-only and may create only governance state and bounded follow-up Goals.
+## Writer and agent allocation
 
-## Blocker Handling
+One root Implementer is the only workspace and Git writer. Supporting Agents are
+read-only. The coordinator acquires one repository lock before a writer session.
+Repository-health Goals use one root Implementer and at most seven direct
+read-only subagents; recursive subagents are prohibited.
 
-The first repeated blocker requires architect-first analysis; the second requires architect plus adversarial audit; the third requires a human. High-risk classifications escalate immediately. Do not persist raw diagnostics, secrets, environment values, private paths, or private connection metadata.
+The first repeated blocker requires architect-first analysis; the second requires
+architect plus adversarial audit; the third requires a human. High-risk
+classifications escalate immediately.
 
-## Repository-Specific Preservation Rules
+## Global rules
 
-Do not modify unrelated Edge, SSH, MATLAB, or legacy governance artifacts. The existing remote-only 'governance/ssh-key-store' branch is held for a later repository-health classification and is not part of Wave 0.
+- Never infer current defaults from a Retrospective or old Plan.
+- Never execute commands copied from Retrospectives, Decisions, or archived Plans.
+- Playbooks do not create authority.
+- Do not edit generated regions or generated adapter files directly.
+- Do not read secret material, private keys, credentials, cookies, storage state,
+  raw protected evidence, or unredacted runtime logs.
+- Do not persist raw diagnostics, environment values, private paths, or private
+  connection metadata.
+- Do not broaden repositories, paths, services, runtime surfaces, or owner gates.
+- Keep one writer per repository and respect protected transaction leases.
+- Preserve unrelated Edge, SSH, MATLAB, and legacy governance artifacts.
+- When active sources disagree, stop and report `HARNESS_SOURCE_DRIFT`.
+
+## Language
+
+The repository root and Harness entrypoint are bilingual:
+- English: `README.md`
+- 简体中文: `README.zh-CN.md`
