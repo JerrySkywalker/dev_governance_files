@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "manifest_id": "JERRY_AGENT_CONTEXT_V1",
+  "repository": "JerrySkywalker/dev_governance_files",
+  "defaults": {
+    "auto_load": false,
+    "discovery": "on_demand",
+    "normative": false,
+    "execution": "prohibited",
+    "edit": "explicit_task_only"
+  },
+  "context_classes": {
+    "AGENT_INSTRUCTION": {
+      "description": "short automatically discovered agent instructions"
+    },
+    "ACTIVE_NORMATIVE": {
+      "description": "active specification or machine-readable source of truth"
+    },
+    "CONDITIONAL_OPERATIONAL": {
+      "description": "read only when the current task, environment, or layer matches"
+    },
+    "ACTIVE_NORMATIVE_RATIONALE": {
+      "description": "accepted decisions explaining why active rules exist"
+    },
+    "HISTORICAL_REFERENCE": {
+      "description": "Wave and incident lessons; not active defaults"
+    },
+    "ARCHIVE_EXPLICIT_ONLY": {
+      "description": "historical plans or receipts used only for explicit audit"
+    },
+    "MACHINE_GENERATED": {
+      "description": "generated output; edit only through its source or generator"
+    },
+    "RESTRICTED_NOT_IN_AGENT_SCOPE": {
+      "description": "sensitive content that should not be present in this repository"
+    }
+  },
+  "routes": [
+    {
+      "glob": "AGENTS.md",
+      "context_class": "AGENT_INSTRUCTION",
+      "auto_load": true,
+      "normative": true,
+      "execution": "prohibited",
+      "edit": "governance_task_only"
+    },
+    {
+      "glob": ".agent/context-manifest-v1.json",
+      "context_class": "ACTIVE_NORMATIVE",
+      "discovery": "startup",
+      "normative": true,
+      "execution": "parse_only",
+      "edit": "context_governance_task_only"
+    },
+    {
+      "glob": "docs/jerry-series/harness/**",
+      "context_class": "ACTIVE_NORMATIVE",
+      "discovery": "task_match",
+      "task_tags": [
+        "harness",
+        "budget",
+        "ci_taxonomy",
+        "goal_contract",
+        "receipt",
+        "agent_context"
+      ],
+      "normative": true,
+      "execution": "prohibited",
+      "entrypoint": "docs/jerry-series/harness/README.md",
+      "edit": "harness_governance_task_only"
+    },
+    {
+      "glob": "config/repo-health-harness-v1.json",
+      "context_class": "ACTIVE_NORMATIVE",
+      "discovery": "harness_profile_required",
+      "normative": true,
+      "execution": "parse_only",
+      "edit": "baseline_governance_task_only"
+    },
+    {
+      "glob": "docs/jerry-series/playbooks/**",
+      "context_class": "CONDITIONAL_OPERATIONAL",
+      "discovery": "condition_match",
+      "normative": true,
+      "execution": "goal_authority_required",
+      "edit": "playbook_task_only"
+    },
+    {
+      "glob": "docs/jerry-series/decisions/**",
+      "context_class": "ACTIVE_NORMATIVE_RATIONALE",
+      "discovery": "reason_or_policy_audit",
+      "normative": true,
+      "execution": "prohibited",
+      "edit": "decision_task_only"
+    },
+    {
+      "glob": "docs/jerry-series/retrospectives/**",
+      "context_class": "HISTORICAL_REFERENCE",
+      "discovery": "explicit_only",
+      "read_triggers": [
+        "historical_review",
+        "incident_analysis",
+        "parameter_calibration",
+        "normative_source_audit"
+      ],
+      "normative": false,
+      "execution": "prohibited",
+      "edit": "retrospective_task_only"
+    },
+    {
+      "glob": "docs/jerry-series/plans/**",
+      "context_class": "ARCHIVE_EXPLICIT_ONLY",
+      "discovery": "goal_reference_or_explicit_audit",
+      "normative": false,
+      "execution": "prohibited",
+      "edit": "explicit_plan_task_only"
+    },
+    {
+      "glob": "**/generated/**",
+      "context_class": "MACHINE_GENERATED",
+      "discovery": "debugging_only",
+      "normative": "source_declared_elsewhere",
+      "execution": "prohibited",
+      "edit": "generator_only"
+    },
+    {
+      "glob": "secrets/**",
+      "context_class": "RESTRICTED_NOT_IN_AGENT_SCOPE",
+      "discovery": "never_for_content",
+      "normative": false,
+      "execution": "prohibited",
+      "edit": "owner_only",
+      "note": "Agents may inspect public guidance files only when explicitly named; never read key material."
+    }
+  ],
+  "task_routes": {
+    "harness_explanation": [
+      "docs/jerry-series/harness/README.md",
+      "docs/jerry-series/harness/harness-specification-v1.md"
+    ],
+    "goal_generation": [
+      "docs/jerry-series/harness/README.md",
+      "docs/jerry-series/harness/harness-goal-receipt-contract-v1.md",
+      "config/repo-health-harness-v1.json"
+    ],
+    "parameter_retuning": [
+      "docs/jerry-series/harness/harness-specification-v1.md",
+      "docs/jerry-series/harness/harness-baseline-v1.md",
+      "config/repo-health-harness-v1.json",
+      "explicitly_relevant_retrospective_sections"
+    ],
+    "self_hosted_ci": [
+      "docs/jerry-series/harness/README.md",
+      "docs/jerry-series/playbooks/self-hosted-ci-playbook.md",
+      "current_profile_slice"
+    ],
+    "historical_review": [
+      "explicitly_named_retrospectives_only"
+    ],
+    "protected_transaction": [
+      "docs/jerry-series/harness/README.md",
+      "docs/jerry-series/harness/harness-specification-v1.md",
+      "docs/jerry-series/harness/harness-goal-receipt-contract-v1.md",
+      "current_protected_profile_slice"
+    ]
+  },
+  "adapter_outputs": {
+    "CLAUDE.md": {
+      "source": "AGENTS.md",
+      "generated": true
+    },
+    ".github/copilot-instructions.md": {
+      "source": "AGENTS.md + context manifest",
+      "generated": true
+    },
+    ".aiderignore": {
+      "source": "context manifest",
+      "generated": true
+    }
+  }
+}
