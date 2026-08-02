@@ -31,6 +31,7 @@ Decisions explain accepted policy; they do not duplicate active parameter values
 - `playbooks/git-operation-marker-reconciliation-playbook.md`
 - `playbooks/lightweight-plan-outcome-repository-playbook.md`
 - `playbooks/canonical-git-object-audit-packet-playbook.md`
+- `playbooks/independent-audit-launch-playbook.md`
 
 Read only the Playbook matching the current task and Harness environment/layer.
 
@@ -54,6 +55,7 @@ Patterns were superseded by the unified Harness sources.
 - `retrospectives/wave-7-end-to-end-lessons.md`
 - `retrospectives/post-w7-dashboard-production-release-closeout.md`
 - `retrospectives/workstation-manager-p0-5-p1a-interim-lessons.md`
+- `retrospectives/clh-v0.2.1-template-provenance-and-audit-lessons.md`
 
 Retrospectives are non-normative, not default Agent context, and never an
 execution source.
