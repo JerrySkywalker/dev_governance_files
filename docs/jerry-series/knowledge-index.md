@@ -18,6 +18,7 @@ historical evidence.
 - `decisions/JD-0002-current-repository-health-train-keeps-wave-6-execution-model.md`
 - `decisions/JD-0003-progress-sensitive-autonomous-execution-budgets.md`
 - `decisions/JD-0004-unified-harness-control-contract.md`
+- `decisions/JD-0005-repository-health-program-closeout.md`
 
 Decisions explain accepted policy; they do not duplicate active parameter values.
 
@@ -56,6 +57,7 @@ Patterns were superseded by the unified Harness sources.
 - `retrospectives/post-w7-dashboard-production-release-closeout.md`
 - `retrospectives/workstation-manager-p0-5-p1a-interim-lessons.md`
 - `retrospectives/clh-v0.2.1-template-provenance-and-audit-lessons.md`
+- `retrospectives/repository-health-program-closeout.md`
 
 Retrospectives are non-normative, not default Agent context, and never an
 execution source.
