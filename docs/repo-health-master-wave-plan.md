@@ -2,16 +2,79 @@
 
 Plan ID: repo-health-master-wave-plan
 Schema: repo-health-master-wave-plan.v1
-Version: 1.9
-Status: ACTIVE
+Version: 2.0
+Status: COMPLETE
 
-The machine-readable canonical plan is config/repo-health-master-wave-plan.json. Wave 0 persists governance and inventory, safely converges only proven-safe worktrees, and adds the deterministic coordinator. Its milestone is M0_FOUNDATION_READY.
+The machine-readable canonical plan is
+[`config/repo-health-master-wave-plan.json`](../config/repo-health-master-wave-plan.json).
+The effective state is the terminal amendment
+`REPO-HEALTH-FINAL-CLOSEOUT-001`. Earlier amendments, Waves, interludes,
+blockers, and milestones remain immutable historical records.
 
-## Active versioned amendment
+## Effective terminal closeout amendment
+
+The Repository Health Program is closed with these effective facts:
+
+```text
+REPOSITORY_HEALTH_PROGRAM_STATUS=COMPLETE
+CANONICAL_REPOSITORY_HEALTH_DEBT_REMAINING=false
+POST_W7_REPOSITORY_CONVERGENCE=COMPLETE
+FINAL_HEALTH_CLOSEOUT_AUDIT=PASS
+OLD_W8_W9_EXECUTION_STATUS=SUPERSEDED_UNEXECUTED
+HISTORICAL_DEFINITIONS_PRESERVED=true
+PRODUCT_WORK_NOT_CLAIMED_COMPLETE=true
+UNKNOWN_CLASSIFICATION_COUNT=0
+```
+
+The closeout inventory covered 17 canonical repositories and five admitted
+track repositories. It classified all live default branches, exact SHAs, open
+PR heads, and remote branches without deleting or mutating retained work.
+One SSH evidence ref remains held and four open PR heads remain explicitly
+tracked; neither class is unresolved repository-health debt.
+
+The latest valid terminal amendment has effective-state precedence. It does
+not edit the historical values stored in earlier amendments. In particular,
+W8 and W9 remain visible with their original identifiers and definitions, but
+their effective disposition is `SUPERSEDED_UNEXECUTED`, not complete and not
+executed. The v1.9 Dashboard blocker language is historical and is no longer
+an active Repository Health Program gate.
+
+## Post-Health Programs
+
+The following Foundation Tracks are registered but not authorized here:
+
+- Coordination Loop;
+- JPC Multi-device Enrollment; and
+- OpenCode Workspace Hub.
+
+The following Product Tracks are registered but not authorized here:
+
+- Dashboard / Message Gateway;
+- Android / Wear OS; and
+- Workstation Manager.
+
+Product, foundation-platform, runtime/deployment, and owner-controlled physical
+acceptance backlog remains separate from repository-health debt. This closeout
+does not authorize product source changes, runtime Apply, Production or Canary
+deployment, credential or identity actions, device contact, runner changes, or
+Workstation Manager real execution.
+
+## Historical program state through v1.9
+
+The remainder of this document preserves the prior effective plan as history.
+Its old `ACTIVE`, authorization, entry-gate, and blocker statements must not be
+used as current execution authority after the terminal closeout amendment.
+
+Wave 0 persisted governance and inventory, safely converged proven-safe
+worktrees, and added the deterministic coordinator. Its milestone was
+`M0_FOUNDATION_READY`.
+
+## Historical versioned amendments
 
 `W1-R01-MAIN-DEV-POLICY-V2` activates [Main/Dev Policy V2](governance/main-dev-policy-v2.md) and its machine-readable source at `policy/main-dev-policy-v2.json`. It supersedes the active branch-policy interpretation while preserving `config/branch-lifecycle-policy.json` as the historical V1 policy and leaving all Wave 1 receipts untouched.
 
-The current amendment is `POST-W7-DASHBOARD-UI-HARDENING-001`, version `1.9`.
+The last pre-closeout amendment was `POST-W7-DASHBOARD-UI-HARDENING-001`,
+version `1.9`.
 It preserves all earlier amendments and the immutable accepted Wave 7 closure,
 records the owner rejection of the technically passing production-shaped Canary
 baseline, and inserts the bounded Dashboard UI hardening interlude after

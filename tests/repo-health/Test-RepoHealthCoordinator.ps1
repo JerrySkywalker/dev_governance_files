@@ -24,7 +24,14 @@ try {
     $plan = Get-Content -LiteralPath 'V:\src\dev_governance_files\config\repo-health-master-wave-plan.json' -Raw | ConvertFrom-Json
     Assert-True ($plan.plan_id -eq 'repo-health-master-wave-plan') 'master-plan parse'
     Assert-True ($plan.waves.Count -eq 15 -and $plan.waves[0].steps.Count -eq 4 -and $plan.deferred_wave.wave_id -eq 'P') 'master-plan wave coverage'
-    Assert-True ($plan.version -eq '1.9' -and $plan.active_branch_policy.version -eq '2.0' -and $plan.active_branch_policy.path -eq 'policy/main-dev-policy-v2.json') 'master-plan active policy amendment'
+    Assert-True ($plan.version -eq '2.0' -and $plan.status -eq 'COMPLETE' -and $plan.effective_amendment_id -eq 'REPO-HEALTH-FINAL-CLOSEOUT-001') 'master-plan terminal closeout amendment'
+    Assert-True ($plan.active_branch_policy.version -eq '2.0' -and $plan.active_branch_policy.path -eq 'policy/main-dev-policy-v2.json') 'master-plan active branch policy'
+    $closeout = $plan.program_closeout
+    Assert-True ($closeout.scope -eq 'REPOSITORY_HEALTH_ONLY' -and $closeout.repository_health_program_status -eq 'COMPLETE' -and $closeout.final_health_closeout_audit -eq 'PASS') 'repository-health terminal closeout facts'
+    Assert-True (-not $closeout.canonical_repository_health_debt_remaining -and $closeout.post_w7_repository_convergence -eq 'COMPLETE' -and $closeout.unknown_classification_count -eq 0) 'repository-health debt and classification closeout'
+    Assert-True ($closeout.old_w8_w9_execution_status -eq 'SUPERSEDED_UNEXECUTED' -and $closeout.historical_definitions_preserved -and $closeout.product_work_not_claimed_complete) 'historical W8 W9 truth preserved'
+    Assert-True ($closeout.post_health_foundation_tracks.Count -eq 3 -and $closeout.post_health_product_tracks.Count -eq 3 -and -not $closeout.post_health_tracks_authorized_by_this_goal) 'post-health tracks registered without authorization'
+    Assert-True ($closeout.active_repository_health_blockers.Count -eq 0 -and $closeout.resolution_ledger.Count -eq 4) 'obsolete active blockers have finite effective dispositions'
     $amendment = @($plan.amendments | Where-Object { $_.amendment_id -eq 'W7V-R03-PHASE-A-CLOSEOUT-AND-COMPRESSED-WAVE7-TRAIN' })[0]
     Assert-True ($amendment.phase_a_complete -and $amendment.g1_complete -and $amendment.dashboard_exact_main -eq '88b9b8e41b992887f832c5c31e230f373700ab5c') 'Wave 7 Phase A closeout'
     Assert-True ($amendment.phase_b_status -eq 'DEFERRED_BY_OWNER' -and $amendment.phase_c_status -eq 'DEFERRED_BY_OWNER' -and -not $amendment.m_pre_w7b_dashboard_hardening_complete) 'Dashboard Phase B and C deferral'
@@ -52,8 +59,17 @@ try {
 
     $registry = Get-Content -LiteralPath 'V:\src\dev_governance_files\config\repository-registry.json' -Raw | ConvertFrom-Json
     $registryIds = @($registry.repositories.repository_id)
-    Assert-True ($registry.repositories.Count -eq 17 -and (@($registryIds | Select-Object -Unique).Count -eq 17)) 'repository-registry parse'
+    Assert-True ($registry.version -eq '1.1' -and $registry.repositories.Count -eq 22 -and (@($registryIds | Select-Object -Unique).Count -eq 22)) 'repository-registry closeout parse'
     Assert-True (-not ($registryIds -contains 'UNKNOWN')) 'registry finite ids'
+    Assert-True (@($registry.repositories | Where-Object { $_.roster_membership -eq 'CANONICAL_REGISTRY' }).Count -eq 17) 'registry canonical membership count'
+    Assert-True (@($registry.repositories | Where-Object { $_.roster_membership -eq 'POST_HEALTH_TRACK_ADMITTED' }).Count -eq 5) 'registry post-health membership count'
+    $allowedCloseoutStates = @('HEALTH_PROGRAM_COMPLETE','POST_HEALTH_FOUNDATION_TRACK','POST_HEALTH_PRODUCT_TRACK','HISTORICAL_ONLY','EXTERNAL_NOT_OWNED')
+    Assert-True (@($registry.repositories | Where-Object { $_.current_state -notin $allowedCloseoutStates }).Count -eq 0) 'registry closeout classifications are finite'
+    Assert-True (@($registry.repositories | Where-Object { [string]$_.default_branch_sha -notmatch '^[0-9a-f]{40}$' }).Count -eq 0) 'registry exact default branch SHAs'
+    $classificationTotal = 0
+    foreach ($value in $registry.closeout_binding.classification_counts.PSObject.Properties.Value) { $classificationTotal += [int]$value }
+    Assert-True ($classificationTotal -eq 22 -and $registry.closeout_binding.unknown_classification_count -eq 0 -and $registry.closeout_binding.unclassified_unique_branch_count -eq 0) 'registry classification coverage'
+    Assert-True ($registry.retained_work_ledger.held_evidence_ref_count -eq 1 -and $registry.retained_work_ledger.active_pr_head_count -eq 4 -and $registry.retained_work_ledger.unknown_count -eq 0) 'registry retained work ledger'
 
     $graph = Get-Content -LiteralPath 'V:\src\dev_governance_files\config\dependency-graph.json' -Raw | ConvertFrom-Json
     foreach ($edge in $graph.edges) {

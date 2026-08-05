@@ -1,23 +1,807 @@
 {
   "schema": "repo-health-repository-registry.v1",
-  "version": "1.0",
+  "version": "1.1",
   "repositories": [
-    {"repository_id":"codex-ntfy-notifier","local_path":"V:\\src\\codex-ntfy-notifier","github_repository":"JerrySkywalker/codex-ntfy-notifier","default_branch":"main","default_branch_sha":"092d17999b790a3d8d7ec7493615092117ec80e7","main_ref":{"status":"PRESENT","sha":"092d17999b790a3d8d7ec7493615092117ec80e7"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":[],"production_relevance":"SOURCE_ONLY","repository_class":"INDEPENDENT_NOTIFICATION_PRODUCT","preservation_rules":["NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"],"current_wave":"W6-S01","current_state":"HEALTH_PENDING"},
-    {"repository_id":"dev_governance_files","local_path":"V:\\src\\dev_governance_files","github_repository":"JerrySkywalker/dev_governance_files","default_branch":"main","default_branch_sha":"6294d7a02f954a99ef310f27206a3bc8c2521f2f","main_ref":{"status":"PRESENT","sha":"6294d7a02f954a99ef310f27206a3bc8c2521f2f"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":[],"production_relevance":"GOVERNANCE_ONLY","repository_class":"GOVERNANCE_CONTROL","preservation_rules":["GOVERNANCE_SOURCE_ONLY","NO_PRODUCT_REPOSITORY_OWNERSHIP"],"current_wave":"W0-S01,W0-S04","current_state":"FOUNDATION_ACTIVE"},
-    {"repository_id":"hithesis","local_path":"V:\\src\\hithesis","github_repository":"JerrySkywalker/hithesis","default_branch":"master","default_branch_sha":"366e37f5b3c621242229a8dc20fb41a47699b9a8","main_ref":{"status":"ABSENT","sha":null},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":[],"production_relevance":"SOURCE_ONLY","repository_class":"INDEPENDENT_PROJECT","preservation_rules":["NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"],"current_wave":"W6-S04","current_state":"BRANCH_MODEL_ALIGNMENT_PENDING"},
-    {"repository_id":"jerry-devops-access","local_path":"V:\\src\\jerry-devops-access","github_repository":"JerrySkywalker/jerry-devops-access","default_branch":"main","default_branch_sha":"1f5a70c3821c4630da094cd8f6956bfe2fcb6876","main_ref":{"status":"PRESENT","sha":"1f5a70c3821c4630da094cd8f6956bfe2fcb6876"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":["jerry-message-gateway","jerry-devops-android"],"production_relevance":"IDENTITY_SERVICE","repository_class":"IDENTITY_SERVICE","preservation_rules":["NO_SECRET_OR_PROFILE_BODY_INSPECTION"],"current_wave":"W1-S03","current_state":"HEALTH_PENDING"},
-    {"repository_id":"jerry-devops-android","local_path":"V:\\src\\jerry-devops-android","github_repository":"JerrySkywalker/jerry-devops-android","default_branch":"main","default_branch_sha":"11d9e2713436e5e547efee424620ed08899e8bda","main_ref":{"status":"PRESENT","sha":"11d9e2713436e5e547efee424620ed08899e8bda"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":["jerry-message-gateway","jerry-devops-access"],"downstream_repositories":[],"production_relevance":"MOBILE_CONSUMER","repository_class":"MOBILE_CONSUMER","preservation_rules":["NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"],"current_wave":"W3-S03,W3-S04","current_state":"HEALTH_PENDING"},
-    {"repository_id":"jerry-glance-dashboard","local_path":"V:\\src\\jerry-glance-dashboard","github_repository":"JerrySkywalker/jerry-glance-dashboard","default_branch":"main","default_branch_sha":"4b7a511a641c98b172cb9425f409a7353fd55996","main_ref":{"status":"PRESENT","sha":"4b7a511a641c98b172cb9425f409a7353fd55996"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":["jerry-telemetry-hub"],"downstream_repositories":[],"production_relevance":"DASHBOARD_CONSUMER","repository_class":"DASHBOARD_CONSUMER","preservation_rules":["NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"],"current_wave":"W3-S01,W3-S02","current_state":"HEALTH_PENDING"},
-    {"repository_id":"jerry-message-gateway","local_path":"V:\\src\\jerry-message-gateway","github_repository":"JerrySkywalker/jerry-message-gateway","default_branch":"main","default_branch_sha":"e54168cd5bde764b6a2f2b8a1b142d486b171da1","main_ref":{"status":"PRESENT","sha":"e54168cd5bde764b6a2f2b8a1b142d486b171da1"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":["jerry-devops-access"],"downstream_repositories":["jerry-telemetry-agent","jerry-devops-android"],"production_relevance":"MESSAGE_CORE","repository_class":"MESSAGE_CORE","preservation_rules":["NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"],"current_wave":"W2-S01..S04","current_state":"HEALTH_PENDING"},
-    {"repository_id":"jerry-proxy-client","local_path":"V:\\src\\jerry-proxy-client","github_repository":"JerrySkywalker/jerry-proxy-client","default_branch":"main","default_branch_sha":"0d9ed1de310f8e74bb3c3fefa617cba5b6dfadc5","main_ref":{"status":"PRESENT","sha":"0d9ed1de310f8e74bb3c3fefa617cba5b6dfadc5"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":["jerry-proxy-control"],"downstream_repositories":[],"production_relevance":"PROXY_CLIENT","repository_class":"PROXY_CLIENT","preservation_rules":["NO_SECRET_OR_PROFILE_BODY_INSPECTION"],"current_wave":"W4-S04","current_state":"HEALTH_PENDING"},
-    {"repository_id":"jerry-proxy-control","local_path":"V:\\src\\jerry-proxy-control","github_repository":"JerrySkywalker/jerry-proxy-control","default_branch":"main","default_branch_sha":"f25ce78de421b8839948c95c014d6ec45f8027a5","main_ref":{"status":"PRESENT","sha":"f25ce78de421b8839948c95c014d6ec45f8027a5"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":["jerry-proxy-edge"],"downstream_repositories":["jerry-proxy-client"],"production_relevance":"PROXY_CONTROL","repository_class":"PROXY_CONTROL","preservation_rules":["NO_SECRET_OR_PROFILE_BODY_INSPECTION"],"current_wave":"W4-S03","current_state":"HEALTH_PENDING"},
-    {"repository_id":"jerry-proxy-edge","local_path":"V:\\src\\jerry-proxy-edge","github_repository":"JerrySkywalker/jerry-proxy-edge","default_branch":"main","default_branch_sha":"1566142d172b8d8d78b3fbc01cab6c3bd345e910","main_ref":{"status":"PRESENT","sha":"1566142d172b8d8d78b3fbc01cab6c3bd345e910"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":["jerry-proxy-control"],"production_relevance":"PROXY_EDGE","repository_class":"PROXY_EDGE","preservation_rules":["NO_SECRET_OR_PROFILE_BODY_INSPECTION"],"current_wave":"W4-S02","current_state":"HEALTH_PENDING"},
-    {"repository_id":"jerry-telemetry-agent","local_path":"V:\\src\\jerry-telemetry-agent","github_repository":"JerrySkywalker/jerry-telemetry-agent","default_branch":"main","default_branch_sha":"3f2bed3fdd114cc989ecfac15dfb3658d068fd46","main_ref":{"status":"PRESENT","sha":"3f2bed3fdd114cc989ecfac15dfb3658d068fd46"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":["jerry-message-gateway"],"downstream_repositories":["jerry-telemetry-hub"],"production_relevance":"TELEMETRY_PRODUCER","repository_class":"TELEMETRY_PRODUCER","preservation_rules":["PRESERVE_IN_PLACE:artifacts/playwright/dashboard-mg39b","PRESERVE_AND_EXCLUDE_CONTENTS_FROM_REPORTS"],"current_wave":"W1-S01","current_state":"HEALTH_PENDING_PRESERVATION_RULE"},
-    {"repository_id":"jerry-telemetry-hub","local_path":"V:\\src\\jerry-telemetry-hub","github_repository":"JerrySkywalker/jerry-telemetry-hub","default_branch":"main","default_branch_sha":"06e368fd863bedac6de10a458ccffc8a9231b588","main_ref":{"status":"PRESENT","sha":"06e368fd863bedac6de10a458ccffc8a9231b588"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":["jerry-telemetry-agent"],"downstream_repositories":["jerry-glance-dashboard"],"production_relevance":"TELEMETRY_HUB","repository_class":"TELEMETRY_HUB","preservation_rules":["NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"],"current_wave":"W1-S02","current_state":"HEALTH_PENDING"},
-    {"repository_id":"jerry-workstation-config","local_path":"V:\\src\\jerry-workstation-config","github_repository":"JerrySkywalker/jerry-workstation-config","default_branch":"master","default_branch_sha":"da83adb86e4e460190e66483a758059b8b2bd15b","main_ref":{"status":"ABSENT","sha":null},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":["workstation-manager"],"production_relevance":"PERSONAL_DESIRED_STATE","repository_class":"PERSONAL_DESIRED_STATE","preservation_rules":["SANITIZED_REPORTS_ONLY"],"current_wave":"W5-S02","current_state":"BRANCH_MODEL_ALIGNMENT_PENDING"},
-    {"repository_id":"skybridge-agent-hub","local_path":"V:\\src\\skybridge-agent-hub","github_repository":"JerrySkywalker/skybridge-agent-hub","default_branch":"main","default_branch_sha":"35d01349394ce593a6f3a88143699b279da5e33c","main_ref":{"status":"PRESENT","sha":"35d01349394ce593a6f3a88143699b279da5e33c"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":[],"production_relevance":"AGENT_CONTROL_PLANE","repository_class":"AGENT_CONTROL_PLANE","preservation_rules":["SANITIZED_LOG_EXPORT_ONLY"],"current_wave":"W4-S05","current_state":"HEALTH_PENDING"},
-    {"repository_id":"wearos-healthprobe-app","local_path":"V:\\src\\wearos-healthprobe-app","github_repository":"JerrySkywalker/wearos-healthprobe-app","default_branch":"main","default_branch_sha":"f047c50faccfef5294af629cc6d2e43adacd4b35","main_ref":{"status":"PRESENT","sha":"f047c50faccfef5294af629cc6d2e43adacd4b35"},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":[],"production_relevance":"WEAR_APP","repository_class":"WEAR_APP","preservation_rules":["NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"],"current_wave":"W6-S03","current_state":"HEALTH_PENDING"},
-    {"repository_id":"wearos-healthprobe-preflight","local_path":"V:\\src\\wearos-healthprobe-preflight","github_repository":"JerrySkywalker/wearos-healthprobe-preflight","default_branch":"master","default_branch_sha":"df0e202646d97ea27b0f63047ac1c3ae760c8e9d","main_ref":{"status":"ABSENT","sha":null},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":[],"production_relevance":"WEAR_READ_ONLY_TOOL","repository_class":"WEAR_READ_ONLY_TOOL","preservation_rules":["PRESERVE_AND_EXCLUDE_RAW_ARTIFACT_CONTENTS_FROM_REPORTS"],"current_wave":"W6-S02","current_state":"BRANCH_MODEL_ALIGNMENT_PENDING"},
-    {"repository_id":"workstation-manager","local_path":"V:\\src\\workstation-manager","github_repository":"JerrySkywalker/workstation-manager","default_branch":"master","default_branch_sha":"f0921d06c25793cbebdd872e43384f446e3f53a7","main_ref":{"status":"ABSENT","sha":null},"dev_policy":{"state":"EXPLICITLY_ABSENT","create_only_for_real_tested_integration_need":true},"upstream_repositories":[],"downstream_repositories":["jerry-workstation-config"],"production_relevance":"WORKSTATION_MANAGER","repository_class":"WORKSTATION_MANAGER","preservation_rules":["SANITIZED_REPORTS_ONLY"],"current_wave":"W5-S01","current_state":"BRANCH_MODEL_ALIGNMENT_PENDING"}
-  ]
+    {
+      "repository_id": "codex-ntfy-notifier",
+      "local_path": "V:\\src\\codex-ntfy-notifier",
+      "github_repository": "JerrySkywalker/codex-ntfy-notifier",
+      "default_branch": "main",
+      "default_branch_sha": "55dc8f68229e05c9e5f6f93075ffc9f71568afeb",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "55dc8f68229e05c9e5f6f93075ffc9f71568afeb"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "SOURCE_ONLY",
+      "repository_class": "INDEPENDENT_NOTIFICATION_PRODUCT",
+      "preservation_rules": [
+        "NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"
+      ],
+      "current_wave": "REPOSITORY_HEALTH_PROGRAM_CLOSEOUT",
+      "current_state": "HEALTH_PROGRAM_COMPLETE",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "dev_governance_files",
+      "local_path": "V:\\src\\dev_governance_files",
+      "github_repository": "JerrySkywalker/dev_governance_files",
+      "default_branch": "main",
+      "default_branch_sha": "2abc39dda59ffa1c9dd92c0f2ed328dbf95d72a9",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "2abc39dda59ffa1c9dd92c0f2ed328dbf95d72a9"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "GOVERNANCE_ONLY",
+      "repository_class": "GOVERNANCE_CONTROL",
+      "preservation_rules": [
+        "GOVERNANCE_SOURCE_ONLY",
+        "NO_PRODUCT_REPOSITORY_OWNERSHIP"
+      ],
+      "current_wave": "REPOSITORY_HEALTH_PROGRAM_CLOSEOUT",
+      "current_state": "HEALTH_PROGRAM_COMPLETE",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 2,
+        "open_pr_count": 0,
+        "open_pr_heads": [],
+        "retained_work_lines": [
+          {
+            "ref": "governance/ssh-key-store",
+            "sha": "6bffc6bc1e3f4af71d4c7caae57abc729b94075b",
+            "classification": "HOLD_EXTERNAL_EVIDENCE"
+          }
+        ]
+      }
+    },
+    {
+      "repository_id": "hithesis",
+      "local_path": "V:\\src\\hithesis",
+      "github_repository": "JerrySkywalker/hithesis",
+      "default_branch": "master",
+      "default_branch_sha": "366e37f5b3c621242229a8dc20fb41a47699b9a8",
+      "main_ref": {
+        "status": "ABSENT",
+        "sha": null
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "SOURCE_ONLY",
+      "repository_class": "INDEPENDENT_PROJECT",
+      "preservation_rules": [
+        "NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"
+      ],
+      "current_wave": "HISTORICAL_ONLY",
+      "current_state": "EXTERNAL_NOT_OWNED",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 6,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-devops-access",
+      "local_path": "V:\\src\\jerry-devops-access",
+      "github_repository": "JerrySkywalker/jerry-devops-access",
+      "default_branch": "main",
+      "default_branch_sha": "325c417d14117c250c8bf0235a0635608b4512e3",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "325c417d14117c250c8bf0235a0635608b4512e3"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [
+        "jerry-message-gateway",
+        "jerry-devops-android"
+      ],
+      "production_relevance": "IDENTITY_SERVICE",
+      "repository_class": "IDENTITY_SERVICE",
+      "preservation_rules": [
+        "NO_SECRET_OR_PROFILE_BODY_INSPECTION"
+      ],
+      "current_wave": "POST_HEALTH_FOUNDATION_TRACK",
+      "current_state": "POST_HEALTH_FOUNDATION_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-devops-android",
+      "local_path": "V:\\src\\jerry-devops-android",
+      "github_repository": "JerrySkywalker/jerry-devops-android",
+      "default_branch": "main",
+      "default_branch_sha": "a23d41d2ed90e4cfccf60aa0411e4ec33163893a",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "a23d41d2ed90e4cfccf60aa0411e4ec33163893a"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [
+        "jerry-message-gateway",
+        "jerry-devops-access"
+      ],
+      "downstream_repositories": [],
+      "production_relevance": "MOBILE_CONSUMER",
+      "repository_class": "MOBILE_CONSUMER",
+      "preservation_rules": [
+        "NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"
+      ],
+      "current_wave": "POST_HEALTH_PRODUCT_TRACK",
+      "current_state": "POST_HEALTH_PRODUCT_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 2,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-glance-dashboard",
+      "local_path": "V:\\src\\jerry-glance-dashboard",
+      "github_repository": "JerrySkywalker/jerry-glance-dashboard",
+      "default_branch": "main",
+      "default_branch_sha": "abd19347d162405770c3aa343234e301e0de29c5",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "abd19347d162405770c3aa343234e301e0de29c5"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [
+        "jerry-telemetry-hub"
+      ],
+      "downstream_repositories": [],
+      "production_relevance": "DASHBOARD_CONSUMER",
+      "repository_class": "DASHBOARD_CONSUMER",
+      "preservation_rules": [
+        "NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"
+      ],
+      "current_wave": "POST_HEALTH_PRODUCT_TRACK",
+      "current_state": "POST_HEALTH_PRODUCT_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 10,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-message-gateway",
+      "local_path": "V:\\src\\jerry-message-gateway",
+      "github_repository": "JerrySkywalker/jerry-message-gateway",
+      "default_branch": "main",
+      "default_branch_sha": "39b9adbf1d9f15e2f98c1e3962e5123dacc5950f",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "39b9adbf1d9f15e2f98c1e3962e5123dacc5950f"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [
+        "jerry-devops-access"
+      ],
+      "downstream_repositories": [
+        "jerry-telemetry-agent",
+        "jerry-devops-android"
+      ],
+      "production_relevance": "MESSAGE_CORE",
+      "repository_class": "MESSAGE_CORE",
+      "preservation_rules": [
+        "NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"
+      ],
+      "current_wave": "POST_HEALTH_PRODUCT_TRACK",
+      "current_state": "POST_HEALTH_PRODUCT_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-proxy-client",
+      "local_path": "V:\\src\\jerry-proxy-client",
+      "github_repository": "JerrySkywalker/jerry-proxy-client",
+      "default_branch": "main",
+      "default_branch_sha": "49e8881974d92b7df49c022c2b50ff11a30e44b2",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "49e8881974d92b7df49c022c2b50ff11a30e44b2"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [
+        "jerry-proxy-control"
+      ],
+      "downstream_repositories": [],
+      "production_relevance": "PROXY_CLIENT",
+      "repository_class": "PROXY_CLIENT",
+      "preservation_rules": [
+        "NO_SECRET_OR_PROFILE_BODY_INSPECTION"
+      ],
+      "current_wave": "POST_HEALTH_FOUNDATION_TRACK",
+      "current_state": "POST_HEALTH_FOUNDATION_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 3,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-proxy-control",
+      "local_path": "V:\\src\\jerry-proxy-control",
+      "github_repository": "JerrySkywalker/jerry-proxy-control",
+      "default_branch": "main",
+      "default_branch_sha": "11709a4fb8a88b091a47f9246ffc045f4255026a",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "11709a4fb8a88b091a47f9246ffc045f4255026a"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [
+        "jerry-proxy-edge"
+      ],
+      "downstream_repositories": [
+        "jerry-proxy-client"
+      ],
+      "production_relevance": "PROXY_CONTROL",
+      "repository_class": "PROXY_CONTROL",
+      "preservation_rules": [
+        "NO_SECRET_OR_PROFILE_BODY_INSPECTION"
+      ],
+      "current_wave": "POST_HEALTH_FOUNDATION_TRACK",
+      "current_state": "POST_HEALTH_FOUNDATION_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 3,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-proxy-edge",
+      "local_path": "V:\\src\\jerry-proxy-edge",
+      "github_repository": "JerrySkywalker/jerry-proxy-edge",
+      "default_branch": "main",
+      "default_branch_sha": "b8dd79d0010124abd2820a75bfa9da849cc7f554",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "b8dd79d0010124abd2820a75bfa9da849cc7f554"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [
+        "jerry-proxy-control"
+      ],
+      "production_relevance": "PROXY_EDGE",
+      "repository_class": "PROXY_EDGE",
+      "preservation_rules": [
+        "NO_SECRET_OR_PROFILE_BODY_INSPECTION"
+      ],
+      "current_wave": "REPOSITORY_HEALTH_PROGRAM_CLOSEOUT",
+      "current_state": "HEALTH_PROGRAM_COMPLETE",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-telemetry-agent",
+      "local_path": "V:\\src\\jerry-telemetry-agent",
+      "github_repository": "JerrySkywalker/jerry-telemetry-agent",
+      "default_branch": "main",
+      "default_branch_sha": "1f6ba3c4e1732d6a21b0f769347d470667dea3aa",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "1f6ba3c4e1732d6a21b0f769347d470667dea3aa"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [
+        "jerry-message-gateway"
+      ],
+      "downstream_repositories": [
+        "jerry-telemetry-hub"
+      ],
+      "production_relevance": "TELEMETRY_PRODUCER",
+      "repository_class": "TELEMETRY_PRODUCER",
+      "preservation_rules": [
+        "PRESERVE_IN_PLACE:artifacts/playwright/dashboard-mg39b",
+        "PRESERVE_AND_EXCLUDE_CONTENTS_FROM_REPORTS"
+      ],
+      "current_wave": "REPOSITORY_HEALTH_PROGRAM_CLOSEOUT",
+      "current_state": "HEALTH_PROGRAM_COMPLETE",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-telemetry-hub",
+      "local_path": "V:\\src\\jerry-telemetry-hub",
+      "github_repository": "JerrySkywalker/jerry-telemetry-hub",
+      "default_branch": "main",
+      "default_branch_sha": "8960abd64f1736de5a31788f8a65e31c76ed6971",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "8960abd64f1736de5a31788f8a65e31c76ed6971"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [
+        "jerry-telemetry-agent"
+      ],
+      "downstream_repositories": [
+        "jerry-glance-dashboard"
+      ],
+      "production_relevance": "TELEMETRY_HUB",
+      "repository_class": "TELEMETRY_HUB",
+      "preservation_rules": [
+        "NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"
+      ],
+      "current_wave": "REPOSITORY_HEALTH_PROGRAM_CLOSEOUT",
+      "current_state": "HEALTH_PROGRAM_COMPLETE",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-workstation-config",
+      "local_path": "V:\\src\\jerry-workstation-config",
+      "github_repository": "JerrySkywalker/jerry-workstation-config",
+      "default_branch": "main",
+      "default_branch_sha": "42809bac85e9e56a5b09ab83a70843c8cef74959",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "42809bac85e9e56a5b09ab83a70843c8cef74959"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [
+        "workstation-manager"
+      ],
+      "production_relevance": "PERSONAL_DESIRED_STATE",
+      "repository_class": "PERSONAL_DESIRED_STATE",
+      "preservation_rules": [
+        "SANITIZED_REPORTS_ONLY"
+      ],
+      "current_wave": "POST_HEALTH_PRODUCT_TRACK",
+      "current_state": "POST_HEALTH_PRODUCT_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 3,
+        "open_pr_count": 1,
+        "open_pr_heads": [
+          {
+            "number": 3,
+            "head_ref": "chore/wsm-p1abc-001-pin-manager-p1c",
+            "head_sha": "33bf0207b0e90a8b7ba2618547368ca7e8c57645",
+            "classification": "ACTIVE_PR_EXPLICITLY_TRACKED"
+          }
+        ],
+        "retained_work_lines": [
+          {
+            "ref": "chore/wsm-p1abc-001-pin-manager-p1c",
+            "sha": "33bf0207b0e90a8b7ba2618547368ca7e8c57645",
+            "classification": "ACTIVE_PR_EXPLICITLY_TRACKED"
+          }
+        ]
+      }
+    },
+    {
+      "repository_id": "skybridge-agent-hub",
+      "local_path": "V:\\src\\skybridge-agent-hub",
+      "github_repository": "JerrySkywalker/skybridge-agent-hub",
+      "default_branch": "main",
+      "default_branch_sha": "98c7cf8f21f9ee6acd5116ea02680dd9c8cb825d",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "98c7cf8f21f9ee6acd5116ea02680dd9c8cb825d"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "AGENT_CONTROL_PLANE",
+      "repository_class": "AGENT_CONTROL_PLANE",
+      "preservation_rules": [
+        "SANITIZED_LOG_EXPORT_ONLY"
+      ],
+      "current_wave": "REPOSITORY_HEALTH_PROGRAM_CLOSEOUT",
+      "current_state": "HEALTH_PROGRAM_COMPLETE",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 92,
+        "open_pr_count": 2,
+        "open_pr_heads": [
+          {
+            "number": 311,
+            "head_ref": "demo/mg372b-controller-draft-pr-20260706-a971f55",
+            "head_sha": "222ca088cbf25a4037cdf64fe598c141de274f2c",
+            "classification": "ACTIVE_PR_EXPLICITLY_TRACKED"
+          },
+          {
+            "number": 319,
+            "head_ref": "demo/mg372e2-codex-draft-pr-20260707-35d0134",
+            "head_sha": "d0a5f7ec74c9abf70ed2a67a9872156f89cbaab6",
+            "classification": "ACTIVE_PR_EXPLICITLY_TRACKED"
+          }
+        ],
+        "retained_work_lines": [
+          {
+            "ref": "demo/mg372b-controller-draft-pr-20260706-a971f55",
+            "sha": "222ca088cbf25a4037cdf64fe598c141de274f2c",
+            "classification": "ACTIVE_PR_EXPLICITLY_TRACKED"
+          },
+          {
+            "ref": "demo/mg372e2-codex-draft-pr-20260707-35d0134",
+            "sha": "d0a5f7ec74c9abf70ed2a67a9872156f89cbaab6",
+            "classification": "ACTIVE_PR_EXPLICITLY_TRACKED"
+          }
+        ]
+      }
+    },
+    {
+      "repository_id": "wearos-healthprobe-app",
+      "local_path": "V:\\src\\wearos-healthprobe-app",
+      "github_repository": "JerrySkywalker/wearos-healthprobe-app",
+      "default_branch": "main",
+      "default_branch_sha": "f047c50faccfef5294af629cc6d2e43adacd4b35",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "f047c50faccfef5294af629cc6d2e43adacd4b35"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "WEAR_APP",
+      "repository_class": "WEAR_APP",
+      "preservation_rules": [
+        "NO_REPO_SPECIFIC_PRESERVATION_RULE_EVIDENCED_IN_THIS_AUDIT"
+      ],
+      "current_wave": "POST_HEALTH_PRODUCT_TRACK",
+      "current_state": "POST_HEALTH_PRODUCT_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "wearos-healthprobe-preflight",
+      "local_path": "V:\\src\\wearos-healthprobe-preflight",
+      "github_repository": "JerrySkywalker/wearos-healthprobe-preflight",
+      "default_branch": "main",
+      "default_branch_sha": "df0e202646d97ea27b0f63047ac1c3ae760c8e9d",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "df0e202646d97ea27b0f63047ac1c3ae760c8e9d"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "WEAR_READ_ONLY_TOOL",
+      "repository_class": "WEAR_READ_ONLY_TOOL",
+      "preservation_rules": [
+        "PRESERVE_AND_EXCLUDE_RAW_ARTIFACT_CONTENTS_FROM_REPORTS"
+      ],
+      "current_wave": "POST_HEALTH_PRODUCT_TRACK",
+      "current_state": "POST_HEALTH_PRODUCT_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "workstation-manager",
+      "local_path": "V:\\src\\workstation-manager",
+      "github_repository": "JerrySkywalker/workstation-manager",
+      "default_branch": "main",
+      "default_branch_sha": "9a5107115767ef35a8868708217e4e05b2d824a5",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "9a5107115767ef35a8868708217e4e05b2d824a5"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [
+        "jerry-workstation-config"
+      ],
+      "production_relevance": "WORKSTATION_MANAGER",
+      "repository_class": "WORKSTATION_MANAGER",
+      "preservation_rules": [
+        "SANITIZED_REPORTS_ONLY"
+      ],
+      "current_wave": "POST_HEALTH_PRODUCT_TRACK",
+      "current_state": "POST_HEALTH_PRODUCT_TRACK",
+      "roster_membership": "CANONICAL_REGISTRY",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 5,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-wave7-train",
+      "local_path": "V:\\src\\jerry-wave7-train",
+      "github_repository": "JerrySkywalker/jerry-wave7-train",
+      "default_branch": "main",
+      "default_branch_sha": "9debc773b663e3c3756b7fe120ee5ba57c9bead0",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "9debc773b663e3c3756b7fe120ee5ba57c9bead0"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "HISTORICAL_COORDINATION",
+      "repository_class": "HISTORICAL_WAVE_COORDINATION",
+      "preservation_rules": [
+        "SANITIZED_COORDINATION_METADATA_ONLY"
+      ],
+      "current_wave": "HISTORICAL_ONLY",
+      "current_state": "HISTORICAL_ONLY",
+      "roster_membership": "POST_HEALTH_TRACK_ADMITTED",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 4,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "coordination-loop-harness",
+      "local_path": "V:\\src\\coordination-loop-harness",
+      "github_repository": "JerrySkywalker/coordination-loop-harness",
+      "default_branch": "main",
+      "default_branch_sha": "0e6fb8981e78ad49613e0ff6ef4f83daca873eeb",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "0e6fb8981e78ad49613e0ff6ef4f83daca873eeb"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "FOUNDATION_CONTROL",
+      "repository_class": "FOUNDATION_HARNESS",
+      "preservation_rules": [
+        "NO_PRODUCT_OR_RUNTIME_AUTHORITY"
+      ],
+      "current_wave": "POST_HEALTH_FOUNDATION_TRACK",
+      "current_state": "POST_HEALTH_FOUNDATION_TRACK",
+      "roster_membership": "POST_HEALTH_TRACK_ADMITTED",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 1,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "coordination-loop-program-coordination",
+      "local_path": "V:\\src\\coordination-loop-program-coordination",
+      "github_repository": "JerrySkywalker/coordination-loop-program-coordination",
+      "default_branch": "main",
+      "default_branch_sha": "b52d4430f597e446b62a73559c8c6cb71999aa1d",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "b52d4430f597e446b62a73559c8c6cb71999aa1d"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "FOUNDATION_COORDINATION",
+      "repository_class": "FOUNDATION_PROGRAM_COORDINATION",
+      "preservation_rules": [
+        "ACTIVE_DRAFT_PRS_EXPLICITLY_TRACKED"
+      ],
+      "current_wave": "POST_HEALTH_FOUNDATION_TRACK",
+      "current_state": "POST_HEALTH_FOUNDATION_TRACK",
+      "roster_membership": "POST_HEALTH_TRACK_ADMITTED",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 4,
+        "open_pr_count": 1,
+        "open_pr_heads": [
+          {
+            "number": 3,
+            "head_ref": "agent/cl-m1-machine-foundation",
+            "head_sha": "cb1bb4299e13f8eeafe5145293b9c9b693ceedca",
+            "classification": "ACTIVE_PR_EXPLICITLY_TRACKED"
+          }
+        ],
+        "retained_work_lines": [
+          {
+            "ref": "agent/cl-m1-machine-foundation",
+            "sha": "cb1bb4299e13f8eeafe5145293b9c9b693ceedca",
+            "classification": "ACTIVE_PR_EXPLICITLY_TRACKED"
+          }
+        ]
+      }
+    },
+    {
+      "repository_id": "opencode-workspace-hub",
+      "local_path": "V:\\src\\opencode-workspace-hub",
+      "github_repository": "JerrySkywalker/opencode-workspace-hub",
+      "admission_alias": "JerrySkywalker/open-code-workspace-hub",
+      "default_branch": "main",
+      "default_branch_sha": "f96f377245e49f572b69a96783683c1f337fee25",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "f96f377245e49f572b69a96783683c1f337fee25"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "FOUNDATION_PLATFORM",
+      "repository_class": "FOUNDATION_WORKSPACE_HUB",
+      "preservation_rules": [
+        "NO_RUNTIME_OR_AUTH_STATE_INSPECTION"
+      ],
+      "current_wave": "POST_HEALTH_FOUNDATION_TRACK",
+      "current_state": "POST_HEALTH_FOUNDATION_TRACK",
+      "roster_membership": "POST_HEALTH_TRACK_ADMITTED",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 21,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    },
+    {
+      "repository_id": "jerry-workstation-accel",
+      "local_path": "V:\\src\\jerry-workstation-accel",
+      "github_repository": "JerrySkywalker/jerry-workstation-accel",
+      "default_branch": "main",
+      "default_branch_sha": "f3770493a60ddabaf45773696337f2df0a14a6a7",
+      "main_ref": {
+        "status": "PRESENT",
+        "sha": "f3770493a60ddabaf45773696337f2df0a14a6a7"
+      },
+      "dev_policy": {
+        "state": "EXPLICITLY_ABSENT",
+        "create_only_for_real_tested_integration_need": true
+      },
+      "upstream_repositories": [],
+      "downstream_repositories": [],
+      "production_relevance": "PRODUCT_COORDINATION",
+      "repository_class": "WORKSTATION_COORDINATION",
+      "preservation_rules": [
+        "NO_REAL_EXECUTOR_OR_PHYSICAL_MACHINE_ACTION"
+      ],
+      "current_wave": "POST_HEALTH_PRODUCT_TRACK",
+      "current_state": "POST_HEALTH_PRODUCT_TRACK",
+      "roster_membership": "POST_HEALTH_TRACK_ADMITTED",
+      "live_state": {
+        "observed_utc": "2026-08-05T17:17:11.228255Z",
+        "remote_branch_count": 14,
+        "open_pr_count": 0,
+        "open_pr_heads": []
+      }
+    }
+  ],
+  "closeout_binding": {
+    "goal_id": "REPO-HEALTH-FINAL-CLOSEOUT-001",
+    "observed_utc": "2026-08-05T17:17:11.228255Z",
+    "canonical_repository_count": 17,
+    "post_health_track_repository_count": 5,
+    "total_repository_count": 22,
+    "unknown_classification_count": 0,
+    "unclassified_unique_branch_count": 0,
+    "classification_counts": {
+      "HEALTH_PROGRAM_COMPLETE": 6,
+      "POST_HEALTH_FOUNDATION_TRACK": 6,
+      "POST_HEALTH_PRODUCT_TRACK": 8,
+      "HISTORICAL_ONLY": 1,
+      "EXTERNAL_NOT_OWNED": 1
+    },
+    "repository_health_debt_remaining": false
+  },
+  "retained_work_ledger": {
+    "health_debt": false,
+    "held_evidence_ref_count": 1,
+    "active_pr_head_count": 4,
+    "unknown_count": 0
+  }
 }
