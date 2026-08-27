@@ -58,6 +58,7 @@ jobs:
           pairs = [
               (Path('config/repo-health-harness-v1.json'), Path('config/schemas/repo-health-harness-v1.schema.json')),
               (Path('.agent/context-manifest-v1.json'), Path('.agent/context-manifest-v1.schema.json')),
+              (Path('config/windows-dev-directory-manifest-v1.json'), Path('config/schemas/windows-dev-directory-manifest-v1.schema.json')),
           ]
           for document_path, schema_path in pairs:
               document = json.loads(document_path.read_text(encoding='utf-8'))
@@ -74,6 +75,10 @@ jobs:
       - name: Run Agent-context contract
         shell: pwsh
         run: ./tests/repo-health/Test-AgentContextContract.ps1
+
+      - name: Run Windows development bootstrap contract
+        shell: pwsh
+        run: ./tests/windows-dev/Test-WindowsDevBootstrap.ps1
 
       - name: Dry-run merged branch health cleanup
         shell: pwsh

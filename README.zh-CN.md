@@ -22,6 +22,11 @@ Harness 任务应从
 [`docs/jerry-series/harness/README.zh-CN.md`](docs/jerry-series/harness/README.zh-CN.md)
 开始。
 
+Windows 开发机目录与 Python/uv/Conda 引导治理见
+[`WINDOWS_DEV_BOOTSTRAP_V2.md`](WINDOWS_DEV_BOOTSTRAP_V2.md)。目录 manifest 是
+唯一来源；引导入口只处理目录拓扑，不修改工作站的软件包、profile、dotfiles 或
+设备状态。
+
 ## Agent 上下文类别
 
 | 类别 | 默认行为 |
@@ -70,6 +75,7 @@ pwsh -NoProfile -File .\tests\repo-health\Test-RepoHealthHarnessContract.ps1
 pwsh -NoProfile -File .\tests\repo-health\Test-AgentContextContract.ps1
 pwsh -NoProfile -File .\scripts\repo-health\Build-RepoHealthHarnessReference.ps1 -Check
 pwsh -NoProfile -File .\scripts\repo-health\Build-AgentContextAdapters.ps1 -Check
+pwsh -NoProfile -File .\tests\windows-dev\Test-WindowsDevBootstrap.ps1
 ```
 
 ## 安全边界

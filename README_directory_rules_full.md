@@ -1,5 +1,11 @@
 # Windows 开发机目录治理总规则（C:\Dev + V:\）
 
+> **目录来源唯一性：**完整受管目录列表由
+> [`config/windows-dev-directory-manifest-v1.json`](config/windows-dev-directory-manifest-v1.json)
+> 定义；创建和验证脚本都通过同一 PowerShell helper 消费它。本文用于解释边界，
+> 如与 manifest 不一致则以 manifest 为准。规范生命周期见
+> [`WINDOWS_DEV_BOOTSTRAP_V2.md`](WINDOWS_DEV_BOOTSTRAP_V2.md)。
+
 ## 1. 总体设计思想
 
 本机目录治理采用双层结构：
@@ -27,6 +33,7 @@
 
 ### C:\Dev
 
+- `tools`：稳定 CLI/shim、uv 工具状态与 uv Python runtime 状态
 - `toolchains`：手动管理的工具链本体
 - `mcp`：MCP 服务端、Agentic Toolkit、配置模板与日志
 - `resources`：共享资源与公共资产
@@ -72,7 +79,7 @@ C:\Dev\toolchains\miniconda3
 
 不建议将 Miniconda 安装到可替换 VHD 或项目目录中，也不建议把 Hermes、Codex 等工具自己的 venv 当作系统 Python 使用。
 
-### 3.2 Python / Conda 的 C-only 模式
+### 3.2 Python / uv / Conda 的 C-only 模式
 
 默认规则是：可清理缓存放到 `V:\cache`。但当 `V:\` 是可替换 VHD，或不希望 Python 工具链依赖 Dev Drive 时，应启用 C-only Python / Conda 模式。
 
@@ -80,6 +87,10 @@ C-only 模式路径如下：
 
 ```text
 C:\Dev\toolchains\miniconda3      # Miniconda 本体
+C:\Dev\tools\bin                  # 稳定 CLI/shim 表面
+C:\Dev\tools\uv-tools             # uv 持久 CLI-tool 状态
+C:\Dev\tools\uv-python            # uv 管理的 Python runtime 状态
+C:\Dev\cache\uv                   # uv cache
 C:\Dev\envs\conda                # conda 环境
 C:\Dev\cache\conda-pkgs          # conda 包缓存
 C:\Dev\cache\pip                 # pip 缓存
@@ -94,6 +105,9 @@ C-only 模式的边界：
 - 不再使用 `V:\cache\pip` 与 `V:\cache\conda-pkgs` 作为默认 Python 缓存。
 - 不在 base 环境堆项目依赖；项目依赖进入具名 conda env。
 - PowerShell 接入由 dotfiles 管理，不让 `conda init` 直接改写手工维护的 profile。
+- `uv` 二进制由 `winget` 的 `astral-sh.uv` 管理；目录引导不安装它。
+- bare `python` 和 bare `pip` 不是稳定基础设施接口；需要 Python 的基础设施必须
+  解析并正向验证受管解释器。WindowsApps alias 不是可用进程的证明。
 
 ### 3.3 MCP / Agent 集成层
 
@@ -268,6 +282,10 @@ C:\Dev\secrets\ssh
 ### Python / Conda（C-only）
 
 - Miniconda 本体：`C:\Dev\toolchains\miniconda3`
+- 稳定 CLI/shim：`C:\Dev\tools\bin`
+- uv 工具状态：`C:\Dev\tools\uv-tools`
+- uv Python runtime 状态：`C:\Dev\tools\uv-python`
+- uv cache：`C:\Dev\cache\uv`
 - conda 环境：`C:\Dev\envs\conda`
 - conda 包缓存：`C:\Dev\cache\conda-pkgs`
 - pip 缓存：`C:\Dev\cache\pip`
@@ -309,11 +327,16 @@ C:\Dev\secrets\ssh
 
 ```text
 C:\Dev\
+  tools\
+    bin\
+    uv-tools\
+    uv-python\
   toolchains\
     miniconda3\
   envs\
     conda\
   cache\
+    uv\
     pip\
     conda-pkgs\
   mcp\
