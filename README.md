@@ -22,6 +22,11 @@ an execution instruction.
 Start Harness work at
 [`docs/jerry-series/harness/README.md`](docs/jerry-series/harness/README.md).
 
+Windows workstation directory and Python/uv/Conda bootstrap governance is at
+[`WINDOWS_DEV_BOOTSTRAP_V2.md`](WINDOWS_DEV_BOOTSTRAP_V2.md). Its directory
+manifest is the source of truth; its bootstrap entrypoint is topology-only and
+does not mutate a workstation's package, profile, dotfiles, or device state.
+
 ## Agent context classes
 
 | Class | Default behavior |
@@ -72,6 +77,7 @@ pwsh -NoProfile -File .\tests\repo-health\Test-RepoHealthHarnessContract.ps1
 pwsh -NoProfile -File .\tests\repo-health\Test-AgentContextContract.ps1
 pwsh -NoProfile -File .\scripts\repo-health\Build-RepoHealthHarnessReference.ps1 -Check
 pwsh -NoProfile -File .\scripts\repo-health\Build-AgentContextAdapters.ps1 -Check
+pwsh -NoProfile -File .\tests\windows-dev\Test-WindowsDevBootstrap.ps1
 ```
 
 Existing project-specific tests remain applicable to their own changed surfaces.

@@ -1,5 +1,11 @@
 # V 盘治理规则说明（V:\ / Dev Drive）
 
+> 目录拓扑的唯一机器可读来源是
+> [`config/windows-dev-directory-manifest-v1.json`](config/windows-dev-directory-manifest-v1.json)。
+> 运行 `create_v_devdrive_structure.ps1` 或
+> `bootstrap_windows_dev_structure.ps1 -Stage All` 前，脚本会先确认完整 C 骨架，
+> 再确认 V: 已挂载且为 Fixed/ReFS；不会创建或替换 VHDX。
+
 ## 1. 定位
 
 `V:\` 是本机的工作层、高 IO 层、Dev Drive 层。它负责承载：
@@ -80,6 +86,8 @@ V:\src\thesis-code\
 C:\Dev\cache\pip
 C:\Dev\cache\conda-pkgs
 ```
+
+它们不是默认 V 骨架的一部分，只有显式传入 `-IncludePythonCaches` 才会创建。
 
 ### `V:\datasets`
 
@@ -184,6 +192,10 @@ V:\
 
 ```text
 C:\Dev\toolchains\miniconda3
+C:\Dev\tools\bin
+C:\Dev\tools\uv-tools
+C:\Dev\tools\uv-python
+C:\Dev\cache\uv
 C:\Dev\envs\conda
 C:\Dev\cache\pip
 C:\Dev\cache\conda-pkgs

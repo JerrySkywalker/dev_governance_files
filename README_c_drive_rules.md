@@ -1,5 +1,10 @@
 # C 盘治理规则说明（C:\Dev）
 
+> 目录拓扑的唯一机器可读来源是
+> [`config/windows-dev-directory-manifest-v1.json`](config/windows-dev-directory-manifest-v1.json)。
+> 本文解释边界；发生不一致时以 manifest 与
+> [`WINDOWS_DEV_BOOTSTRAP_V2.md`](WINDOWS_DEV_BOOTSTRAP_V2.md) 为准。
+
 ## 1. 定位
 
 `C:\Dev` 是本机的治理层、稳定层、兼容层，使用 NTFS。它负责承载：
@@ -18,6 +23,15 @@
 ---
 
 ## 2. 一级目录含义
+
+### `C:\Dev\tools`
+
+稳定 CLI/shim 与由包管理器维护的本机工具状态。该层不是全局 PATH 的替代品；
+只有 `tools\bin` 是稳定 CLI/shim 表面。
+
+- `tools\bin`：稳定 CLI/shim 表面。
+- `tools\uv-tools`：uv 持久 CLI-tool 状态。
+- `tools\uv-python`：uv 管理的 Python runtime 状态。
 
 ### `C:\Dev\toolchains`
 
@@ -63,11 +77,13 @@ C-only 模式下的轻量语言工具缓存目录。
 
 - pip cache
 - conda 包缓存
+- uv cache
 
 推荐结构：
 
 ```text
 C:\Dev\cache\
+  uv\
   pip\
   conda-pkgs\
 ```
@@ -206,7 +222,7 @@ C:\Dev\secrets\
 
 ---
 
-## 3. Python / Conda 配置规则
+## 3. Python / uv / Conda 配置规则
 
 C-only Python / Conda 模式用于避免 Python 工具链依赖可替换 VHD。
 
@@ -214,6 +230,10 @@ C-only Python / Conda 模式用于避免 Python 工具链依赖可替换 VHD。
 
 ```text
 C:\Dev\toolchains\miniconda3      # Miniconda 本体
+C:\Dev\tools\bin                  # 稳定 CLI/shim 表面
+C:\Dev\tools\uv-tools             # uv 持久 CLI-tool 状态
+C:\Dev\tools\uv-python            # uv 管理的 Python runtime 状态
+C:\Dev\cache\uv                   # uv cache
 C:\Dev\envs\conda                # conda 环境
 C:\Dev\cache\conda-pkgs          # conda 包缓存
 C:\Dev\cache\pip                 # pip 缓存
@@ -225,9 +245,11 @@ C:\Dev\backups\conda             # 迁移前备份
 - Miniconda 安装时不加入系统 PATH。
 - Miniconda 安装时不注册为系统默认 Python。
 - PowerShell 中的 conda hook 由 dotfiles 管理。
+- `uv` 二进制由 `winget` 的 `astral-sh.uv` 管理；本目录脚本不安装它。
 - 不在 base 环境中堆项目依赖。
-- `pip` 优先通过 `python -m pip` 调用。
-- Hermes / Codex / 其他工具自己的 venv 不进入全局 PATH。
+- bare `python` 与 bare `pip` 不是稳定基础设施接口；基础设施必须解析并验证
+  受管解释器。
+- uv-managed Python、Hermes / Codex / 其他工具自己的 venv 不进入全局 PATH。
 
 ---
 
@@ -272,6 +294,10 @@ C:\Dev\mcp\configs\codex\templates\matlab-project.config.toml
 
 ```text
 C:\Dev\
+  tools\
+    bin\
+    uv-tools\
+    uv-python\
   toolchains\
     flutter\
     vcpkg\
@@ -282,6 +308,7 @@ C:\Dev\
   envs\
     conda\
   cache\
+    uv\
     pip\
     conda-pkgs\
   mcp\
