@@ -1,0 +1,13 @@
+{
+  "schema": "jpc.ordinary-development.budget.v1",
+  "goal": "JPC-054D-ORDINARY-DEVELOPMENT",
+  "run_id": "JPC-054D-ORDINARY-DEVELOPMENT-001",
+  "created_utc": "2026-08-29T16:14:45.0000000Z",
+  "domains": {
+    "semantic_correction": {
+      "window_cap": 1,
+      "maximum_renewals": 0,
+      "lifetime_cap": 1
+    }
+  }
+}

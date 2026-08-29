@@ -72,6 +72,7 @@ Harness 实例由以下部分组成：
 
 ```powershell
 pwsh -NoProfile -File .\tests\repo-health\Test-RepoHealthHarnessContract.ps1
+pwsh -NoProfile -File .\tests\repo-health\Test-WriterLeaseV1Settlement.ps1
 pwsh -NoProfile -File .\tests\repo-health\Test-AgentContextContract.ps1
 pwsh -NoProfile -File .\scripts\repo-health\Build-RepoHealthHarnessReference.ps1 -Check
 pwsh -NoProfile -File .\scripts\repo-health\Build-AgentContextAdapters.ps1 -Check

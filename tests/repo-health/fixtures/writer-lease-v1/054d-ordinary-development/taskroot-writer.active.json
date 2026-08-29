@@ -1,0 +1,18 @@
+{
+  "schema": "jpc.taskroot-writer-lease.v1",
+  "goal": "JPC-054D-ORDINARY-DEVELOPMENT",
+  "holder": "codex-legacy-holder",
+  "holder_session": "00000000-0000-0000-0000-000000000054",
+  "state": "active",
+  "acquired_utc": "2026-08-29T16:14:47.0000000Z",
+  "created_utc": "2026-08-29T16:14:46.0000000Z",
+  "hard_stop_utc": "2026-08-29T18:14:47.0000000Z",
+  "single_intentional_writer": true,
+  "scope": [
+    "task-root",
+    "ordinary-development",
+    "governance-source"
+  ],
+  "goal_ref": ".coord-local/goals/054d-goal.json",
+  "budget_state_ref": ".coord-local/state/054d-budget.json"
+}

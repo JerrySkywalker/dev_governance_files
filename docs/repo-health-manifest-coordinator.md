@@ -12,6 +12,12 @@ Implementer launch holds the global writer and repository locks. A post-Implemen
 
 Role lifecycle is native-TUI and operator-managed. `RunStep` has no automatic hard timeout and never kills a role process: a long-running role remains visible in the interactive session until it returns an envelope or the operator chooses a safe pause. This replaces the earlier short external-process deadline, which proved unreliable and could discard useful recovery state.
 
+Legacy ordinary-development Writer Lease v1 settlement is intentionally a
+separate, fail-closed compatibility surface. It validates and moves only an
+expired `jpc.taskroot-writer-lease.v1` active record; it does not alter this
+coordinator's lock protocol or release production attachments. See
+[`WRITER_LEASE_V1_INTERIM_SETTLEMENT`](jerry-series/harness/writer-lease-v1-interim-settlement.md).
+
 Admission takes a branch inventory and a deterministic evidence inventory. `TRACKED_CLEAN` means tracked content is clean; `APPROVED_PRESERVED_EVIDENCE` means a ledger-approved, boundary-verified preservation surface is present and is not generic dirt; `UNKNOWN_DIRT` blocks admission; and `SNAPSHOT_REQUIRED` means a reviewer must use an exact-SHA-bound, deterministic-digest tracked snapshot rather than inspect the original worktree evidence. A snapshot-required admission fails unless isolation, source-SHA binding, and tree-digest verification are all present.
 
 `tests/repo-health/Test-RepoHealthManifestReadOnlyAudit.ps1 -ExpectedHead <sha>` is the no-write exact-head audit for a Supervisor profile. It exercises the pure binding, envelope, post-Implementer SHA, branch-stability, AST, JSON, and diff checks without creating fixtures. The full synthetic fixture suite remains an Implementer-only proof because it intentionally creates bounded temporary repositories and lock files.
