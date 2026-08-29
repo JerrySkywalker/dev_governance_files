@@ -110,4 +110,11 @@ FAILED_OR_UNVERIFIED_ROLLBACK_HARD_STOP=true
 - Rationale: [`harness-baseline-v1.md`](harness-baseline-v1.md)
 - Interface: [`harness-goal-receipt-contract-v1.md`](harness-goal-receipt-contract-v1.md)
 
+## Active compatibility mechanisms
+
+- [`WRITER_LEASE_V1_INTERIM_SETTLEMENT`](writer-lease-v1-interim-settlement.md)
+  is the temporary, fail-closed compatibility path for expired ordinary-development
+  Writer Lease v1 records. It excludes production and does not replace Writer
+  Lease v2 ([issue #30](https://github.com/JerrySkywalker/dev_governance_files/issues/30)).
+
 Retrospectives explain origins but do not provide active defaults.

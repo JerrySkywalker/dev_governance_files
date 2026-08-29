@@ -1,0 +1,31 @@
+{
+  "schema": "jpc.frozen-goal.v1",
+  "goal": "JPC-054D-ORDINARY-DEVELOPMENT",
+  "run_id": "JPC-054D-ORDINARY-DEVELOPMENT-001",
+  "profile": "INTERACTIVE_REPOSITORY_V1",
+  "authority_class": "A2 ordinary development only",
+  "elasticity_grade": "B2",
+  "initial_progress_state": "P_INIT",
+  "current_layer": "L1",
+  "max_admitted_layer": "L2",
+  "next_proof_vector": "V2/E1/F2/G2",
+  "allowed_repositories": [
+    "dev-governance-files"
+  ],
+  "allowed_paths": [
+    "tools/repo-health"
+  ],
+  "allowed_services": [],
+  "protected_boundaries": [],
+  "owner_only_boundaries": [],
+  "budget_overrides": {},
+  "budget_state_ref": ".coord-local/state/054d-budget.json",
+  "last_accepted_checkpoint": "none",
+  "context_modules": [
+    "harness"
+  ],
+  "stop_conditions": [
+    "writer-conflict"
+  ],
+  "created_utc": "2026-08-29T16:14:45.0000000Z"
+}

@@ -110,4 +110,10 @@ FAILED_OR_UNVERIFIED_ROLLBACK_HARD_STOP=true
 - 依据：[`harness-baseline-v1.md`](harness-baseline-v1.md)
 - Goal/Receipt 接口：[`harness-goal-receipt-contract-v1.md`](harness-goal-receipt-contract-v1.md)
 
+## 当前兼容机制
+
+- [`WRITER_LEASE_V1_INTERIM_SETTLEMENT`](writer-lease-v1-interim-settlement.md)
+  是已过期普通开发 Writer Lease v1 的临时、fail-closed 兼容路径。它排除
+  production，且不替代 Writer Lease v2（[issue #30](https://github.com/JerrySkywalker/dev_governance_files/issues/30)）。
+
 Retrospective 只解释经验来源，不提供活动默认值。
