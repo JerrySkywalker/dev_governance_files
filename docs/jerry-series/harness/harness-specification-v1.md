@@ -114,6 +114,34 @@ Layers may be omitted when inapplicable. A failed layer returns to the narrowest
 earlier layer that can correct the failure. A deeper pass does not imply an
 omitted claim.
 
+### 4.1 Development / production scope separation
+
+An ordinary-development writer lease is a `DEVELOPMENT_TRAIN` lease. Its
+ownership may include source code, tests, CI, Git/PR operations, documentation,
+release preparation, release build/qualification, and immutable artifact
+custody. It must exclude Stage0 publication, A4/A5 admission, production or
+protected transaction execution, rollback, device mutation, and every
+Owner-only production boundary.
+
+A Goal that declares development work and any present, future, or conditional
+protected operation is classified `MIXED_DEVELOPMENT_PRODUCTION_SCOPE` and
+must return `REJECT_GOAL_BEFORE_WRITER_ACQUISITION`. “Conditional later A5” is
+still mixed scope. The required topology is:
+
+```text
+DEVELOPMENT TRAIN
+  -> canonical terminal release
+  -> fresh protected admission
+  -> separate production transaction
+```
+
+An ordinary-development allow-list must also exclude bare protected labels such
+as `production`, `protected`, `Stage0`, `A4`, and `A5`; an incomplete label is
+not a way to evade the pre-acquisition classifier.
+
+The ordinary-development writer cannot acquire the separate production
+transaction. The boundary is not a budget replenishment or a continuation.
+
 ## 5. Budget ledger
 
 Every admitted domain has:

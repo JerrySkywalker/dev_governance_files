@@ -181,6 +181,54 @@ function Read-RepoHealthBoundGoal {
     [pscustomobject]@{ header = $header; body = $body; content = $raw }
 }
 
+function Get-RepoHealthGoalScopeDeclaration {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][object]$Goal)
+    if ($null -eq $Goal.header -or $null -eq $Goal.body) { throw 'Writer scope declaration requires a bound Goal.' }
+    $matches = @([regex]::Matches([string]$Goal.body, '(?m)^SCOPE_CLASSIFICATION=(?<value>[A-Z_]+)\s*$'))
+    if ($matches.Count -ne 1) { throw 'WRITER_SCOPE_CLASSIFICATION_REQUIRED' }
+    return [string]$matches[0].Groups['value'].Value
+}
+
+function Test-RepoHealthDevelopmentProductionScope {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][object]$Goal)
+    $scope = Get-RepoHealthGoalScopeDeclaration -Goal $Goal
+    $allSurfaceText = ((@($Goal.header.allowed_write_surfaces) + @($Goal.header.prohibited_write_surfaces)) -join "`n")
+    $bodyLines = @([string]$Goal.body -split "`r?`n" | Where-Object { $_ -notmatch '^(SCOPE_CLASSIFICATION|DEVELOPMENT_OWNERSHIP|PROHIBITED_PROTECTED_SURFACES)=' })
+    $operationalText = (($bodyLines + $allSurfaceText) -join "`n")
+    $protectedPattern = '(?i)(?:\bA[45]\b|stage[ -]?0\s+publication|protected[ -]?(?:transaction|admission|scope)|production[ -]?(?:mutation|transaction)|rollback[ -]?execution|device[ -]?mutation|owner-only[ -]?production|\bPKCE\b|\bZENBOOK\b|\bSKYFORGE\b)'
+    $protectedMentioned = $operationalText -match $protectedPattern
+    # An ordinary development allow-list is an acquisition authority.  Bare
+    # protected nouns are therefore rejected too: "production" or "Stage0"
+    # cannot become a bypass by omitting the verb that the body classifier uses.
+    $allowedSurfaceText = (@($Goal.header.allowed_write_surfaces) -join "`n")
+    $protectedAllowedSurfacePattern = '(?i)(?:\bstage[ -]?0\b|\bA[45]\b|\bproduction\b|\bprotected\b|\brollback\b|\bdevice\b|owner-only\b|\bPKCE\b|\bZENBOOK\b|\bSKYFORGE\b)'
+    $isDevelopment = @($Goal.header.allowed_write_surfaces | Where-Object { [string]$_ -cne 'none' }).Count -gt 0
+    $requiredProhibitions = @('stage0 publication','a4','a5','production mutation','protected transaction','rollback execution','device mutation','owner-only production boundary')
+    $prohibition = @([regex]::Matches([string]$Goal.body, '(?m)^PROHIBITED_PROTECTED_SURFACES=(?<value>.+)$'))
+    if ($scope -eq 'DEVELOPMENT_TRAIN') {
+        if (-not $isDevelopment) { return [pscustomobject]@{allowed=$false;classification='DEVELOPMENT_SCOPE_MALFORMED';reason='development_writer_without_development_surface'} }
+        if ($prohibition.Count -ne 1) { return [pscustomobject]@{allowed=$false;classification='DEVELOPMENT_SCOPE_MALFORMED';reason='protected_prohibitions_missing'} }
+        $declared = [string]$prohibition[0].Groups['value'].Value
+        $missing = @($requiredProhibitions | Where-Object { $declared -notmatch [regex]::Escape($_) })
+        if ($missing.Count -ne 0) { return [pscustomobject]@{allowed=$false;classification='DEVELOPMENT_SCOPE_MALFORMED';reason='protected_prohibitions_incomplete'} }
+        if ($allowedSurfaceText -match $protectedAllowedSurfacePattern) { return [pscustomobject]@{allowed=$false;classification='MIXED_DEVELOPMENT_PRODUCTION_SCOPE';reason='protected_surface_in_development_allow_list'} }
+        if ($protectedMentioned) { return [pscustomobject]@{allowed=$false;classification='MIXED_DEVELOPMENT_PRODUCTION_SCOPE';reason='protected_operation_declared_or_conditional'} }
+        return [pscustomobject]@{allowed=$true;classification='DEVELOPMENT_TRAIN';reason='ordinary_development_only'}
+    }
+    if ($scope -eq 'PROTECTED_TRANSACTION') { return [pscustomobject]@{allowed=$false;classification='PROTECTED_SCOPE_REQUIRES_SEPARATE_TRANSACTION_COORDINATOR';reason='ordinary_development_writer_cannot_acquire_protected_transaction'} }
+    return [pscustomobject]@{allowed=$false;classification='WRITER_SCOPE_CLASSIFICATION_REQUIRED';reason='unsupported_or_missing_scope_classification'}
+}
+
+function Assert-RepoHealthDevelopmentWriterScope {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][object]$Goal)
+    $classification = Test-RepoHealthDevelopmentProductionScope -Goal $Goal
+    if (-not $classification.allowed) { throw ('REJECT_GOAL_BEFORE_WRITER_ACQUISITION=' + $classification.classification) }
+    return $classification
+}
+
 function Test-RepoHealthRunManifest {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$ManifestPath)
@@ -415,7 +463,8 @@ function Resolve-RepoHealthCodexHost {
 
 function Enter-RepoHealthWriterLease {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Repository,[Parameter(Mandatory)][string]$SessionId,[string]$StateRoot='V:\src\integration-inventory\repo-health\state')
+    param([Parameter(Mandatory)][string]$Repository,[Parameter(Mandatory)][string]$SessionId,[string]$StateRoot='V:\src\integration-inventory\repo-health\state',[Parameter(Mandatory)][object]$Goal)
+    Assert-RepoHealthDevelopmentWriterScope -Goal $Goal | Out-Null
     $global = Enter-RepoHealthLock -Repository 'product-writer' -SessionId $SessionId -StateRoot $StateRoot
     try { [pscustomobject]@{Global=$global;Repository=(Enter-RepoHealthLock -Repository $Repository -SessionId $SessionId -StateRoot $StateRoot)} }
     catch { Exit-RepoHealthLock -Lock $global; throw }
@@ -454,7 +503,7 @@ function Invoke-RepoHealthRoleProcess {
     $lease = $null; $tempResult = $null
     try {
         if ($Role -eq 'Implementer') {
-            $lease = Enter-RepoHealthWriterLease -Repository ([string]$header.repository_id) -SessionId ($RunId + '-' + $header.goal_id) -StateRoot $StateRoot
+            $lease = Enter-RepoHealthWriterLease -Repository ([string]$header.repository_id) -SessionId ($RunId + '-' + $header.goal_id) -StateRoot $StateRoot -Goal $request.goal
             $request.state.active_writer = [string]$header.repository_id; Save-RepoHealthManifestState -State $request.state -InventoryRoot $InventoryRoot | Out-Null
         }
         $preStatus = (git -C ([string]$header.repository_path) status --porcelain=v1) -join "`n"
@@ -504,8 +553,8 @@ function Test-RepoHealthRoutingContract {
 }
 
 Export-ModuleMember -Function @(
-    'Assert-RepoHealthBoundEnvelope','Assert-RepoHealthBranchStability','Assert-RepoHealthLaunchArguments','Assert-RepoHealthPostImplementerSha','Assert-RepoHealthRunStepRequest',
-    'Complete-RepoHealthRunStep','Enter-RepoHealthWriterLease','Exit-RepoHealthWriterLease','Get-RepoHealthManifestPaths','Get-RepoHealthRoleProfile','Get-RepoHealthTextSha256',
+    'Assert-RepoHealthBoundEnvelope','Assert-RepoHealthBranchStability','Assert-RepoHealthDevelopmentWriterScope','Assert-RepoHealthLaunchArguments','Assert-RepoHealthPostImplementerSha','Assert-RepoHealthRunStepRequest',
+    'Complete-RepoHealthRunStep','Enter-RepoHealthWriterLease','Exit-RepoHealthWriterLease','Get-RepoHealthGoalScopeDeclaration','Get-RepoHealthManifestPaths','Get-RepoHealthRoleProfile','Get-RepoHealthTextSha256',
     'Initialize-RepoHealthRun','Invoke-RepoHealthRoleProcess','New-RepoHealthBoundGoal','New-RepoHealthManifestState','New-RepoHealthProcessEnvelope','Read-RepoHealthBoundGoal','Read-RepoHealthManifestState',
-    'Resolve-RepoHealthCodexHost','Save-RepoHealthManifestState','Test-RepoHealthProcessEnvelope','Test-RepoHealthRepositoryBinding','Test-RepoHealthRoutingContract','Test-RepoHealthRunManifest','Write-RepoHealthProcessLog'
+    'Resolve-RepoHealthCodexHost','Save-RepoHealthManifestState','Test-RepoHealthDevelopmentProductionScope','Test-RepoHealthProcessEnvelope','Test-RepoHealthRepositoryBinding','Test-RepoHealthRoutingContract','Test-RepoHealthRunManifest','Write-RepoHealthProcessLog'
 )

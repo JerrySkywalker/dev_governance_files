@@ -1,0 +1,15 @@
+{
+  "schema": "jpc.coordination-writer-lease.v1",
+  "goal": "JPC-V22-COORDINATION-RECOVERY-AND-RC32-AUTONOMOUS-12H-054D",
+  "generation": "JPC-V22-COORDINATION-RECOVERY-AND-RC32-AUTONOMOUS-12H-054D-20260829T061447Z",
+  "holder": "synthetic-dead-holder",
+  "holder_process_id": 9692,
+  "state": "active",
+  "acquired_utc": "2020-08-29T06:14:47.0106711+00:00",
+  "hard_stop_utc": "2020-08-29T18:14:47.0106711+00:00",
+  "single_intentional_writer": true,
+  "predecessor_goal": "synthetic-053J",
+  "predecessor_reason": "SYNTHETIC_EXPIRED",
+  "scope": ["source and CI only", "future protected admission separate"],
+  "goal_ref": "GOAL.md"
+}
