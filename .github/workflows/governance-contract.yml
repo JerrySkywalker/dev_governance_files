@@ -72,6 +72,14 @@ jobs:
         shell: pwsh
         run: ./tests/repo-health/Test-RepoHealthHarnessContract.ps1
 
+      - name: Run portable scope-separation contract
+        shell: pwsh
+        run: ./tests/repo-health/Test-DevelopmentProductionScope.ps1
+
+      - name: Run 054D protected-scope closure contract
+        shell: pwsh
+        run: ./tests/repo-health/Test-Jpc054DProtectedScopeClosure.ps1
+
       - name: Run Agent-context contract
         shell: pwsh
         run: ./tests/repo-health/Test-AgentContextContract.ps1

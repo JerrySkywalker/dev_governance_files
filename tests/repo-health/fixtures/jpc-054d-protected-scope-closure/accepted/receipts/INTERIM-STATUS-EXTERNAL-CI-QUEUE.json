@@ -1,0 +1,6 @@
+{
+  "schema": "jpc.coordination.interim-status.v1",
+  "goal_id": "JPC-V22-COORDINATION-RECOVERY-AND-RC32-AUTONOMOUS-12H-054D",
+  "release": {"rc32_source_created": false, "qualification_started": false, "promotion_started": false},
+  "owner_boundary": {"zenbook_contacted": false, "pkce_runs": 0, "skyforge_contacted": false}
+}

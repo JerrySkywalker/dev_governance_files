@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jpc-protected-scope-closure-authorization.v1",
+  "type": "object",
+  "required": [
+    "schema", "authorization_id", "authorized_by", "authorized_utc", "expires_utc",
+    "source_lease_path", "lease_sha256", "goal", "run_id", "evidence_manifest_sha256",
+    "non_activation_proof_sha256", "classification", "historical_lease_path", "receipt_path",
+    "production_apply_executed", "production_rollback_required", "new_production_authority_granted"
+  ],
+  "properties": {
+    "schema": {"const": "jpc.protected-scope-closure-authorization.v1"},
+    "authorization_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "authorized_by": {"const": "Owner"},
+    "authorized_utc": {"type": "string", "format": "date-time"},
+    "expires_utc": {"type": "string", "format": "date-time"},
+    "source_lease_path": {"type": "string", "minLength": 1},
+    "lease_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "goal": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "evidence_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "non_activation_proof_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "classification": {"const": "CLOSED_WITHOUT_PROTECTED_ACTIVATION"},
+    "historical_lease_path": {"type": "string", "minLength": 1},
+    "receipt_path": {"type": "string", "minLength": 1},
+    "production_apply_executed": {"const": false},
+    "production_rollback_required": {"const": false},
+    "new_production_authority_granted": {"const": false}
+  },
+  "additionalProperties": false
+}

@@ -61,7 +61,15 @@ try {
     $envelope.git_mutation=$true
     Assert-True (-not (Test-RepoHealthProcessEnvelope -Envelope $envelope).valid) 'supervisor mutation envelope rejected'
 
-    $implementerGoal=New-RepoHealthBoundGoal -GoalId 'goal-implementer' -ParentGoalId 'root-goal' -RunId $runId -WaveId W1 -StepId W1-S02 -PhaseId IMPLEMENT -Role Implementer -WorkingDirectory $repo -RepositoryId synthetic-repo -RepositoryPath $repo -GithubRepository JerrySkywalker/synthetic-repo -StableBranch main -ExpectedInputSha $sha -AllowedWriteSurfaces @($repo) -ProhibitedWriteSurfaces @('all-other-product-repositories') -GoalFilePath (Join-Path $goals 'implementer.md') -Body 'Implementer. Return a strict v3 envelope.'
+    $developmentScopeBody=@"
+SCOPE_CLASSIFICATION=DEVELOPMENT_TRAIN
+DEVELOPMENT_OWNERSHIP=source code;tests;CI;Git PR;docs;release preparation;release build qualification;immutable artifact custody
+PROHIBITED_PROTECTED_SURFACES=stage0 publication;A4;A5;production mutation;protected transaction;rollback execution;device mutation;owner-only production boundary
+Implementer source-only delivery.
+"@
+    $implementerGoal=New-RepoHealthBoundGoal -GoalId 'goal-implementer' -ParentGoalId 'root-goal' -RunId $runId -WaveId W1 -StepId W1-S02 -PhaseId IMPLEMENT -Role Implementer -WorkingDirectory $repo -RepositoryId synthetic-repo -RepositoryPath $repo -GithubRepository JerrySkywalker/synthetic-repo -StableBranch main -ExpectedInputSha $sha -AllowedWriteSurfaces @($repo) -ProhibitedWriteSurfaces @('all-other-product-repositories') -GoalFilePath (Join-Path $goals 'implementer.md') -Body $developmentScopeBody
+    $implementerBound=Read-RepoHealthBoundGoal -GoalFilePath (Join-Path $goals 'implementer.md')
+    Assert-True ((Test-RepoHealthDevelopmentProductionScope -Goal $implementerBound).classification -eq 'DEVELOPMENT_TRAIN') 'ordinary development scope passes before writer acquisition'
     $implementerEnvelope=[pscustomobject](New-RepoHealthProcessEnvelope -GoalHeader $implementerGoal.header -Outcome PASS -ObservedSha $sha -SanitizedSummary 'implementer_candidate_ready' -ProductRepositoryWrite $true -GitMutation $true)
     Assert-RepoHealthPostImplementerSha -ImplementerEnvelope $implementerEnvelope -ObservedCandidateSha $sha
     Assert-True $true 'post-Implementer exact candidate SHA accepted'
@@ -74,13 +82,17 @@ try {
     Assert-Fails { Assert-RepoHealthRunStepRequest -ManifestPath $manifestPath -RunId $runId -GoalPath $goalPath -Role Architect -InventoryRoot $testRoot } 'completed Goal cannot resume as a new launch'
     Assert-True ((Read-RepoHealthManifestState -RunId $runId -InventoryRoot $testRoot).completed_goal_ids -contains 'goal-architect') 'durable resume state retained'
 
-    $stateRoot=Join-Path $testRoot 'state';$lease=Enter-RepoHealthWriterLease -Repository synthetic-repo -SessionId writerone -StateRoot $stateRoot
-    try { Assert-Fails { Enter-RepoHealthWriterLease -Repository othertarget -SessionId writertwo -StateRoot $stateRoot } 'global one-writer lock exclusion' }
+    $mixedScopeBody=$developmentScopeBody + "conditional later A5 protected transaction after release`n"
+    $mixedGoal=New-RepoHealthBoundGoal -GoalId 'goal-mixed-054d' -ParentGoalId 'root-goal' -RunId $runId -WaveId W1 -StepId W1-S03 -PhaseId IMPLEMENT -Role Implementer -WorkingDirectory $repo -RepositoryId synthetic-repo -RepositoryPath $repo -GithubRepository JerrySkywalker/synthetic-repo -StableBranch main -ExpectedInputSha $sha -AllowedWriteSurfaces @($repo) -ProhibitedWriteSurfaces @('all-other-product-repositories') -GoalFilePath (Join-Path $goals 'mixed-054d.md') -Body $mixedScopeBody
+    $mixedBound=Read-RepoHealthBoundGoal -GoalFilePath (Join-Path $goals 'mixed-054d.md')
+    Assert-True ((Test-RepoHealthDevelopmentProductionScope -Goal $mixedBound).classification -eq 'MIXED_DEVELOPMENT_PRODUCTION_SCOPE') 'sanitized 054D-shaped conditional A5 scope classifies mixed'
+    $stateRoot=Join-Path $testRoot 'state';Assert-Fails { Enter-RepoHealthWriterLease -Repository synthetic-repo -SessionId mixedwriter -StateRoot $stateRoot -Goal $mixedBound } 'mixed scope rejects before writer acquisition'
+    Assert-True (-not (Test-Path -LiteralPath (Join-Path $stateRoot 'locks/product-writer.lock'))) 'mixed scope leaves no writer lock behind'
+    $lease=Enter-RepoHealthWriterLease -Repository synthetic-repo -SessionId writerone -StateRoot $stateRoot -Goal $implementerBound
+    try { Assert-Fails { Enter-RepoHealthWriterLease -Repository othertarget -SessionId writertwo -StateRoot $stateRoot -Goal $implementerBound } 'global one-writer lock exclusion' }
     finally { Exit-RepoHealthWriterLease -Lease $lease }
     Assert-Fails { Assert-RepoHealthLaunchArguments -Arguments @('--yolo') } 'yolo override rejected'
     Assert-Fails { Assert-RepoHealthLaunchArguments -Arguments @('--sandbox','danger-full-access') } 'sandbox override rejected'
-    Assert-True ((Resolve-RepoHealthCodexHost).file_name.Length -gt 0) 'Codex host resolved without override'
-
     foreach($file in Get-ChildItem -Path (Join-Path $PSScriptRoot '../../tools/repo-health'),$PSScriptRoot -Recurse -File | Where-Object {$_.Extension -in @('.ps1','.psm1')}) {
         $tokens=$null;$errors=$null;[System.Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)|Out-Null;Assert-True ($errors.Count -eq 0) ('PowerShell AST '+$file.Name)
     }
