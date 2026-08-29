@@ -60,6 +60,10 @@ are thin consumers of the same manifest and helper.
 | Conda 包缓存 / Conda package cache | `C:\Dev\cache\conda-pkgs` |
 | pip 缓存 / pip cache | `C:\Dev\cache\pip` |
 | Conda 备份 / Conda backups | `C:\Dev\backups\conda` |
+| 环境快照证据 / environment snapshot evidence | `C:\Dev\backups\env-snapshots` |
+
+`C:\Dev\backups\env-snapshots` 保存变更前后的轻量环境证据；它是稳定 C: 治理层的一部分，
+不属于可重建的 V: 工作层。
 
 `V:\` 是高 IO、可重建的工作层：`src`、`build`、`cache`、`datasets`、`scratch`
 及现有有用的 cache/data 子目录。Python/Conda 缓存默认保持 C-only；只有

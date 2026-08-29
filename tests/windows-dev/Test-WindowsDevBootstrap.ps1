@@ -57,11 +57,17 @@ Assert-True -Condition ([bool]$manifest.invariants.v_python_caches_opt_in_only) 
 Assert-True -Condition (-not [bool]$manifest.invariants.vhdx_creation_or_replacement) -Message 'bootstrap must not create or replace VHDX files'
 
 $cPaths = @($manifest.c_dev_directories | ForEach-Object { [string]$_.relative_path })
+$envSnapshotRelativePath = 'backups\env-snapshots'
+$envSnapshotEntries = @($manifest.c_dev_directories | Where-Object { $_.relative_path -eq $envSnapshotRelativePath })
+Assert-True -Condition ($envSnapshotEntries.Count -eq 1) -Message 'manifest must define exactly one environment snapshot root'
+Assert-True -Condition ([string]$envSnapshotEntries[0].purpose -eq 'environment snapshot and pre-change environment evidence root') -Message 'environment snapshot root must retain its evidence purpose'
+Write-Output 'MANIFEST_ENV_SNAPSHOT_ROOT=PASS'
+
 $requiredCPaths = @(
     'tools', 'tools\bin', 'tools\uv-tools', 'tools\uv-python',
     'toolchains', 'toolchains\miniconda3', 'envs', 'envs\conda',
     'cache', 'cache\uv', 'cache\pip', 'cache\conda-pkgs',
-    'backups', 'backups\conda', 'mcp', 'resources', 'scripts', 'docs',
+    'backups', 'backups\conda', 'backups\env-snapshots', 'mcp', 'resources', 'scripts', 'docs',
     'volumes', 'legacy', 'secrets'
 )
 foreach ($path in $requiredCPaths) {
@@ -94,15 +100,40 @@ $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('devgov-windows-bo
 New-Item -ItemType Directory -Path $temporaryRoot -ErrorAction Stop | Out-Null
 try {
     $cDevRoot = Join-Path $temporaryRoot 'C-Dev'
+    $preCreationCReport = @(Test-WindowsDevDirectoryTopology -CDevRoot $cDevRoot)[0]
+    Assert-True -Condition ($envSnapshotRelativePath -in @($preCreationCReport.MissingRelativePaths)) -Message 'C topology validation must detect an absent environment snapshot root'
+
     $firstC = @(New-WindowsDevCDevStructure -CDevRoot $cDevRoot)
     Assert-True -Condition ($firstC.Count -eq $cPaths.Count) -Message 'first C creation must process every manifest entry'
     Assert-True -Condition ((@($firstC | Where-Object Action -eq 'CREATED')).Count -gt 0) -Message 'first C creation must create directories'
+    Assert-True -Condition ((@($firstC | Where-Object { $_.RelativePath -eq $envSnapshotRelativePath -and $_.Action -eq 'CREATED' })).Count -eq 1) -Message 'C topology creation must create the environment snapshot root when absent'
+    Write-Output 'C_TOPOLOGY_CREATES_ENV_SNAPSHOTS=PASS'
 
     $cReport = @(Test-WindowsDevDirectoryTopology -CDevRoot $cDevRoot)[0]
     Assert-True -Condition $cReport.IsValid -Message 'created C topology must verify'
+    Assert-True -Condition ($envSnapshotRelativePath -notin @($cReport.MissingRelativePaths)) -Message 'C topology validation must accept the environment snapshot root when present'
+    Write-Output 'C_TOPOLOGY_VALIDATES_ENV_SNAPSHOTS=PASS'
+
+    $envSnapshotRoot = Join-Path $cDevRoot $envSnapshotRelativePath
+    $sentinelPath = Join-Path $envSnapshotRoot 'preexisting-evidence.txt'
+    [System.IO.File]::WriteAllText($sentinelPath, 'preserve-existing-evidence')
+    $sentinelHashBefore = (Get-FileHash -LiteralPath $sentinelPath -Algorithm SHA256).Hash
 
     $secondC = @(New-WindowsDevCDevStructure -CDevRoot $cDevRoot)
     Assert-True -Condition ((@($secondC | Where-Object Action -ne 'EXISTING')).Count -eq 0) -Message 'C creation must be idempotent'
+    Assert-True -Condition (Test-Path -LiteralPath $sentinelPath -PathType Leaf) -Message 'C creation must preserve unrelated environment snapshot evidence'
+    Assert-True -Condition ((Get-FileHash -LiteralPath $sentinelPath -Algorithm SHA256).Hash -eq $sentinelHashBefore) -Message 'C creation must not mutate unrelated environment snapshot evidence'
+
+    $preExistingCDevRoot = Join-Path $temporaryRoot 'Preexisting-C-Dev'
+    $preExistingEnvSnapshotRoot = Join-Path $preExistingCDevRoot $envSnapshotRelativePath
+    New-Item -ItemType Directory -Path $preExistingEnvSnapshotRoot -Force -ErrorAction Stop | Out-Null
+    $preExistingSentinelPath = Join-Path $preExistingEnvSnapshotRoot 'preexisting-before-bootstrap.txt'
+    [System.IO.File]::WriteAllText($preExistingSentinelPath, 'preserve-preexisting-evidence')
+    $preExistingSentinelHash = (Get-FileHash -LiteralPath $preExistingSentinelPath -Algorithm SHA256).Hash
+    $preExistingActions = @(New-WindowsDevCDevStructure -CDevRoot $preExistingCDevRoot)
+    Assert-True -Condition ((@($preExistingActions | Where-Object { $_.RelativePath -eq $envSnapshotRelativePath -and $_.Action -eq 'EXISTING' })).Count -eq 1) -Message 'C topology creation must preserve a pre-existing environment snapshot root'
+    Assert-True -Condition ((Get-FileHash -LiteralPath $preExistingSentinelPath -Algorithm SHA256).Hash -eq $preExistingSentinelHash) -Message 'C topology creation must preserve files already stored under the environment snapshot root'
+    Write-Output 'IDEMPOTENCE=PASS'
 
     $compatibilityCRoot = Join-Path $temporaryRoot 'Compatibility-C-Dev'
     $compatibilityC = & (Join-Path $root 'create_c_dev_structure.ps1') -CDevRoot $compatibilityCRoot -PassThru 6>$null
