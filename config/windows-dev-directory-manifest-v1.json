@@ -27,6 +27,7 @@
     { "relative_path": "cache\\conda-pkgs", "purpose": "Conda package cache" },
     { "relative_path": "backups", "purpose": "lightweight backup parent" },
     { "relative_path": "backups\\conda", "purpose": "Conda backup and export root" },
+    { "relative_path": "backups\\env-snapshots", "purpose": "environment snapshot and pre-change environment evidence root" },
     { "relative_path": "mcp", "purpose": "MCP integration parent" },
     { "relative_path": "mcp\\servers", "purpose": "MCP server parent" },
     { "relative_path": "mcp\\servers\\matlab-mcp-core-server", "purpose": "MATLAB MCP server root" },
