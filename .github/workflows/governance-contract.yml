@@ -84,6 +84,10 @@ jobs:
         shell: pwsh
         run: ./tests/repo-health/Test-AgentContextContract.ps1
 
+      - name: Run Writer Ownership V2 contract
+        shell: pwsh
+        run: ./tests/repo-health/Test-WriterOwnershipV2.ps1
+
       - name: Run Windows development bootstrap contract
         shell: pwsh
         run: ./tests/windows-dev/Test-WindowsDevBootstrap.ps1

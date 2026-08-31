@@ -51,6 +51,64 @@ The first repeated blocker requires architect-first analysis; the second require
 architect plus adversarial audit; the third requires a human. High-risk
 classifications escalate immediately.
 
+## Writer Lease v2 ownership domains
+
+Writer Lease v2 (`tools/repo-health/WriterOwnershipV2.psm1`) replaces the
+global long-lived `product-writer` / task-root-wide lease model with
+**ownership only over overlapping admitted resources**.
+
+Required ownership domains for ordinary development:
+
+- exact worktree/index path
+- exact branch ref
+- short repository-administration barrier
+- short mutable coordination-key / CAS ownership
+- strict production transaction domain (separate, never ordinary-development)
+
+Two sessions whose admitted resource sets do not overlap may proceed
+concurrently. Same worktree or same branch conflicts fail closed.
+
+### Timing constants (from architecture audit JERRY-WRITER-LEASE-V2-ARCHITECTURE-AUDIT-001)
+
+| Parameter | Value |
+|---|---|
+| TTL | 180 s |
+| HEARTBEAT | 30 s |
+| STALE_AFTER | 90 s |
+| DEAD_HOLDER_GRACE | 30 s |
+| REBOOT_GRACE | 60 s |
+
+### Migration state
+
+`V1_COMPATIBILITY=BLOCKING_SHADOW` is active during migration. Active or
+unsettled v1 sessions block v2 acquisition until a canonical v1 terminal
+record exists. Do **not** retroactively reinterpret or reclaim active/unsettled
+v1 leases with v2 semantics.
+
+V2 activation requires all of:
+
+1. exact-main v2 implementation accepted;
+2. full Windows race suite accepted;
+3. global routing changed from `single_writer=true` to per-overlap ownership;
+4. every active v1 session canonically terminal;
+5. no live/unresolved production transaction;
+6. final v1 metadata digests captured in activation receipt;
+7. v2 generation/epoch journals initialized;
+8. fresh independent Supervisor PASS.
+
+### Single-Writer Rule
+
+During the v1→v2 migration period, keep one root Implementer per Goal.
+On normal return (PASS, BLOCKED, HOLD, WAITING_EXTERNAL_CI, READY_FOR_OWNER),
+the outermost epilogue must call `Remove-Wlv2Session` to write the terminal
+receipt and dispose sentinel handles. Handle disposal must still occur even
+if receipt persistence fails.
+
+### Agent Allocation
+
+One root Implementer; at most seven direct read-only subagents; recursive
+subagents are prohibited.
+
 ## Global rules
 
 - Never infer current defaults from a Retrospective or old Plan.

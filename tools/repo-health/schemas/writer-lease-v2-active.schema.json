@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-writer-lease-v2-active.v1",
+  "title": "Writer Lease V2 Active Record",
+  "description": "Durable audit metadata for an active Writer Lease v2 session. The sentinel handle is the live locking primitive; this record is audit evidence, not the sole lock.",
+  "type": "object",
+  "required": [
+    "schema",
+    "acquisition_id",
+    "resource_ids",
+    "epoch_vector",
+    "holder",
+    "acquired_utc",
+    "ttl_seconds",
+    "heartbeat_interval_seconds",
+    "stale_after_seconds",
+    "goal_digest",
+    "activation_generation",
+    "state"
+  ],
+  "properties": {
+    "schema": {"const": "writer-lease-v2-active.v1"},
+    "acquisition_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$",
+      "description": "Monotonically unique acquisition identifier for this session."
+    },
+    "resource_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$"},
+      "minItems": 1,
+      "description": "Exact set of admitted resource identifiers (worktree path, branch ref, coordination key, etc.)."
+    },
+    "epoch_vector": {
+      "type": "object",
+      "description": "Map of resource_id to monotonic epoch integer for this acquisition.",
+      "additionalProperties": {"type": "integer", "minimum": 1}
+    },
+    "holder": {
+      "type": "object",
+      "required": [
+        "machine_id",
+        "boot_generation",
+        "host_pid",
+        "host_creation_filetime",
+        "writer_pid",
+        "writer_creation_filetime"
+      ],
+      "properties": {
+        "machine_id": {"type": "string"},
+        "boot_generation": {"type": "string"},
+        "host_pid": {"type": "integer", "minimum": 1},
+        "host_creation_filetime": {"type": "string"},
+        "writer_pid": {"type": "integer", "minimum": 1},
+        "writer_creation_filetime": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "acquired_utc": {"type": "string", "format": "date-time"},
+    "last_heartbeat_utc": {"type": "string", "format": "date-time"},
+    "ttl_seconds": {"type": "integer", "minimum": 1},
+    "heartbeat_interval_seconds": {"type": "integer", "minimum": 1},
+    "stale_after_seconds": {"type": "integer", "minimum": 1},
+    "goal_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "activation_generation": {"type": "integer", "minimum": 1},
+    "state": {
+      "type": "string",
+      "enum": ["ACTIVE", "RELEASED", "RECOVERY_REQUIRED"]
+    },
+    "v1_compatibility": {
+      "type": "string",
+      "enum": ["BLOCKING_SHADOW"],
+      "description": "When present, indicates V1 compatibility mode. Must be BLOCKING_SHADOW during migration."
+    },
+    "production_transaction_attached": {
+      "type": "boolean",
+      "description": "True only when a strict production transaction is attached. Must remain false for ordinary development sessions."
+    }
+  },
+  "additionalProperties": false
+}

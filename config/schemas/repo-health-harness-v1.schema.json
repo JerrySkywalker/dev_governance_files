@@ -64,7 +64,21 @@
     },
     "risk_modifiers": {"type": "array"},
     "calibration_targets": {"type": "object"},
-    "retuning_policy": {"type": "object"}
+    "retuning_policy": {"type": "object"},
+    "writer_lease_v2": {
+      "type": "object",
+      "description": "Writer Lease v2 timing and policy numeric constants.",
+      "properties": {
+        "ttl_seconds":                {"type": "integer", "minimum": 1},
+        "heartbeat_interval_seconds": {"type": "integer", "minimum": 1},
+        "stale_after_seconds":        {"type": "integer", "minimum": 1},
+        "dead_holder_grace_seconds":  {"type": "integer", "minimum": 0},
+        "reboot_grace_seconds":       {"type": "integer", "minimum": 0},
+        "migration_state":            {"type": "string", "enum": ["V1_COMPATIBILITY_BLOCKING_SHADOW", "V2_ACTIVE"]},
+        "activation_gate":            {"type": "object"}
+      },
+      "additionalProperties": false
+    }
   },
   "$defs": {
     "profile": {
