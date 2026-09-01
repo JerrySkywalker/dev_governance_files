@@ -13,11 +13,5 @@
     "synthetic terminal governance finalization"
   ],
   "goal_ref": "C:/build/jpc-059/coord/GOAL.md",
-  "run_id": "JPC-V22-RC32-PROTECTED-APPLY-059-20260830T104302Z",
-  "profile": "PROTECTED_TRANSACTION_V2",
-  "authority_class": "A5",
-  "production_authority": true,
-  "transaction_id": "a5-rc32-058-5dbf2907de4b41f688125c691c212ff9",
-  "authorization_grant_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-  "write_surfaces_ref": "C:/build/jpc-059/coord/WRITE-SURFACES.json"
+  "budget_state_ref": null
 }

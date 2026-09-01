@@ -113,10 +113,13 @@ fields rejected.
 
 The optional `-LegacyCompatibilityPath` selects a mutually exclusive legacy
 admission adapter. Without that argument, the existing modern parser and auth
-v1 behavior are unchanged. With it, a JSON-null legacy budget reference and an
-absolute historical Goal literal are accepted only when an immutable
-compatibility packet, derived companion Goal/budget records, canonical imported
-receipts, typed terminal evidence, and Owner auth v2 all bind the exact lease.
+v1 behavior are unchanged. With it, a JSON-null legacy budget reference is
+accepted only for `LEGACY_NULL_BUDGET_V1`; the exact 18-field
+`LEGACY_PROTECTED_059_V1` instead requires `budget_state_ref` to be absent and
+binds its seven protected-era fields. Either variant is accepted only when an
+immutable compatibility packet, derived companion Goal/budget records,
+canonical imported receipts, typed terminal evidence, and Owner auth v2 all
+bind the exact lease.
 The Goal literal is compared as data and never followed. The adapter returns
 the same admission shape to the archive/lock/receipt transaction below.
 

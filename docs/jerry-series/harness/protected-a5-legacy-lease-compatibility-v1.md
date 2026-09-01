@@ -25,7 +25,8 @@ modern protected lease
   -> existing archive/lock/receipt transaction
 
 legacy protected lease
-  -> legacy-shape parser
+  -> exact-property-set legacy shape dispatch
+  -> LEGACY_NULL_BUDGET_V1 or LEGACY_PROTECTED_059_V1
   -> accepted typed provenance
   -> exact predecessor-receipt import
   -> DERIVED_COMPATIBILITY_METADATA companions
@@ -35,15 +36,26 @@ legacy protected lease
 ```
 
 An omitted legacy argument always selects the unchanged modern path. An explicit
-legacy argument requires a JSON-null `budget_state_ref`, an absolute historical
-`goal_ref` literal, and auth v2. Modern-shaped leases fail the legacy parser;
-legacy-shaped leases fail the modern parser.
+legacy argument requires one of two mutually exclusive exact property sets plus
+auth v2:
+
+- `LEGACY_NULL_BUDGET_V1` is the original 12-field compatibility shape with an
+  explicit JSON-null `budget_state_ref` and `ABSENT_NULL` provenance;
+- `LEGACY_PROTECTED_059_V1` is the exact 18-field protected-era 059 shape. It
+  omits `budget_state_ref`, records `FIELD_ABSENT`, and requires `run_id`,
+  `profile`, `authority_class`, `production_authority`, `transaction_id`,
+  `authorization_grant_sha256`, and `write_surfaces_ref`.
+
+Dispatch occurs from the exact case-sensitive property set before semantic
+interpretation. Unknown, missing, duplicate, case-variant duplicate, and hybrid
+shapes fail closed. Modern-shaped leases fail the legacy parser; both legacy
+shapes fail the modern parser.
 
 ## Preparation inputs and provenance
 
 The preparer accepts a strict
 `protected-a5-legacy-compatibility-preparation.v1` manifest. The manifest binds
-the exact lease digest and literal legacy fields, a typed
+the exact lease digest, lease shape ID, and literal legacy fields, a typed
 `protected-a5-legacy-governance-provenance.v1` packet, three immutable
 predecessor governance records, and the reconciliation and verifier source
 receipts. Every supplied source must be a regular non-reparse file whose bytes
@@ -55,8 +67,20 @@ the supported protected shape: `PROTECTED_TRANSACTION_V2`, `A5`, `B4`, current
 L4 or L5, maximum L5, and present protected/Owner-only boundaries. It never
 claims that the companion records existed during the historical transaction.
 
+For `LEGACY_PROTECTED_059_V1`, every protected-era identity duplicated in
+provenance must equal the value parsed from the lease. The compatibility packet
+and hashed companions bind those lease-derived identities transitively; the
+preparation manifest cannot replace them.
+
 The legacy `goal_ref` is bound as an immutable literal. Neither the preparer nor
-the finalizer follows that absolute path.
+the finalizer follows that absolute path. The 059 variant requires the exact
+historical literal `C:/build/jpc-059/coord/GOAL.md`. Its
+`write_surfaces_ref` is also validated and bound as historical text; it is never
+followed during finalization.
+
+The derived budget companion records the variant-specific historical status.
+`FIELD_ABSENT` does not synthesize a historical budget reference and grants no
+Apply, rollback, or promotion authority.
 
 ## Observe and Prepare
 
@@ -105,6 +129,7 @@ shared unchanged after admission.
 pwsh -NoLogo -NoProfile -File .\tests\repo-health\Test-ProtectedA5LegacyCompatibility.ps1
 ```
 
-The 059 fixture reproduces only the legacy JSON shape. It contains neither the
-real retained lease bytes nor production evidence, and no test uses the real
-task root.
+The 059 fixture has exactly the real 18-property set and JSON types, with safe
+synthetic values and no `budget_state_ref`. A separate fixture preserves the
+explicit-null-budget variant. Neither fixture contains the real retained lease
+bytes or production evidence, and no test uses the real task root.

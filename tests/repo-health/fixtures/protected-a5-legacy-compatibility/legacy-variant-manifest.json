@@ -1,0 +1,53 @@
+{
+  "schema": "protected-a5-legacy-lease-fixture-manifest.v1",
+  "variants": [
+    {
+      "shape_id": "LEGACY_NULL_BUDGET_V1",
+      "fixture": "null-budget-legacy-shape.json",
+      "legacy_budget_reference_status": "ABSENT_NULL",
+      "exact_properties": [
+        "schema",
+        "goal",
+        "holder",
+        "holder_session",
+        "state",
+        "acquired_utc",
+        "created_utc",
+        "hard_stop_utc",
+        "single_intentional_writer",
+        "scope",
+        "goal_ref",
+        "budget_state_ref"
+      ]
+    },
+    {
+      "shape_id": "LEGACY_PROTECTED_059_V1",
+      "fixture": "059-legacy-shape.json",
+      "legacy_budget_reference_status": "FIELD_ABSENT",
+      "exact_properties": [
+        "schema",
+        "goal",
+        "holder",
+        "holder_session",
+        "state",
+        "acquired_utc",
+        "created_utc",
+        "hard_stop_utc",
+        "single_intentional_writer",
+        "scope",
+        "goal_ref",
+        "run_id",
+        "profile",
+        "authority_class",
+        "production_authority",
+        "transaction_id",
+        "authorization_grant_sha256",
+        "write_surfaces_ref"
+      ]
+    }
+  ],
+  "variants_mutually_exclusive": true,
+  "additional_properties_allowed": false,
+  "sanitized_fixtures": true,
+  "real_lease_bytes_included": false
+}
