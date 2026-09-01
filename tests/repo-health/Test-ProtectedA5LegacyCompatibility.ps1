@@ -531,16 +531,23 @@ $malformedLegacyCases=@(
     @{message='059 write_surfaces_ref wrong JSON type rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.write_surfaces_ref=@{path='C:/synthetic'};Write-Json -Path $path -Value $value}}
 )
 $missingProtectedFields=@('run_id','profile','authority_class','production_authority','transaction_id','authorization_grant_sha256','write_surfaces_ref')
-foreach($name in $missingProtectedFields){
-    $fieldName=$name
-    $malformedLegacyCases += @{message=('059 missing '+$fieldName+' rejects');expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.PSObject.Properties.Remove($fieldName);Write-Json -Path $path -Value $value}.GetNewClosure()}
-}
 foreach($case in $malformedLegacyCases){
     $fixture=New-LegacyFixture
     try{
         & $case.mutate $fixture.LeasePath
         $fixture.LeaseSha=Get-Sha256 -Path $fixture.LeasePath
         Assert-Status (Invoke-CompatibilityObserve -Fixture $fixture) $case.expected $case.message
+    }
+    finally{Remove-SyntheticRoot -Fixture $fixture}
+}
+foreach($fieldName in $missingProtectedFields){
+    $fixture=New-LegacyFixture
+    try{
+        $value=Read-Json -Path $fixture.LeasePath
+        $value.PSObject.Properties.Remove($fieldName)
+        Write-Json -Path $fixture.LeasePath -Value $value
+        $fixture.LeaseSha=Get-Sha256 -Path $fixture.LeasePath
+        Assert-Status (Invoke-CompatibilityObserve -Fixture $fixture) 'LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE' ('059 missing '+$fieldName+' rejects')
     }
     finally{Remove-SyntheticRoot -Fixture $fixture}
 }
