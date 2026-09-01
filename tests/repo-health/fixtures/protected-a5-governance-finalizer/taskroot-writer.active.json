@@ -1,0 +1,17 @@
+{
+  "schema": "jpc.taskroot-writer-lease.v1",
+  "goal": "JPC-SYNTHETIC-PROTECTED-A5-059",
+  "holder": "synthetic-terminal-holder",
+  "holder_session": "synthetic-session-059",
+  "state": "active",
+  "acquired_utc": "2026-08-30T00:01:00.0000000Z",
+  "created_utc": "2026-08-30T00:00:00.0000000Z",
+  "hard_stop_utc": "2026-08-30T01:00:00.0000000Z",
+  "single_intentional_writer": true,
+  "scope": [
+    "synthetic-protected-a5",
+    "governance-finalization"
+  ],
+  "goal_ref": ".coord-local/goals/059-goal.json",
+  "budget_state_ref": ".coord-local/state/059-budget.json"
+}

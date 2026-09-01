@@ -1,0 +1,7 @@
+{
+  "schema": "synthetic-goal-073-f0-reconciliation.v1",
+  "transaction_id": "a5-rc32-058-5dbf2907de4b41f688125c691c212ff9",
+  "reconciliation": "PASS",
+  "synthetic": true,
+  "protected_response_bodies_included": false
+}
