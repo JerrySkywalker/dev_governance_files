@@ -25,7 +25,17 @@ function Update-Json {
     foreach($name in $Changes.Keys){$value.$name=$Changes[$name]}
     Write-Json -Path $Path -Value $value
 }
-function Set-Writable { param([string]$Path);$item=Get-Item -LiteralPath $Path -Force;$item.Attributes=($item.Attributes -band (-bnot [IO.FileAttributes]::ReadOnly)) }
+function Set-Writable {
+    param([string]$Path)
+    $item=Get-Item -LiteralPath $Path -Force
+    if(($item.Attributes -band [IO.FileAttributes]::ReadOnly) -eq 0){return}
+    if($IsWindows){
+        $item.Attributes=($item.Attributes -band (-bnot [IO.FileAttributes]::ReadOnly))
+        return
+    }
+    $mode=[IO.File]::GetUnixFileMode($item.FullName)
+    [IO.File]::SetUnixFileMode($item.FullName,($mode -bor [IO.UnixFileMode]::UserWrite))
+}
 
 function Remove-SyntheticRoot {
     param([Parameter(Mandatory)][object]$Fixture)
