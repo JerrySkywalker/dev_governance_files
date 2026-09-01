@@ -68,8 +68,14 @@ jobs:
               print(f'SCHEMA_PASS={document_path}')
           standalone_schemas = [
               Path('tools/repo-health/schemas/protected-a5-finalization-authorization.schema.json'),
+              Path('tools/repo-health/schemas/protected-a5-finalization-authorization-v2.schema.json'),
               Path('tools/repo-health/schemas/protected-a5-finalization-evidence.schema.json'),
               Path('tools/repo-health/schemas/protected-a5-finalization-receipt.schema.json'),
+              Path('tools/repo-health/schemas/protected-a5-legacy-governance-provenance.schema.json'),
+              Path('tools/repo-health/schemas/protected-a5-legacy-compatibility-preparation.schema.json'),
+              Path('tools/repo-health/schemas/protected-a5-legacy-goal-companion.schema.json'),
+              Path('tools/repo-health/schemas/protected-a5-legacy-budget-companion.schema.json'),
+              Path('tools/repo-health/schemas/protected-a5-legacy-lease-compatibility.schema.json'),
           ]
           for schema_path in standalone_schemas:
               schema = json.loads(schema_path.read_text(encoding='utf-8'))
@@ -92,6 +98,10 @@ jobs:
       - name: Run protected A5 governance finalizer contract
         shell: pwsh
         run: ./tests/repo-health/Test-ProtectedA5GovernanceFinalizer.ps1
+
+      - name: Run protected A5 legacy compatibility contract
+        shell: pwsh
+        run: ./tests/repo-health/Test-ProtectedA5LegacyCompatibility.ps1
 
       - name: Run Agent-context contract
         shell: pwsh

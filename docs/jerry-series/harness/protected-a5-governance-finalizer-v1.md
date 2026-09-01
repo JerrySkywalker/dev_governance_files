@@ -68,6 +68,13 @@ additional-field closed, valid for at most 30 minutes, and binds:
 The authorization scope is exactly
 `PROTECTED_A5_GOVERNANCE_FINALIZE`. It grants no other protected authority.
 
+Historical protected leases admitted through
+`PROTECTED_A5_LEGACY_LEASE_COMPATIBILITY_V1` instead require the separately
+closed `protected-a5-governance-finalization-authorization.v2`. Auth v2 adds
+exact compatibility-packet path and SHA-256 bindings. Auth v1 remains the only
+accepted authorization on the modern path; neither version is accepted on the
+other path.
+
 The typed evidence packet is the machine-readable bridge for predecessor
 receipts that were not originally designed for finalizer parsing. It references
 and hashes those immutable receipts; it never rewrites, backdates, or replaces
@@ -92,6 +99,7 @@ conflicting_evidence=false
 The machine-readable schemas are under `tools/repo-health/schemas/`:
 
 - `protected-a5-finalization-authorization.schema.json`;
+- `protected-a5-finalization-authorization-v2.schema.json`;
 - `protected-a5-finalization-evidence.schema.json`;
 - `protected-a5-finalization-receipt.schema.json`.
 
@@ -102,6 +110,15 @@ The finalizer accepts only
 file must be a regular non-reparse file beneath its exact task-root namespace.
 JSON is strict UTF-8 with duplicate, unknown, missing, and incorrectly cased
 fields rejected.
+
+The optional `-LegacyCompatibilityPath` selects a mutually exclusive legacy
+admission adapter. Without that argument, the existing modern parser and auth
+v1 behavior are unchanged. With it, a JSON-null legacy budget reference and an
+absolute historical Goal literal are accepted only when an immutable
+compatibility packet, derived companion Goal/budget records, canonical imported
+receipts, typed terminal evidence, and Owner auth v2 all bind the exact lease.
+The Goal literal is compared as data and never followed. The adapter returns
+the same admission shape to the archive/lock/receipt transaction below.
 
 After initial admission, the finalizer acquires a permanent-path exclusive file
 lock, re-reads and compares the SHA-256 of the lease, Goal, budget,
@@ -146,6 +163,22 @@ pwsh -NoLogo -NoProfile -File .\tools\repo-health\Invoke-ProtectedA5GovernanceFi
   -ExpectedLeaseSha256 <exact-lowercase-sha256> `
   -AuthorizationPath <task-root>\.coord-local\authorizations\<fresh-owner-authorization>.json
 ```
+
+Legacy finalization uses the same command plus the canonical prepared packet:
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\tools\repo-health\Invoke-ProtectedA5GovernanceFinalizer.ps1 `
+  -Mode Observe `
+  -TaskRoot <owner-authorized-legacy-task-root> `
+  -LeasePath <task-root>\.coord-local\leases\taskroot-writer.active.json `
+  -ExpectedLeaseSha256 <exact-lowercase-sha256> `
+  -AuthorizationPath <task-root>\.coord-local\authorizations\<fresh-owner-auth-v2>.json `
+  -LegacyCompatibilityPath <task-root>\.coord-local\protected-a5-legacy\compatibilities\<compatibility-id>.json
+```
+
+The compatibility packet must first be created by the separate preparer
+described in
+[`protected-a5-legacy-lease-compatibility-v1.md`](protected-a5-legacy-lease-compatibility-v1.md).
 
 The second command is a template for a separately admitted protected L5 Goal.
 A source-development Goal must not run it against a retained real lease.

@@ -121,5 +121,10 @@ FAILED_OR_UNVERIFIED_ROLLBACK_HARD_STOP=true
   terminal protected-A5 Writer Lease v1. Version 1 supports only
   `FAILED_BEFORE_CONFIG` / `OWNER_ABORTED_PREPARED` and performs no production
   transaction mutation.
+- [`PROTECTED_A5_LEGACY_LEASE_COMPATIBILITY_V1`](protected-a5-legacy-lease-compatibility-v1.md)
+  is the explicit compatibility adapter for a proven historical protected-A5
+  Writer Lease v1 whose metadata layout predates canonical task-root metadata.
+  It preserves the lease bytes, derives narrowly typed companion metadata,
+  imports predecessor receipts by exact SHA-256, and requires Owner auth v2.
 
 Retrospectives explain origins but do not provide active defaults.

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "protected-a5-legacy-budget-companion.v1",
+  "type": "object",
+  "required": [
+    "schema", "compatibility_id", "created_utc", "metadata_classification",
+    "expected_lease_sha256", "goal", "run_id", "legacy_budget_reference_status",
+    "authorized_operation", "apply_authority", "rollback_authority", "promotion_authority",
+    "finalize_window", "governance_provenance_reference", "governance_provenance_sha256",
+    "source_budget_record_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "protected-a5-legacy-budget-companion.v1"},
+    "compatibility_id": {"$ref": "#/$defs/identifier"},
+    "created_utc": {"type": "string", "format": "date-time"},
+    "metadata_classification": {"const": "DERIVED_COMPATIBILITY_METADATA"},
+    "expected_lease_sha256": {"$ref": "#/$defs/sha256"},
+    "goal": {"$ref": "#/$defs/identifier"},
+    "run_id": {"$ref": "#/$defs/identifier"},
+    "legacy_budget_reference_status": {"const": "ABSENT_NULL"},
+    "authorized_operation": {"const": "PROTECTED_A5_GOVERNANCE_FINALIZE"},
+    "apply_authority": {"const": false},
+    "rollback_authority": {"const": false},
+    "promotion_authority": {"const": false},
+    "finalize_window": {"const": "ONE"},
+    "governance_provenance_reference": {"$ref": "#/$defs/boundedString"},
+    "governance_provenance_sha256": {"$ref": "#/$defs/sha256"},
+    "source_budget_record_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "boundedString": {"type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^[^\\u0000-\\u001f]+$"}
+  },
+  "additionalProperties": false
+}

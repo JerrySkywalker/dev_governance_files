@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "protected-a5-governance-finalization-authorization.v2",
+  "type": "object",
+  "required": [
+    "schema", "authorization_id", "authorization_scope", "authorized_by", "authorized_utc", "expires_utc",
+    "task_root_relative_lease_path", "expected_lease_sha256", "expected_goal", "expected_run_id",
+    "expected_goal_metadata_sha256", "expected_budget_metadata_sha256", "transaction_id",
+    "finalization_evidence_path", "expected_finalization_evidence_sha256",
+    "reconciliation_receipt_path", "expected_reconciliation_receipt_sha256",
+    "independent_verifier_receipt_path", "expected_independent_verifier_receipt_sha256",
+    "expected_terminal_result", "expected_terminal_failure_code",
+    "legacy_compatibility_path", "expected_legacy_compatibility_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "protected-a5-governance-finalization-authorization.v2"},
+    "authorization_id": {"$ref": "#/$defs/identifier"},
+    "authorization_scope": {"const": "PROTECTED_A5_GOVERNANCE_FINALIZE"},
+    "authorized_by": {"const": "OWNER"},
+    "authorized_utc": {"type": "string", "format": "date-time"},
+    "expires_utc": {"type": "string", "format": "date-time"},
+    "task_root_relative_lease_path": {"const": ".coord-local/leases/taskroot-writer.active.json"},
+    "expected_lease_sha256": {"$ref": "#/$defs/sha256"},
+    "expected_goal": {"$ref": "#/$defs/identifier"},
+    "expected_run_id": {"$ref": "#/$defs/identifier"},
+    "expected_goal_metadata_sha256": {"$ref": "#/$defs/sha256"},
+    "expected_budget_metadata_sha256": {"$ref": "#/$defs/sha256"},
+    "transaction_id": {"$ref": "#/$defs/identifier"},
+    "finalization_evidence_path": {"type": "string", "pattern": "^\\.coord-local/finalization-evidence/[A-Za-z0-9._-]+\\.json$"},
+    "expected_finalization_evidence_sha256": {"$ref": "#/$defs/sha256"},
+    "reconciliation_receipt_path": {"type": "string", "pattern": "^\\.coord-local/receipts/protected-a5-legacy/[0-9a-f]{64}\\.reconciliation\\.json$"},
+    "expected_reconciliation_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "independent_verifier_receipt_path": {"type": "string", "pattern": "^\\.coord-local/receipts/protected-a5-legacy/[0-9a-f]{64}\\.independent-verifier\\.json$"},
+    "expected_independent_verifier_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "expected_terminal_result": {"const": "FAILED_BEFORE_CONFIG"},
+    "expected_terminal_failure_code": {"const": "OWNER_ABORTED_PREPARED"},
+    "legacy_compatibility_path": {"type": "string", "pattern": "^\\.coord-local/protected-a5-legacy/compatibilities/[A-Za-z0-9._-]+\\.json$"},
+    "expected_legacy_compatibility_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false
+}
