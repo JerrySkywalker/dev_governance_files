@@ -4,7 +4,7 @@
   "type": "object",
   "required": [
     "schema", "compatibility_id", "created_utc", "metadata_classification",
-    "expected_lease_sha256", "goal", "run_id", "legacy_budget_reference_status",
+    "legacy_lease_shape_id", "expected_lease_sha256", "goal", "run_id", "legacy_budget_reference_status",
     "authorized_operation", "apply_authority", "rollback_authority", "promotion_authority",
     "finalize_window", "governance_provenance_reference", "governance_provenance_sha256",
     "source_budget_record_sha256"
@@ -14,10 +14,11 @@
     "compatibility_id": {"$ref": "#/$defs/identifier"},
     "created_utc": {"type": "string", "format": "date-time"},
     "metadata_classification": {"const": "DERIVED_COMPATIBILITY_METADATA"},
+    "legacy_lease_shape_id": {"enum": ["LEGACY_NULL_BUDGET_V1", "LEGACY_PROTECTED_059_V1"]},
     "expected_lease_sha256": {"$ref": "#/$defs/sha256"},
     "goal": {"$ref": "#/$defs/identifier"},
     "run_id": {"$ref": "#/$defs/identifier"},
-    "legacy_budget_reference_status": {"const": "ABSENT_NULL"},
+    "legacy_budget_reference_status": {"enum": ["ABSENT_NULL", "FIELD_ABSENT"]},
     "authorized_operation": {"const": "PROTECTED_A5_GOVERNANCE_FINALIZE"},
     "apply_authority": {"const": false},
     "rollback_authority": {"const": false},
@@ -27,6 +28,16 @@
     "governance_provenance_sha256": {"$ref": "#/$defs/sha256"},
     "source_budget_record_sha256": {"$ref": "#/$defs/sha256"}
   },
+  "oneOf": [
+    {"properties": {
+      "legacy_lease_shape_id": {"const": "LEGACY_NULL_BUDGET_V1"},
+      "legacy_budget_reference_status": {"const": "ABSENT_NULL"}
+    }},
+    {"properties": {
+      "legacy_lease_shape_id": {"const": "LEGACY_PROTECTED_059_V1"},
+      "legacy_budget_reference_status": {"const": "FIELD_ABSENT"}
+    }}
+  ],
   "$defs": {
     "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

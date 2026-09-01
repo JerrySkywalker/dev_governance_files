@@ -1,13 +1,26 @@
 Set-StrictMode -Version Latest
 
-$script:LacLegacyLeaseFields = [ordered]@{
+$script:LacLegacyNullBudgetLeaseFields = [ordered]@{
     schema='String'; goal='String'; holder='String'; holder_session='String'; state='String'
     acquired_utc='String'; created_utc='String'; hard_stop_utc='String'; single_intentional_writer='Boolean'
     scope='StringArray'; goal_ref='String'; budget_state_ref='Null'
 }
+$script:LacLegacyProtected059LeaseFields = [ordered]@{
+    schema='String'; goal='String'; holder='String'; holder_session='String'; state='String'
+    acquired_utc='String'; created_utc='String'; hard_stop_utc='String'; single_intentional_writer='Boolean'
+    scope='StringArray'; goal_ref='String'; run_id='String'; profile='String'; authority_class='String'
+    production_authority='Boolean'; transaction_id='String'; authorization_grant_sha256='String'; write_surfaces_ref='String'
+}
+$script:LacLegacyNullBudgetShapeId = 'LEGACY_NULL_BUDGET_V1'
+$script:LacLegacyProtected059ShapeId = 'LEGACY_PROTECTED_059_V1'
+$script:LacProtected059Goal = 'JPC-V22-RC32-PROTECTED-APPLY-059'
+$script:LacProtected059HolderSession = 'jpc-v22-rc32-protected-apply-059'
+$script:LacProtected059TransactionId = 'a5-rc32-058-5dbf2907de4b41f688125c691c212ff9'
+$script:LacProtected059GoalRef = 'C:/build/jpc-059/coord/GOAL.md'
+$script:LacProtected059WriteSurfacesRef = 'C:/build/jpc-059/coord/WRITE-SURFACES.json'
 $script:LacPreparationFields = [ordered]@{
     schema='String'; compatibility_id='String'; created_utc='String'; expected_lease_sha256='String'
-    expected_goal='String'; expected_holder_session='String'; legacy_goal_ref_literal='String'; transaction_id='String'
+    legacy_lease_shape_id='String'; expected_goal='String'; expected_holder_session='String'; legacy_goal_ref_literal='String'; transaction_id='String'
     expected_terminal_result='String'; expected_terminal_failure_code='String'; governance_provenance_path='String'
     expected_governance_provenance_sha256='String'; source_goal_record_path='String'; expected_source_goal_record_sha256='String'
     source_scope_record_path='String'; expected_source_scope_record_sha256='String'; source_budget_record_path='String'
@@ -15,12 +28,21 @@ $script:LacPreparationFields = [ordered]@{
     expected_source_reconciliation_receipt_sha256='String'; source_independent_verifier_receipt_path='String'
     expected_source_independent_verifier_receipt_sha256='String'; compatibility_provenance_status='String'
 }
-$script:LacProvenanceFields = [ordered]@{
+$script:LacNullBudgetProvenanceFields = [ordered]@{
     schema='String'; provenance_id='String'; recorded_utc='String'; status='String'; metadata_classification='String'
-    expected_lease_sha256='String'; goal='String'; run_id='String'; legacy_goal_ref_literal='String'
+    expected_lease_sha256='String'; legacy_lease_shape_id='String'; goal='String'; run_id='String'; legacy_goal_ref_literal='String'
     legacy_budget_reference_status='String'; transaction_id='String'; admitted_profile='String'
     admitted_authority_class='String'; admitted_elasticity_grade='String'; admitted_current_layer='String'
     admitted_max_layer='String'; protected_boundaries_present='Boolean'; owner_only_boundaries_present='Boolean'
+    source_goal_record_sha256='String'; source_scope_record_sha256='String'; source_budget_record_sha256='String'
+}
+$script:LacProtected059ProvenanceFields = [ordered]@{
+    schema='String'; provenance_id='String'; recorded_utc='String'; status='String'; metadata_classification='String'
+    expected_lease_sha256='String'; legacy_lease_shape_id='String'; goal='String'; run_id='String'; legacy_goal_ref_literal='String'
+    legacy_budget_reference_status='String'; transaction_id='String'; admitted_profile='String'
+    admitted_authority_class='String'; admitted_elasticity_grade='String'; admitted_current_layer='String'
+    admitted_max_layer='String'; protected_boundaries_present='Boolean'; owner_only_boundaries_present='Boolean'
+    production_authority='Boolean'; authorization_grant_sha256='String'; write_surfaces_ref_literal='String'
     source_goal_record_sha256='String'; source_scope_record_sha256='String'; source_budget_record_sha256='String'
 }
 
@@ -103,11 +125,16 @@ function Assert-LacBoundedString {
     if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt 1024 -or $Value -match '[\x00-\x1f]') { Throw-LacRejected ('MALFORMED_' + $Field.ToUpperInvariant()) }
 }
 
+function Assert-LacAbsoluteHistoricalLiteral {
+    param([Parameter(Mandatory)][string]$Value,[Parameter(Mandatory)][string]$Field)
+    Assert-LacBoundedString -Value $Value -Field $Field
+    $isAbsolute = $Value -match '^[A-Za-z]:[\\/]' -or $Value -match '^[/]' -or $Value -match '^\\\\[^\\]'
+    if (-not $isAbsolute -or $Value -match '(^|[\\/])\.\.?(?:[\\/]|$)') { Throw-LacRejected ('MALFORMED_' + $Field.ToUpperInvariant()) }
+}
+
 function Assert-LacAbsoluteLegacyLiteral {
     param([Parameter(Mandatory)][string]$Value)
-    Assert-LacBoundedString -Value $Value -Field 'legacy_goal_ref_literal'
-    $isAbsolute = $Value -match '^[A-Za-z]:[\\/]' -or $Value -match '^[/]' -or $Value -match '^\\\\[^\\]'
-    if (-not $isAbsolute -or $Value -match '(^|[\\/])\.\.?(?:[\\/]|$)') { Throw-LacRejected 'MALFORMED_LEGACY_GOAL_REF_LITERAL' }
+    Assert-LacAbsoluteHistoricalLiteral -Value $Value -Field 'legacy_goal_ref_literal'
 }
 
 function ConvertTo-LacUtc {
@@ -158,23 +185,69 @@ function Get-LacStringArray {
     return @($Element.EnumerateArray() | ForEach-Object { $_.GetString() })
 }
 
+function Get-LacLegacyLeaseShape {
+    param([Parameter(Mandatory)][byte[]]$Bytes)
+    if ($Bytes.Length -eq 0 -or $Bytes.Length -gt 131072) { Throw-LacRejected 'MALFORMED_LEGACY_LEASE' }
+    try { $text = [System.Text.UTF8Encoding]::new($false, $true).GetString($Bytes) }
+    catch { Throw-LacRejected 'MALFORMED_LEGACY_LEASE' }
+    try { $document = [System.Text.Json.JsonDocument]::Parse($text) }
+    catch { Throw-LacRejected 'MALFORMED_LEGACY_LEASE' }
+    try {
+        if ($document.RootElement.ValueKind -ne [System.Text.Json.JsonValueKind]::Object) { Throw-LacRejected 'MALFORMED_LEGACY_LEASE' }
+        $names = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($property in $document.RootElement.EnumerateObject()) {
+            if (-not $seen.Add($property.Name) -or -not $names.Add($property.Name)) { Throw-LacRejected 'MALFORMED_LEGACY_LEASE' }
+        }
+        $nullBudget = $names.Count -eq $script:LacLegacyNullBudgetLeaseFields.Count
+        foreach ($name in $script:LacLegacyNullBudgetLeaseFields.Keys) { $nullBudget = $nullBudget -and $names.Contains([string]$name) }
+        $protected059 = $names.Count -eq $script:LacLegacyProtected059LeaseFields.Count
+        foreach ($name in $script:LacLegacyProtected059LeaseFields.Keys) { $protected059 = $protected059 -and $names.Contains([string]$name) }
+        if ($nullBudget -eq $protected059) { Throw-LacRejected 'MALFORMED_LEGACY_LEASE' }
+        if ($nullBudget) { return $script:LacLegacyNullBudgetShapeId }
+        return $script:LacLegacyProtected059ShapeId
+    }
+    finally { $document.Dispose() }
+}
+
 function Read-LacLegacyLease {
     param([Parameter(Mandatory)][byte[]]$Bytes)
-    $checked = Get-LacStrictJsonRoot -Bytes $Bytes -Expected $script:LacLegacyLeaseFields -FailureCode 'MALFORMED_LEGACY_LEASE'
+    $shapeId = Get-LacLegacyLeaseShape -Bytes $Bytes
+    $fields = if ($shapeId -ceq $script:LacLegacyProtected059ShapeId) { $script:LacLegacyProtected059LeaseFields } else { $script:LacLegacyNullBudgetLeaseFields }
+    $checked = Get-LacStrictJsonRoot -Bytes $Bytes -Expected $fields -FailureCode 'MALFORMED_LEGACY_LEASE'
     try {
         $p=$checked.Properties
         $lease=[pscustomobject]@{
+            legacy_lease_shape_id=$shapeId
             schema=$p.schema.GetString();goal=$p.goal.GetString();holder=$p.holder.GetString();holder_session=$p.holder_session.GetString()
             state=$p.state.GetString();acquired_utc=$p.acquired_utc.GetString();created_utc=$p.created_utc.GetString();hard_stop_utc=$p.hard_stop_utc.GetString()
-            single_intentional_writer=$p.single_intentional_writer.GetBoolean();scope=Get-LacStringArray -Element $p.scope
-            goal_ref=$p.goal_ref.GetString();budget_state_ref=$null
+            single_intentional_writer=$p.single_intentional_writer.GetBoolean();scope=@(Get-LacStringArray -Element $p.scope)
+            goal_ref=$p.goal_ref.GetString()
+            legacy_budget_reference_status=$(if($shapeId -ceq $script:LacLegacyProtected059ShapeId){'FIELD_ABSENT'}else{'ABSENT_NULL'})
+            run_id=$(if($shapeId -ceq $script:LacLegacyProtected059ShapeId){$p.run_id.GetString()}else{$null})
+            profile=$(if($shapeId -ceq $script:LacLegacyProtected059ShapeId){$p.profile.GetString()}else{$null})
+            authority_class=$(if($shapeId -ceq $script:LacLegacyProtected059ShapeId){$p.authority_class.GetString()}else{$null})
+            production_authority=$(if($shapeId -ceq $script:LacLegacyProtected059ShapeId){$p.production_authority.GetBoolean()}else{$null})
+            transaction_id=$(if($shapeId -ceq $script:LacLegacyProtected059ShapeId){$p.transaction_id.GetString()}else{$null})
+            authorization_grant_sha256=$(if($shapeId -ceq $script:LacLegacyProtected059ShapeId){$p.authorization_grant_sha256.GetString()}else{$null})
+            write_surfaces_ref=$(if($shapeId -ceq $script:LacLegacyProtected059ShapeId){$p.write_surfaces_ref.GetString()}else{$null})
         }
     }
     finally { $checked.Document.Dispose() }
+    if($shapeId -ceq $script:LacLegacyNullBudgetShapeId){$lease|Add-Member -NotePropertyName budget_state_ref -NotePropertyValue $null}
     if ($lease.schema -cne 'jpc.taskroot-writer-lease.v1' -or $lease.state -cne 'active' -or -not $lease.single_intentional_writer) { Throw-LacRejected 'MALFORMED_LEGACY_LEASE' }
     foreach($pair in @(@{v=$lease.goal;n='goal'},@{v=$lease.holder_session;n='holder_session'})){Assert-LacSafeIdentifier -Value $pair.v -Field $pair.n}
     Assert-LacBoundedString -Value $lease.holder -Field 'holder'
     Assert-LacAbsoluteLegacyLiteral -Value $lease.goal_ref
+    if($shapeId -ceq $script:LacLegacyProtected059ShapeId){
+        Assert-LacSafeIdentifier -Value $lease.run_id -Field 'run_id'
+        Assert-LacSha256 -Value $lease.authorization_grant_sha256 -Field 'authorization_grant_sha256'
+        Assert-LacAbsoluteHistoricalLiteral -Value $lease.write_surfaces_ref -Field 'write_surfaces_ref'
+        if($lease.goal -cne $script:LacProtected059Goal -or $lease.holder_session -cne $script:LacProtected059HolderSession -or
+            $lease.profile -cne 'PROTECTED_TRANSACTION_V2' -or $lease.authority_class -cne 'A5' -or -not $lease.production_authority -or
+            $lease.transaction_id -cne $script:LacProtected059TransactionId -or $lease.goal_ref -cne $script:LacProtected059GoalRef -or
+            $lease.write_surfaces_ref -cne $script:LacProtected059WriteSurfacesRef){Throw-LacRejected 'PROTECTED_059_LEASE_BINDING'}
+    }
     if ($lease.scope.Count -eq 0 -or $lease.scope.Count -gt 32 -or @($lease.scope | Where-Object { [string]::IsNullOrWhiteSpace($_) -or $_.Length -gt 191 -or $_ -match '[\x00-\x1f]' }).Count -ne 0) { Throw-LacRejected 'MALFORMED_SCOPE' }
     $created=ConvertTo-LacUtc -Value $lease.created_utc -Field 'created_utc'
     $acquired=ConvertTo-LacUtc -Value $lease.acquired_utc -Field 'acquired_utc'
@@ -254,19 +327,38 @@ function Get-LacPreparationPlan {
     if($created -gt $NowUtc.ToUniversalTime()){Throw-LacRejected 'FUTURE_PREPARATION_MANIFEST'}
     if($preparation.schema -cne 'protected-a5-legacy-compatibility-preparation.v1' -or $preparation.compatibility_provenance_status -cne 'ACCEPTED_IMMUTABLE_PREDECESSOR_EVIDENCE'){Throw-LacRejected 'PROVENANCE_NOT_ACCEPTED'}
     if($preparation.expected_terminal_result -cne 'FAILED_BEFORE_CONFIG' -or $preparation.expected_terminal_failure_code -cne 'OWNER_ABORTED_PREPARED'){Throw-LacRejected 'UNSUPPORTED_TERMINAL_CLASS'}
-    if($preparation.expected_lease_sha256 -cne $leaseSha -or $preparation.expected_goal -cne $lease.goal -or $preparation.expected_holder_session -cne $lease.holder_session -or $preparation.legacy_goal_ref_literal -cne $lease.goal_ref){Throw-LacRejected 'PREPARATION_LEASE_BINDING'}
+    if($preparation.expected_lease_sha256 -cne $leaseSha -or $preparation.legacy_lease_shape_id -cne $lease.legacy_lease_shape_id -or
+        $preparation.expected_goal -cne $lease.goal -or $preparation.expected_holder_session -cne $lease.holder_session -or
+        $preparation.legacy_goal_ref_literal -cne $lease.goal_ref -or
+        ($lease.legacy_lease_shape_id -ceq $script:LacLegacyProtected059ShapeId -and $preparation.transaction_id -cne $lease.transaction_id)){Throw-LacRejected 'PREPARATION_LEASE_BINDING'}
 
     if(-not [System.IO.Path]::IsPathRooted($preparation.governance_provenance_path)){Throw-LacRejected 'MALFORMED_GOVERNANCE_PROVENANCE_PATH'}
-    $provenanceRecord=Read-LacFlatRecord -Path $preparation.governance_provenance_path -Fields $script:LacProvenanceFields -FailureCode 'MALFORMED_GOVERNANCE_PROVENANCE'
+    $provenanceFields=if($lease.legacy_lease_shape_id -ceq $script:LacLegacyProtected059ShapeId){$script:LacProtected059ProvenanceFields}else{$script:LacNullBudgetProvenanceFields}
+    $provenanceRecord=Read-LacFlatRecord -Path $preparation.governance_provenance_path -Fields $provenanceFields -FailureCode 'MALFORMED_GOVERNANCE_PROVENANCE'
     if($provenanceRecord.sha256 -cne $preparation.expected_governance_provenance_sha256){Throw-LacRejected 'GOVERNANCE_PROVENANCE_SHA256'}
     $provenance=$provenanceRecord.value
     foreach($value in @($provenance.provenance_id,$provenance.goal,$provenance.run_id,$provenance.transaction_id)){Assert-LacSafeIdentifier -Value $value -Field 'provenance_identifier'}
     foreach($name in @('expected_lease_sha256','source_goal_record_sha256','source_scope_record_sha256','source_budget_record_sha256')){Assert-LacSha256 -Value ([string]$provenance.$name) -Field $name}
     Assert-LacAbsoluteLegacyLiteral -Value $provenance.legacy_goal_ref_literal
     if((ConvertTo-LacUtc -Value $provenance.recorded_utc -Field 'provenance_recorded_utc') -gt $NowUtc.ToUniversalTime()){Throw-LacRejected 'FUTURE_GOVERNANCE_PROVENANCE'}
-    $provenanceAccepted = $provenance.schema -ceq 'protected-a5-legacy-governance-provenance.v1' -and $provenance.status -ceq 'PASS' -and $provenance.metadata_classification -ceq 'DERIVED_COMPATIBILITY_METADATA' -and $provenance.admitted_profile -ceq 'PROTECTED_TRANSACTION_V2' -and $provenance.admitted_authority_class -ceq 'A5' -and $provenance.admitted_elasticity_grade -ceq 'B4' -and $provenance.admitted_current_layer -in @('L4','L5') -and $provenance.admitted_max_layer -ceq 'L5' -and $provenance.protected_boundaries_present -and $provenance.owner_only_boundaries_present -and $provenance.legacy_budget_reference_status -ceq 'ABSENT_NULL'
+    $provenanceAccepted = $provenance.schema -ceq 'protected-a5-legacy-governance-provenance.v1' -and $provenance.status -ceq 'PASS' -and
+        $provenance.metadata_classification -ceq 'DERIVED_COMPATIBILITY_METADATA' -and $provenance.legacy_lease_shape_id -ceq $lease.legacy_lease_shape_id -and
+        $provenance.admitted_profile -ceq 'PROTECTED_TRANSACTION_V2' -and $provenance.admitted_authority_class -ceq 'A5' -and
+        $provenance.admitted_elasticity_grade -ceq 'B4' -and $provenance.admitted_current_layer -in @('L4','L5') -and
+        $provenance.admitted_max_layer -ceq 'L5' -and $provenance.protected_boundaries_present -and $provenance.owner_only_boundaries_present -and
+        $provenance.legacy_budget_reference_status -ceq $lease.legacy_budget_reference_status
+    if($lease.legacy_lease_shape_id -ceq $script:LacLegacyProtected059ShapeId){
+        Assert-LacSha256 -Value $provenance.authorization_grant_sha256 -Field 'authorization_grant_sha256'
+        Assert-LacAbsoluteHistoricalLiteral -Value $provenance.write_surfaces_ref_literal -Field 'write_surfaces_ref_literal'
+        $provenanceAccepted = $provenanceAccepted -and $provenance.run_id -ceq $lease.run_id -and
+            $provenance.admitted_profile -ceq $lease.profile -and $provenance.admitted_authority_class -ceq $lease.authority_class -and
+            $provenance.production_authority -eq $lease.production_authority -and $provenance.transaction_id -ceq $lease.transaction_id -and
+            $provenance.authorization_grant_sha256 -ceq $lease.authorization_grant_sha256 -and
+            $provenance.write_surfaces_ref_literal -ceq $lease.write_surfaces_ref
+    }
     if(-not $provenanceAccepted){Throw-LacRejected 'PROVENANCE_NOT_ACCEPTED'}
-    if($provenance.expected_lease_sha256 -cne $leaseSha -or $provenance.goal -cne $lease.goal -or $provenance.legacy_goal_ref_literal -cne $lease.goal_ref -or $provenance.transaction_id -cne $preparation.transaction_id){Throw-LacRejected 'PROVENANCE_BINDING'}
+    if($provenance.expected_lease_sha256 -cne $leaseSha -or $provenance.goal -cne $lease.goal -or
+        $provenance.legacy_goal_ref_literal -cne $lease.goal_ref -or $provenance.transaction_id -cne $preparation.transaction_id){Throw-LacRejected 'PROVENANCE_BINDING'}
 
     $goalSource=Get-LacVerifiedSource -Path $preparation.source_goal_record_path -ExpectedSha256 $preparation.expected_source_goal_record_sha256 -Field 'source_goal_record'
     $scopeSource=Get-LacVerifiedSource -Path $preparation.source_scope_record_path -ExpectedSha256 $preparation.expected_source_scope_record_sha256 -Field 'source_scope_record'
@@ -276,21 +368,28 @@ function Get-LacPreparationPlan {
     if($provenance.source_goal_record_sha256 -cne $goalSource.sha256 -or $provenance.source_scope_record_sha256 -cne $scopeSource.sha256 -or $provenance.source_budget_record_sha256 -cne $budgetSource.sha256){Throw-LacRejected 'PROVENANCE_SOURCE_BINDING'}
 
     $relative=Get-LacRelativePaths -Preparation $preparation
+    $boundRunId=if($lease.legacy_lease_shape_id -ceq $script:LacLegacyProtected059ShapeId){$lease.run_id}else{$provenance.run_id}
+    $boundTransactionId=if($lease.legacy_lease_shape_id -ceq $script:LacLegacyProtected059ShapeId){$lease.transaction_id}else{$preparation.transaction_id}
     $goalCompanion=[ordered]@{
         schema='protected-a5-legacy-goal-companion.v1';compatibility_id=$preparation.compatibility_id;created_utc=$preparation.created_utc
-        metadata_classification='DERIVED_COMPATIBILITY_METADATA';legacy_goal=$lease.goal;run_id=$provenance.run_id;legacy_goal_ref_literal=$lease.goal_ref
-        expected_lease_sha256=$leaseSha;transaction_id=$preparation.transaction_id;admitted_profile=$provenance.admitted_profile
+        metadata_classification='DERIVED_COMPATIBILITY_METADATA';legacy_lease_shape_id=$lease.legacy_lease_shape_id;legacy_goal=$lease.goal;run_id=$boundRunId;legacy_goal_ref_literal=$lease.goal_ref
+        expected_lease_sha256=$leaseSha;transaction_id=$boundTransactionId;admitted_profile=$provenance.admitted_profile
         admitted_authority_class=$provenance.admitted_authority_class;admitted_elasticity_grade=$provenance.admitted_elasticity_grade
         admitted_current_layer=$provenance.admitted_current_layer;admitted_max_layer=$provenance.admitted_max_layer
         protected_boundaries_present=$true;owner_only_boundaries_present=$true;governance_provenance_reference=$preparation.governance_provenance_path
         governance_provenance_sha256=$provenanceRecord.sha256;source_goal_record_sha256=$goalSource.sha256;source_scope_record_sha256=$scopeSource.sha256
     }
+    if($lease.legacy_lease_shape_id -ceq $script:LacLegacyProtected059ShapeId){
+        $goalCompanion['production_authority']=$lease.production_authority
+        $goalCompanion['authorization_grant_sha256']=$lease.authorization_grant_sha256
+        $goalCompanion['write_surfaces_ref_literal']=$lease.write_surfaces_ref
+    }
     $goalBytes=ConvertTo-LacJsonBytes -Value $goalCompanion
     $goalSha=Get-LacBytesSha256 -Bytes $goalBytes
     $budgetCompanion=[ordered]@{
         schema='protected-a5-legacy-budget-companion.v1';compatibility_id=$preparation.compatibility_id;created_utc=$preparation.created_utc
-        metadata_classification='DERIVED_COMPATIBILITY_METADATA';expected_lease_sha256=$leaseSha;goal=$lease.goal;run_id=$provenance.run_id
-        legacy_budget_reference_status='ABSENT_NULL';authorized_operation='PROTECTED_A5_GOVERNANCE_FINALIZE';apply_authority=$false
+        metadata_classification='DERIVED_COMPATIBILITY_METADATA';legacy_lease_shape_id=$lease.legacy_lease_shape_id;expected_lease_sha256=$leaseSha;goal=$lease.goal;run_id=$boundRunId
+        legacy_budget_reference_status=$lease.legacy_budget_reference_status;authorized_operation='PROTECTED_A5_GOVERNANCE_FINALIZE';apply_authority=$false
         rollback_authority=$false;promotion_authority=$false;finalize_window='ONE';governance_provenance_reference=$preparation.governance_provenance_path
         governance_provenance_sha256=$provenanceRecord.sha256;source_budget_record_sha256=$budgetSource.sha256
     }
@@ -298,9 +397,9 @@ function Get-LacPreparationPlan {
     $budgetSha=Get-LacBytesSha256 -Bytes $budgetBytes
     $compatibility=[ordered]@{
         schema='protected-a5-legacy-lease-compatibility.v1';compatibility_id=$preparation.compatibility_id;created_utc=$preparation.created_utc
-        metadata_classification='DERIVED_COMPATIBILITY_METADATA';expected_lease_sha256=$leaseSha;expected_lease_schema=$lease.schema
-        expected_goal=$lease.goal;expected_run_id=$provenance.run_id;expected_holder_session=$lease.holder_session;legacy_goal_ref_literal=$lease.goal_ref
-        legacy_budget_state_ref_status='ABSENT_NULL';transaction_id=$preparation.transaction_id;expected_terminal_result=$preparation.expected_terminal_result
+        metadata_classification='DERIVED_COMPATIBILITY_METADATA';legacy_lease_shape_id=$lease.legacy_lease_shape_id;expected_lease_sha256=$leaseSha;expected_lease_schema=$lease.schema
+        expected_goal=$lease.goal;expected_run_id=$boundRunId;expected_holder_session=$lease.holder_session;legacy_goal_ref_literal=$lease.goal_ref
+        legacy_budget_state_ref_status=$lease.legacy_budget_reference_status;transaction_id=$boundTransactionId;expected_terminal_result=$preparation.expected_terminal_result
         expected_terminal_failure_code=$preparation.expected_terminal_failure_code;companion_goal_path=$relative.companion_goal;companion_goal_sha256=$goalSha
         companion_budget_path=$relative.companion_budget;companion_budget_sha256=$budgetSha;canonical_reconciliation_receipt_path=$relative.reconciliation
         canonical_reconciliation_receipt_sha256=$reconciliationSource.sha256;canonical_independent_verifier_receipt_path=$relative.verifier
@@ -363,7 +462,7 @@ function Invoke-ProtectedA5LegacyCompatibilityPreparationInternal {
         $initial=Get-LacPreparationPlan -TaskRoot $TaskRoot -LeasePath $LeasePath -ExpectedLeaseSha256 $ExpectedLeaseSha256 -PreparationManifestPath $PreparationManifestPath -NowUtc $NowUtc
         $outputs=Get-LacOutputPaths -Plan $initial
         if($Mode -ceq 'Observe'){
-            return [pscustomobject]@{status='LEGACY_COMPATIBILITY_ADMISSION_ACCEPTED';compatibility_id=$initial.compatibility.compatibility_id;compatibility_path=$outputs.compatibility;compatibility_sha256=$initial.compatibility_sha256;companion_goal_sha256=$initial.goal_sha256;companion_budget_sha256=$initial.budget_sha256;active_lease=$true;active_lease_mutated=$false;production_transaction_mutated=$false}
+            return [pscustomobject]@{status='LEGACY_COMPATIBILITY_ADMISSION_ACCEPTED';legacy_lease_shape_id=$initial.lease.legacy_lease_shape_id;legacy_budget_reference_status=$initial.lease.legacy_budget_reference_status;compatibility_id=$initial.compatibility.compatibility_id;compatibility_path=$outputs.compatibility;compatibility_sha256=$initial.compatibility_sha256;companion_goal_sha256=$initial.goal_sha256;companion_budget_sha256=$initial.budget_sha256;active_lease=$true;active_lease_mutated=$false;production_transaction_mutated=$false}
         }
         if($null -ne $BeforeLockHook){& $BeforeLockHook}
         $base=Join-Path $initial.task_root '.coord-local/protected-a5-legacy'
@@ -384,7 +483,7 @@ function Invoke-ProtectedA5LegacyCompatibilityPreparationInternal {
             Write-LacImmutableBytes -Path $outputs.companion_budget -Bytes $recheck.budget_bytes -ExpectedSha256 $recheck.budget_sha256
             Write-LacImmutableBytes -Path $outputs.compatibility -Bytes $recheck.compatibility_bytes -ExpectedSha256 $recheck.compatibility_sha256
             if((Get-LacBytesSha256 -Bytes ([System.IO.File]::ReadAllBytes($recheck.lease_path))) -cne $ExpectedLeaseSha256){Throw-LacRejected 'LEASE_CONTENT_DRIFT'}
-            return [pscustomobject]@{status='LEGACY_COMPATIBILITY_PREPARED';compatibility_id=$recheck.compatibility.compatibility_id;compatibility_path=$outputs.compatibility;compatibility_sha256=$recheck.compatibility_sha256;companion_goal_path=$outputs.companion_goal;companion_goal_sha256=$recheck.goal_sha256;companion_budget_path=$outputs.companion_budget;companion_budget_sha256=$recheck.budget_sha256;canonical_reconciliation_receipt_path=$outputs.reconciliation;canonical_reconciliation_receipt_sha256=$recheck.reconciliation_source.sha256;canonical_independent_verifier_receipt_path=$outputs.verifier;canonical_independent_verifier_receipt_sha256=$recheck.verifier_source.sha256;active_lease=$true;active_lease_mutated=$false;production_transaction_mutated=$false}
+            return [pscustomobject]@{status='LEGACY_COMPATIBILITY_PREPARED';legacy_lease_shape_id=$recheck.lease.legacy_lease_shape_id;legacy_budget_reference_status=$recheck.lease.legacy_budget_reference_status;compatibility_id=$recheck.compatibility.compatibility_id;compatibility_path=$outputs.compatibility;compatibility_sha256=$recheck.compatibility_sha256;companion_goal_path=$outputs.companion_goal;companion_goal_sha256=$recheck.goal_sha256;companion_budget_path=$outputs.companion_budget;companion_budget_sha256=$recheck.budget_sha256;canonical_reconciliation_receipt_path=$outputs.reconciliation;canonical_reconciliation_receipt_sha256=$recheck.reconciliation_source.sha256;canonical_independent_verifier_receipt_path=$outputs.verifier;canonical_independent_verifier_receipt_sha256=$recheck.verifier_source.sha256;active_lease=$true;active_lease_mutated=$false;production_transaction_mutated=$false}
         }
         finally{$lock.Dispose()}
     }

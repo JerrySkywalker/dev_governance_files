@@ -15,6 +15,11 @@ $finalizerModule=Get-Module ProtectedA5GovernanceFinalizer
 $passed=0
 function Assert-True { param([bool]$Condition,[string]$Message);if(-not $Condition){throw $Message};$script:passed++ }
 function Assert-Status { param([object]$Result,[string]$Expected,[string]$Message);Assert-True ([string]$Result.status -ceq $Expected) ($Message+' expected='+$Expected+' actual='+[string]$Result.status) }
+function Assert-JsonSchema {
+    param([Parameter(Mandatory)][string]$Path,[Parameter(Mandatory)][string]$SchemaName,[Parameter(Mandatory)][string]$Message)
+    $schemaPath=Join-Path $PSScriptRoot ('../../tools/repo-health/schemas/'+$SchemaName)
+    Assert-True (Test-Json -LiteralPath $Path -SchemaFile $schemaPath -ErrorAction Stop) $Message
+}
 function Get-Sha256 { param([Parameter(Mandatory)][string]$Path);$sha=[Security.Cryptography.SHA256]::Create();try{return -join($sha.ComputeHash([IO.File]::ReadAllBytes($Path))|ForEach-Object{$_.ToString('x2')})}finally{$sha.Dispose()} }
 function Write-Utf8NoBom { param([string]$Path,[string]$Text);[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false)) }
 function Write-Json { param([string]$Path,[object]$Value);Write-Utf8NoBom -Path $Path -Text ($Value|ConvertTo-Json -Depth 20) }
@@ -65,6 +70,10 @@ function Remove-SyntheticRoot {
 }
 
 function New-LegacyFixture {
+    param([ValidateSet('Protected059','NullBudget')][string]$Variant='Protected059')
+    $shapeId=if($Variant -ceq 'Protected059'){'LEGACY_PROTECTED_059_V1'}else{'LEGACY_NULL_BUDGET_V1'}
+    $budgetReferenceStatus=if($Variant -ceq 'Protected059'){'FIELD_ABSENT'}else{'ABSENT_NULL'}
+    $leaseFixture=if($Variant -ceq 'Protected059'){'059-legacy-shape.json'}else{'null-budget-legacy-shape.json'}
     $root=Join-Path ([IO.Path]::GetTempPath()) ('protected-a5-legacy-'+[guid]::NewGuid().ToString('N'))
     $leaseDirectory=Join-Path $root '.coord-local/leases'
     $authorizationDirectory=Join-Path $root '.coord-local/authorizations'
@@ -72,15 +81,15 @@ function New-LegacyFixture {
     $externalDirectory=Join-Path $root 'external-predecessor-evidence'
     foreach($directory in @($leaseDirectory,$authorizationDirectory,$evidenceDirectory,$externalDirectory)){New-Item -ItemType Directory -Path $directory -Force|Out-Null}
     $leasePath=Join-Path $leaseDirectory 'taskroot-writer.active.json'
-    Copy-Item -LiteralPath (Join-Path $fixtureRoot '059-legacy-shape.json') -Destination $leasePath
+    Copy-Item -LiteralPath (Join-Path $fixtureRoot $leaseFixture) -Destination $leasePath
     $goalSource=Join-Path $externalDirectory 'goal-record.json'
     $scopeSource=Join-Path $externalDirectory 'scope-record.json'
     $budgetSource=Join-Path $externalDirectory 'budget-record.json'
     $reconciliationSource=Join-Path $externalDirectory 'f0-reconciliation.json'
     $verifierSource=Join-Path $externalDirectory 'independent-verifier.json'
-    Write-Json -Path $goalSource -Value ([ordered]@{schema='synthetic.059.goal-record.v1';goal='JPC-V22-RC32-PROTECTED-APPLY-059';run_id='JPC-V22-RC32-PROTECTED-APPLY-059-20260830T104302Z';profile='PROTECTED_TRANSACTION_V2';authority='A5'})
+    Write-Json -Path $goalSource -Value ([ordered]@{schema='synthetic.059.goal-record.v1';goal='JPC-V22-RC32-PROTECTED-APPLY-059';run_id='JPC-V22-RC32-PROTECTED-APPLY-059-20260830T104302Z';profile='PROTECTED_TRANSACTION_V2';authority='A5';production_authority=$true})
     Write-Json -Path $scopeSource -Value ([ordered]@{schema='synthetic.059.scope-record.v1';elasticity='B4';current_layer='L4';max_layer='L5';protected_boundaries='PRESENT';owner_only_boundaries='PRESENT'})
-    Write-Json -Path $budgetSource -Value ([ordered]@{schema='synthetic.059.budget-absence.v1';legacy_budget_reference_status='ABSENT_NULL';finalize_only=$true})
+    Write-Json -Path $budgetSource -Value ([ordered]@{schema='synthetic.059.budget-absence.v1';metadata_classification='DERIVED_COMPATIBILITY_METADATA';historical_budget_reference_status=$budgetReferenceStatus;finalize_only=$true;apply_authority=$false;rollback_authority=$false;promotion_authority=$false})
     Write-Json -Path $reconciliationSource -Value ([ordered]@{schema='synthetic.073.reconciliation.v1';status='PASS';transaction_id='a5-rc32-058-5dbf2907de4b41f688125c691c212ff9';transaction_terminal=$true})
     Write-Json -Path $verifierSource -Value ([ordered]@{schema='synthetic.073.verifier.v1';final_supervisor='PASS';transaction_id='a5-rc32-058-5dbf2907de4b41f688125c691c212ff9'})
     $leaseSha=Get-Sha256 -Path $leasePath
@@ -93,19 +102,24 @@ function New-LegacyFixture {
     $provenancePath=Join-Path $externalDirectory 'governance-provenance.json'
     $provenance=[ordered]@{
         schema='protected-a5-legacy-governance-provenance.v1';provenance_id='synthetic-059-legacy-provenance';recorded_utc=$created;status='PASS'
-        metadata_classification='DERIVED_COMPATIBILITY_METADATA';expected_lease_sha256=$leaseSha;goal='JPC-V22-RC32-PROTECTED-APPLY-059'
+        metadata_classification='DERIVED_COMPATIBILITY_METADATA';expected_lease_sha256=$leaseSha;legacy_lease_shape_id=$shapeId;goal='JPC-V22-RC32-PROTECTED-APPLY-059'
         run_id='JPC-V22-RC32-PROTECTED-APPLY-059-20260830T104302Z';legacy_goal_ref_literal='C:/build/jpc-059/coord/GOAL.md'
-        legacy_budget_reference_status='ABSENT_NULL';transaction_id='a5-rc32-058-5dbf2907de4b41f688125c691c212ff9'
+        legacy_budget_reference_status=$budgetReferenceStatus;transaction_id='a5-rc32-058-5dbf2907de4b41f688125c691c212ff9'
         admitted_profile='PROTECTED_TRANSACTION_V2';admitted_authority_class='A5';admitted_elasticity_grade='B4';admitted_current_layer='L4'
         admitted_max_layer='L5';protected_boundaries_present=$true;owner_only_boundaries_present=$true
         source_goal_record_sha256=$goalSha;source_scope_record_sha256=$scopeSha;source_budget_record_sha256=$budgetSha
+    }
+    if($Variant -ceq 'Protected059'){
+        $provenance['production_authority']=$true
+        $provenance['authorization_grant_sha256']='0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+        $provenance['write_surfaces_ref_literal']='C:/build/jpc-059/coord/WRITE-SURFACES.json'
     }
     Write-Json -Path $provenancePath -Value $provenance
     $provenanceSha=Get-Sha256 -Path $provenancePath
     $preparationPath=Join-Path $externalDirectory 'compatibility-preparation.json'
     $preparation=[ordered]@{
         schema='protected-a5-legacy-compatibility-preparation.v1';compatibility_id='jpc-059-legacy-finalization';created_utc=$created
-        expected_lease_sha256=$leaseSha;expected_goal='JPC-V22-RC32-PROTECTED-APPLY-059';expected_holder_session='jpc-v22-rc32-protected-apply-059'
+        expected_lease_sha256=$leaseSha;legacy_lease_shape_id=$shapeId;expected_goal='JPC-V22-RC32-PROTECTED-APPLY-059';expected_holder_session='jpc-v22-rc32-protected-apply-059'
         legacy_goal_ref_literal='C:/build/jpc-059/coord/GOAL.md';transaction_id='a5-rc32-058-5dbf2907de4b41f688125c691c212ff9'
         expected_terminal_result='FAILED_BEFORE_CONFIG';expected_terminal_failure_code='OWNER_ABORTED_PREPARED'
         governance_provenance_path=$provenancePath;expected_governance_provenance_sha256=$provenanceSha
@@ -121,7 +135,7 @@ function New-LegacyFixture {
         Root=$root;LeasePath=$leasePath;LeaseSha=$leaseSha;AuthorizationPath=(Join-Path $authorizationDirectory 'owner-authorization-v2.json')
         EvidencePath=(Join-Path $evidenceDirectory 'finalization-evidence.json');PreparationPath=$preparationPath;ProvenancePath=$provenancePath
         GoalSource=$goalSource;ScopeSource=$scopeSource;BudgetSource=$budgetSource;ReconciliationSource=$reconciliationSource;VerifierSource=$verifierSource
-        TransactionId='a5-rc32-058-5dbf2907de4b41f688125c691c212ff9'
+        TransactionId='a5-rc32-058-5dbf2907de4b41f688125c691c212ff9';ShapeId=$shapeId;BudgetReferenceStatus=$budgetReferenceStatus
     }
 }
 
@@ -189,9 +203,37 @@ function Invoke-LegacyFinalizer {
 }
 
 $model=Read-Json -Path (Join-Path $fixtureRoot '059-legacy-model.json')
+$variantManifest=Read-Json -Path (Join-Path $fixtureRoot 'legacy-variant-manifest.json')
+$real059Fixture=Read-Json -Path (Join-Path $fixtureRoot '059-legacy-shape.json')
+$real059Properties=@($real059Fixture.PSObject.Properties.Name)
+$parsed059=& $compatibilityModule {param($bytes)Read-LacLegacyLease -Bytes $bytes} ([IO.File]::ReadAllBytes((Join-Path $fixtureRoot '059-legacy-shape.json')))
+$parsedNullBudget=& $compatibilityModule {param($bytes)Read-LacLegacyLease -Bytes $bytes} ([IO.File]::ReadAllBytes((Join-Path $fixtureRoot 'null-budget-legacy-shape.json')))
 Assert-True ($model.real_059_expected_lease_sha256 -ceq 'c425a8b450db1520ad80358add0b847d3f80027c853fb2a4c8eb9e8409a313af') '059 historical lease digest identifier is exact'
-Assert-True ($model.legacy_goal_ref_literal -ceq 'C:/build/jpc-059/coord/GOAL.md' -and $model.legacy_budget_state_ref_status -ceq 'ABSENT_NULL') '059 legacy metadata shape is exact'
+Assert-True ($model.legacy_lease_shape_id -ceq 'LEGACY_PROTECTED_059_V1' -and $model.legacy_goal_ref_literal -ceq 'C:/build/jpc-059/coord/GOAL.md' -and $model.legacy_budget_state_ref_status -ceq 'FIELD_ABSENT') '059 legacy metadata shape is exact'
+Assert-True ($real059Properties.Count -eq 18 -and $model.real_059_schema_field_count -eq 18) 'REAL_059_SCHEMA_FIELD_COUNT=18'
+Assert-True ($null -eq $real059Fixture.PSObject.Properties['budget_state_ref'] -and -not $model.real_059_budget_field_present) 'REAL_059_BUDGET_FIELD_PRESENT=false'
+Assert-True ($null -eq $parsed059.PSObject.Properties['budget_state_ref'] -and $parsed059.legacy_budget_reference_status -ceq 'FIELD_ABSENT') 'protected 059 normalized model preserves field absence'
+Assert-True ($null -ne $parsedNullBudget.PSObject.Properties['budget_state_ref'] -and $null -eq $parsedNullBudget.budget_state_ref -and $parsedNullBudget.legacy_budget_reference_status -ceq 'ABSENT_NULL') 'null-budget normalized model preserves explicit JSON null variant'
+Assert-True ($variantManifest.variants.Count -eq 2 -and $variantManifest.variants_mutually_exclusive -and -not $variantManifest.additional_properties_allowed) 'legacy variant manifest is strict and mutually exclusive'
+Assert-True (@(Compare-Object @($variantManifest.variants[0].exact_properties) @($variantManifest.variants[1].exact_properties) -SyncWindow 0).Count -gt 0) 'legacy variants have distinct exact property sets'
 Assert-True ($model.sanitized_fixture -and -not $model.real_lease_bytes_included -and -not $model.production_content_included) '059 legacy fixture is sanitized'
+
+$fixture=New-LegacyFixture -Variant NullBudget
+try{
+    $observe=Invoke-CompatibilityObserve -Fixture $fixture
+    Assert-Status $observe 'LEGACY_COMPATIBILITY_ADMISSION_ACCEPTED' 'explicit-null-budget legacy variant Observe passes'
+    Assert-True ($observe.legacy_lease_shape_id -ceq 'LEGACY_NULL_BUDGET_V1' -and $observe.legacy_budget_reference_status -ceq 'ABSENT_NULL') 'null-budget variant remains exact'
+    $prepared=Invoke-CompatibilityPrepare -Fixture $fixture
+    Assert-Status $prepared 'LEGACY_COMPATIBILITY_PREPARED' 'explicit-null-budget legacy variant Prepare passes'
+    Assert-JsonSchema -Path $fixture.PreparationPath -SchemaName 'protected-a5-legacy-compatibility-preparation.schema.json' -Message 'null-budget preparation schema validates'
+    Assert-JsonSchema -Path $fixture.ProvenancePath -SchemaName 'protected-a5-legacy-governance-provenance.schema.json' -Message 'null-budget provenance schema validates'
+    Assert-JsonSchema -Path $prepared.companion_goal_path -SchemaName 'protected-a5-legacy-goal-companion.schema.json' -Message 'null-budget Goal companion schema validates'
+    Assert-JsonSchema -Path $prepared.companion_budget_path -SchemaName 'protected-a5-legacy-budget-companion.schema.json' -Message 'null-budget budget companion schema validates'
+    Assert-JsonSchema -Path $prepared.compatibility_path -SchemaName 'protected-a5-legacy-lease-compatibility.schema.json' -Message 'null-budget compatibility packet schema validates'
+    Write-LegacyFinalizationPackets -Fixture $fixture -Prepared $prepared|Out-Null
+    Assert-Status (Invoke-LegacyFinalizer -Fixture $fixture -Prepared $prepared) 'PROTECTED_A5_GOVERNANCE_RELEASED' 'explicit-null-budget legacy variant finalization remains supported'
+}
+finally{Remove-SyntheticRoot -Fixture $fixture}
 
 $fixture=New-LegacyFixture
 try{
@@ -199,10 +241,16 @@ try{
     Assert-Status $direct 'FINALIZATION_REJECTED_MALFORMED_LEASE' 'legacy shape cannot enter modern v1 directly'
     $observe=Invoke-CompatibilityObserve -Fixture $fixture
     Assert-Status $observe 'LEGACY_COMPATIBILITY_ADMISSION_ACCEPTED' 'exact legacy shape Observe passes'
+    Assert-True ($observe.legacy_lease_shape_id -ceq 'LEGACY_PROTECTED_059_V1' -and $observe.legacy_budget_reference_status -ceq 'FIELD_ABSENT') 'exact protected 059 shape dispatches before semantics'
     Assert-True (-not (Test-Path -LiteralPath (Join-Path $fixture.Root '.coord-local/protected-a5-legacy'))) 'compatibility Observe performs no writes'
     $beforeLease=Get-Sha256 -Path $fixture.LeasePath
     $prepared=Invoke-CompatibilityPrepare -Fixture $fixture
     Assert-Status $prepared 'LEGACY_COMPATIBILITY_PREPARED' 'exact legacy preparation succeeds'
+    Assert-JsonSchema -Path $fixture.PreparationPath -SchemaName 'protected-a5-legacy-compatibility-preparation.schema.json' -Message 'protected 059 preparation schema validates'
+    Assert-JsonSchema -Path $fixture.ProvenancePath -SchemaName 'protected-a5-legacy-governance-provenance.schema.json' -Message 'protected 059 provenance schema validates'
+    Assert-JsonSchema -Path $prepared.companion_goal_path -SchemaName 'protected-a5-legacy-goal-companion.schema.json' -Message 'protected 059 Goal companion schema validates'
+    Assert-JsonSchema -Path $prepared.companion_budget_path -SchemaName 'protected-a5-legacy-budget-companion.schema.json' -Message 'protected 059 budget companion schema validates'
+    Assert-JsonSchema -Path $prepared.compatibility_path -SchemaName 'protected-a5-legacy-lease-compatibility.schema.json' -Message 'protected 059 compatibility packet schema validates'
     Assert-True ((Get-Sha256 -Path $fixture.LeasePath) -ceq $beforeLease -and (Test-Path -LiteralPath $fixture.LeasePath)) 'preparer preserves active legacy lease bytes'
     Assert-True ((Get-Sha256 -Path $prepared.canonical_reconciliation_receipt_path) -ceq (Get-Sha256 -Path $fixture.ReconciliationSource)) 'canonical reconciliation import is byte exact'
     Assert-True ((Get-Sha256 -Path $prepared.canonical_independent_verifier_receipt_path) -ceq (Get-Sha256 -Path $fixture.VerifierSource)) 'canonical verifier import is byte exact'
@@ -228,9 +276,10 @@ finally{Remove-SyntheticRoot -Fixture $fixture}
 
 $preparationCases=@(
     @{message='wrong compatibility lease SHA rejects';prep=@{expected_lease_sha256=('0'*64)};provenance=@{};expected='LEGACY_COMPATIBILITY_REJECTED_PREPARATION_LEASE_BINDING'},
+    @{message='059 shape cannot enter old null-budget variant';prep=@{legacy_lease_shape_id='LEGACY_NULL_BUDGET_V1'};provenance=@{};expected='LEGACY_COMPATIBILITY_REJECTED_PREPARATION_LEASE_BINDING'},
     @{message='wrong legacy Goal literal rejects';prep=@{legacy_goal_ref_literal='C:/different/GOAL.md'};provenance=@{};expected='LEGACY_COMPATIBILITY_REJECTED_PREPARATION_LEASE_BINDING'},
     @{message='wrong holder session rejects';prep=@{expected_holder_session='different-holder-session'};provenance=@{};expected='LEGACY_COMPATIBILITY_REJECTED_PREPARATION_LEASE_BINDING'},
-    @{message='wrong transaction binding rejects';prep=@{transaction_id='different-transaction'};provenance=@{};expected='LEGACY_COMPATIBILITY_REJECTED_PROVENANCE_BINDING'},
+    @{message='wrong transaction binding rejects';prep=@{transaction_id='different-transaction'};provenance=@{};expected='LEGACY_COMPATIBILITY_REJECTED_PREPARATION_LEASE_BINDING'},
     @{message='unsupported terminal class rejects';prep=@{expected_terminal_result='ROLLED_BACK_RC2'};provenance=@{};expected='LEGACY_COMPATIBILITY_REJECTED_UNSUPPORTED_TERMINAL_CLASS'}
 )
 foreach($case in $preparationCases){
@@ -239,6 +288,25 @@ foreach($case in $preparationCases){
         if($case.provenance.Count -gt 0){Update-Json -Path $fixture.ProvenancePath -Changes $case.provenance;Update-Json -Path $fixture.PreparationPath -Changes @{expected_governance_provenance_sha256=(Get-Sha256 -Path $fixture.ProvenancePath)}}
         Update-Json -Path $fixture.PreparationPath -Changes $case.prep
         Assert-Status (Invoke-CompatibilityObserve -Fixture $fixture) $case.expected $case.message
+    }
+    finally{Remove-SyntheticRoot -Fixture $fixture}
+}
+
+$protectedProvenanceContradictions=@(
+    @{message='provenance run identity cannot contradict lease';changes=@{run_id='different-run-id'}},
+    @{message='provenance profile cannot contradict lease';changes=@{admitted_profile='COMPRESSED_TRAIN_V1'}},
+    @{message='provenance authority cannot contradict lease';changes=@{admitted_authority_class='A4'}},
+    @{message='provenance production authority cannot contradict lease';changes=@{production_authority=$false}},
+    @{message='provenance transaction cannot contradict lease';changes=@{transaction_id='different-transaction'}},
+    @{message='provenance authorization grant cannot contradict lease';changes=@{authorization_grant_sha256=('1'*64)}},
+    @{message='provenance write surfaces cannot contradict lease';changes=@{write_surfaces_ref_literal='C:/build/jpc-059/coord/DIFFERENT-WRITE-SURFACES.json'}}
+)
+foreach($case in $protectedProvenanceContradictions){
+    $fixture=New-LegacyFixture
+    try{
+        Update-Json -Path $fixture.ProvenancePath -Changes $case.changes
+        Update-Json -Path $fixture.PreparationPath -Changes @{expected_governance_provenance_sha256=(Get-Sha256 -Path $fixture.ProvenancePath)}
+        Assert-Status (Invoke-CompatibilityObserve -Fixture $fixture) 'LEGACY_COMPATIBILITY_REJECTED_PROVENANCE_NOT_ACCEPTED' $case.message
     }
     finally{Remove-SyntheticRoot -Fixture $fixture}
 }
@@ -269,6 +337,14 @@ $fixture=New-LegacyFixture
 try{
     Assert-Status (Invoke-CompatibilityPrepare -Fixture $fixture) 'LEGACY_COMPATIBILITY_PREPARED' 'first compatibility prepare succeeds before collision check'
     Assert-Status (Invoke-CompatibilityPrepare -Fixture $fixture) 'LEGACY_COMPATIBILITY_REJECTED_DESTINATION_COLLISION' 'destination collision rejects without overwrite'
+}
+finally{Remove-SyntheticRoot -Fixture $fixture}
+
+$fixture=New-LegacyFixture
+try{
+    $hook=New-AppendTamperHook -Path $fixture.ProvenancePath
+    $result=& $compatibilityModule {param($root,$lease,$sha,$prep,$before)Invoke-ProtectedA5LegacyCompatibilityPreparationInternal -Mode Prepare -TaskRoot $root -LeasePath $lease -ExpectedLeaseSha256 $sha -PreparationManifestPath $prep -BeforeLockHook $before} $fixture.Root $fixture.LeasePath $fixture.LeaseSha $fixture.PreparationPath $hook
+    Assert-Status $result 'LEGACY_COMPATIBILITY_REJECTED_GOVERNANCE_PROVENANCE_SHA256' 'provenance TOCTOU rejects before any compatibility artifact is accepted'
 }
 finally{Remove-SyntheticRoot -Fixture $fixture}
 
@@ -362,9 +438,12 @@ foreach($case in $toctouCases){
 
 $compatibilityTamperCases=@(
     @{changes=@{expected_lease_sha256=('0'*64)};expected='FINALIZATION_REJECTED_LEGACY_COMPATIBILITY_LEASE_BINDING';message='compatibility packet wrong lease SHA rejects'},
+    @{changes=@{legacy_lease_shape_id='LEGACY_NULL_BUDGET_V1'};expected='FINALIZATION_REJECTED_LEGACY_LEASE_SHAPE_BINDING';message='compatibility packet wrong exact-shape ID rejects'},
+    @{changes=@{legacy_budget_state_ref_status='ABSENT_NULL'};expected='FINALIZATION_REJECTED_LEGACY_LEASE_SHAPE_BINDING';message='compatibility packet cannot replace FIELD_ABSENT with null semantics'},
+    @{changes=@{expected_run_id='different-run-id'};expected='FINALIZATION_REJECTED_LEGACY_COMPATIBILITY_LEASE_BINDING';message='compatibility packet wrong lease-derived run ID rejects'},
     @{changes=@{legacy_goal_ref_literal='C:/different/GOAL.md'};expected='FINALIZATION_REJECTED_LEGACY_COMPATIBILITY_LEASE_BINDING';message='compatibility packet wrong Goal literal rejects'},
     @{changes=@{expected_holder_session='different-holder-session'};expected='FINALIZATION_REJECTED_LEGACY_COMPATIBILITY_LEASE_BINDING';message='compatibility packet wrong holder session rejects'},
-    @{changes=@{transaction_id='different-transaction'};expected='FINALIZATION_REJECTED_LEGACY_COMPANION_BINDING';message='compatibility packet wrong transaction rejects'},
+    @{changes=@{transaction_id='different-transaction'};expected='FINALIZATION_REJECTED_LEGACY_COMPATIBILITY_LEASE_BINDING';message='compatibility packet wrong transaction rejects'},
     @{changes=@{canonical_reconciliation_receipt_path='C:/external/reconciliation.json'};expected='FINALIZATION_REJECTED_MALFORMED_CANONICAL_RECONCILIATION_RECEIPT_PATH';message='arbitrary external receipt cannot be consumed directly'}
 )
 foreach($case in $compatibilityTamperCases){
@@ -426,23 +505,66 @@ try{
 finally{Remove-SyntheticRoot -Fixture $fixture}
 
 $malformedLegacyCases=@(
-    @{message='legacy string budget reference does not widen null-only parser';mutate={param($path)$value=Read-Json -Path $path;$value.budget_state_ref='.coord-local/state/not-legacy.json';Write-Json -Path $path -Value $value}},
-    @{message='legacy scope wrong type rejects';mutate={param($path)$value=Read-Json -Path $path;$value.scope='not-an-array';Write-Json -Path $path -Value $value}},
-    @{message='legacy unknown field rejects';mutate={param($path)$value=Read-Json -Path $path;$value|Add-Member -NotePropertyName unexpected -NotePropertyValue 'reject';Write-Json -Path $path -Value $value}},
-    @{message='legacy duplicate field rejects';mutate={param($path)$text=Get-Content -LiteralPath $path -Raw;$text=$text -replace '^\{','{"schema":"jpc.taskroot-writer-lease.v1",';Write-Utf8NoBom -Path $path -Text $text}}
+    @{message='059 plus budget_state_ref hybrid rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value|Add-Member -NotePropertyName budget_state_ref -NotePropertyValue $null;Write-Json -Path $path -Value $value}},
+    @{message='059 unknown field rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value|Add-Member -NotePropertyName unexpected -NotePropertyValue 'reject';Write-Json -Path $path -Value $value}},
+    @{message='059 duplicate field rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$text=Get-Content -LiteralPath $path -Raw;$text=$text -replace '^\{','{"schema":"jpc.taskroot-writer-lease.v1",';Write-Utf8NoBom -Path $path -Text $text}},
+    @{message='059 case-variant duplicate rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$text=Get-Content -LiteralPath $path -Raw;$text=$text -replace '^\{','{"Goal":"JPC-V22-RC32-PROTECTED-APPLY-059",';Write-Utf8NoBom -Path $path -Text $text}},
+    @{message='059 scope wrong type rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.scope='not-an-array';Write-Json -Path $path -Value $value}},
+    @{message='059 empty scope rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_SCOPE';mutate={param($path)$value=Read-Json -Path $path;$value.scope=@();Write-Json -Path $path -Value $value}},
+    @{message='059 malformed timestamp rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_ACQUIRED_UTC';mutate={param($path)$value=Read-Json -Path $path;$value.acquired_utc='not-a-timestamp';Write-Json -Path $path -Value $value}},
+    @{message='059 wrong goal rejects';expected='LEGACY_COMPATIBILITY_REJECTED_PROTECTED_059_LEASE_BINDING';mutate={param($path)$value=Read-Json -Path $path;$value.goal='DIFFERENT-GOAL';Write-Json -Path $path -Value $value}},
+    @{message='059 wrong holder session rejects';expected='LEGACY_COMPATIBILITY_REJECTED_PROTECTED_059_LEASE_BINDING';mutate={param($path)$value=Read-Json -Path $path;$value.holder_session='different-holder-session';Write-Json -Path $path -Value $value}},
+    @{message='059 wrong historical Goal literal rejects';expected='LEGACY_COMPATIBILITY_REJECTED_PROTECTED_059_LEASE_BINDING';mutate={param($path)$value=Read-Json -Path $path;$value.goal_ref='C:/build/jpc-059/coord/DIFFERENT-GOAL.md';Write-Json -Path $path -Value $value}},
+    @{message='059 unsafe run ID rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_RUN_ID';mutate={param($path)$value=Read-Json -Path $path;$value.run_id='../unsafe';Write-Json -Path $path -Value $value}},
+    @{message='059 wrong protected profile rejects';expected='LEGACY_COMPATIBILITY_REJECTED_PROTECTED_059_LEASE_BINDING';mutate={param($path)$value=Read-Json -Path $path;$value.profile='COMPRESSED_TRAIN_V1';Write-Json -Path $path -Value $value}},
+    @{message='059 wrong authority class rejects';expected='LEGACY_COMPATIBILITY_REJECTED_PROTECTED_059_LEASE_BINDING';mutate={param($path)$value=Read-Json -Path $path;$value.authority_class='A4';Write-Json -Path $path -Value $value}},
+    @{message='059 false production authority rejects';expected='LEGACY_COMPATIBILITY_REJECTED_PROTECTED_059_LEASE_BINDING';mutate={param($path)$value=Read-Json -Path $path;$value.production_authority=$false;Write-Json -Path $path -Value $value}},
+    @{message='059 wrong transaction rejects';expected='LEGACY_COMPATIBILITY_REJECTED_PROTECTED_059_LEASE_BINDING';mutate={param($path)$value=Read-Json -Path $path;$value.transaction_id='different-transaction';Write-Json -Path $path -Value $value}},
+    @{message='059 malformed authorization grant hash rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_AUTHORIZATION_GRANT_SHA256';mutate={param($path)$value=Read-Json -Path $path;$value.authorization_grant_sha256='not-a-sha256';Write-Json -Path $path -Value $value}},
+    @{message='059 unsafe write-surfaces reference rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_WRITE_SURFACES_REF';mutate={param($path)$value=Read-Json -Path $path;$value.write_surfaces_ref='../unsafe.json';Write-Json -Path $path -Value $value}},
+    @{message='059 run_id wrong JSON type rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.run_id=123;Write-Json -Path $path -Value $value}},
+    @{message='059 profile wrong JSON type rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.profile=$true;Write-Json -Path $path -Value $value}},
+    @{message='059 authority_class wrong JSON type rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.authority_class=@('A5');Write-Json -Path $path -Value $value}},
+    @{message='059 production_authority wrong JSON type rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.production_authority='true';Write-Json -Path $path -Value $value}},
+    @{message='059 transaction_id JSON null rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.transaction_id=$null;Write-Json -Path $path -Value $value}},
+    @{message='059 authorization_grant_sha256 wrong JSON type rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.authorization_grant_sha256=123;Write-Json -Path $path -Value $value}},
+    @{message='059 write_surfaces_ref wrong JSON type rejects';expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.write_surfaces_ref=@{path='C:/synthetic'};Write-Json -Path $path -Value $value}}
 )
+$missingProtectedFields=@('run_id','profile','authority_class','production_authority','transaction_id','authorization_grant_sha256','write_surfaces_ref')
+foreach($name in $missingProtectedFields){
+    $fieldName=$name
+    $malformedLegacyCases += @{message=('059 missing '+$fieldName+' rejects');expected='LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE';mutate={param($path)$value=Read-Json -Path $path;$value.PSObject.Properties.Remove($fieldName);Write-Json -Path $path -Value $value}.GetNewClosure()}
+}
 foreach($case in $malformedLegacyCases){
     $fixture=New-LegacyFixture
     try{
         & $case.mutate $fixture.LeasePath
         $fixture.LeaseSha=Get-Sha256 -Path $fixture.LeasePath
-        Assert-Status (Invoke-CompatibilityObserve -Fixture $fixture) 'LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE' $case.message
+        Assert-Status (Invoke-CompatibilityObserve -Fixture $fixture) $case.expected $case.message
     }
     finally{Remove-SyntheticRoot -Fixture $fixture}
 }
 
+$fixture=New-LegacyFixture -Variant NullBudget
+try{
+    $value=Read-Json -Path $fixture.LeasePath
+    $value|Add-Member -NotePropertyName transaction_id -NotePropertyValue 'a5-rc32-058-5dbf2907de4b41f688125c691c212ff9'
+    Write-Json -Path $fixture.LeasePath -Value $value
+    $fixture.LeaseSha=Get-Sha256 -Path $fixture.LeasePath
+    Assert-Status (Invoke-CompatibilityObserve -Fixture $fixture) 'LEGACY_COMPATIBILITY_REJECTED_MALFORMED_LEGACY_LEASE' 'null-budget plus protected field hybrid rejects'
+}
+finally{Remove-SyntheticRoot -Fixture $fixture}
+
 Write-Output ('PASS protected-A5 legacy compatibility tests='+$passed)
 Write-Output 'MODERN_FINALIZER_V1_BEHAVIOR_UNCHANGED=true'
-Write-Output '059_LEGACY_SHAPE_COMPATIBLE=true'
-Write-Output '059_LEGACY_SHAPE_DIRECT_V1_ADMISSION=false'
+Write-Output 'REAL_059_SCHEMA_FIELD_COUNT=18'
+Write-Output 'REAL_059_BUDGET_FIELD_PRESENT=false'
+Write-Output 'LEGACY_NULL_BUDGET_VARIANT_PRESERVED=true'
+Write-Output 'LEGACY_PROTECTED_059_VARIANT_IMPLEMENTED=true'
+Write-Output 'LEGACY_VARIANTS_MUTUALLY_EXCLUSIVE=true'
+Write-Output 'UNKNOWN_FIELDS_REJECTED=true'
+Write-Output 'HYBRID_SHAPES_REJECTED=true'
+Write-Output '059_REAL_SHAPE_COMPATIBLE=true'
+Write-Output '059_REAL_SHAPE_OLD_076_VARIANT_ADMISSION=false'
+Write-Output '059_REAL_SHAPE_DIRECT_MODERN_ADMISSION=false'
 Write-Output 'REAL_059_LEASE_CONTACTED=false'

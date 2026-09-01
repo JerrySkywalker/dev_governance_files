@@ -9,6 +9,7 @@
     "status",
     "metadata_classification",
     "expected_lease_sha256",
+    "legacy_lease_shape_id",
     "goal",
     "run_id",
     "legacy_goal_ref_literal",
@@ -32,10 +33,11 @@
     "status": {"const": "PASS"},
     "metadata_classification": {"const": "DERIVED_COMPATIBILITY_METADATA"},
     "expected_lease_sha256": {"$ref": "#/$defs/sha256"},
+    "legacy_lease_shape_id": {"enum": ["LEGACY_NULL_BUDGET_V1", "LEGACY_PROTECTED_059_V1"]},
     "goal": {"$ref": "#/$defs/identifier"},
     "run_id": {"$ref": "#/$defs/identifier"},
     "legacy_goal_ref_literal": {"$ref": "#/$defs/boundedString"},
-    "legacy_budget_reference_status": {"const": "ABSENT_NULL"},
+    "legacy_budget_reference_status": {"enum": ["ABSENT_NULL", "FIELD_ABSENT"]},
     "transaction_id": {"$ref": "#/$defs/identifier"},
     "admitted_profile": {"const": "PROTECTED_TRANSACTION_V2"},
     "admitted_authority_class": {"const": "A5"},
@@ -44,10 +46,36 @@
     "admitted_max_layer": {"const": "L5"},
     "protected_boundaries_present": {"const": true},
     "owner_only_boundaries_present": {"const": true},
+    "production_authority": {"type": "boolean"},
+    "authorization_grant_sha256": {"$ref": "#/$defs/sha256"},
+    "write_surfaces_ref_literal": {"$ref": "#/$defs/boundedString"},
     "source_goal_record_sha256": {"$ref": "#/$defs/sha256"},
     "source_scope_record_sha256": {"$ref": "#/$defs/sha256"},
     "source_budget_record_sha256": {"$ref": "#/$defs/sha256"}
   },
+  "allOf": [
+    {
+      "if": {"properties": {"legacy_lease_shape_id": {"const": "LEGACY_NULL_BUDGET_V1"}}},
+      "then": {
+        "properties": {"legacy_budget_reference_status": {"const": "ABSENT_NULL"}},
+        "not": {"anyOf": [
+          {"required": ["production_authority"]},
+          {"required": ["authorization_grant_sha256"]},
+          {"required": ["write_surfaces_ref_literal"]}
+        ]}
+      }
+    },
+    {
+      "if": {"properties": {"legacy_lease_shape_id": {"const": "LEGACY_PROTECTED_059_V1"}}},
+      "then": {
+        "required": ["production_authority", "authorization_grant_sha256", "write_surfaces_ref_literal"],
+        "properties": {
+          "legacy_budget_reference_status": {"const": "FIELD_ABSENT"},
+          "production_authority": {"const": true}
+        }
+      }
+    }
+  ],
   "$defs": {
     "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

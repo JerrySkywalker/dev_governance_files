@@ -4,7 +4,7 @@
   "type": "object",
   "required": [
     "schema", "compatibility_id", "created_utc", "metadata_classification",
-    "expected_lease_sha256", "expected_lease_schema", "expected_goal", "expected_run_id",
+    "legacy_lease_shape_id", "expected_lease_sha256", "expected_lease_schema", "expected_goal", "expected_run_id",
     "expected_holder_session", "legacy_goal_ref_literal", "legacy_budget_state_ref_status",
     "transaction_id", "expected_terminal_result", "expected_terminal_failure_code",
     "companion_goal_path", "companion_goal_sha256", "companion_budget_path", "companion_budget_sha256",
@@ -18,13 +18,14 @@
     "compatibility_id": {"$ref": "#/$defs/identifier"},
     "created_utc": {"type": "string", "format": "date-time"},
     "metadata_classification": {"const": "DERIVED_COMPATIBILITY_METADATA"},
+    "legacy_lease_shape_id": {"enum": ["LEGACY_NULL_BUDGET_V1", "LEGACY_PROTECTED_059_V1"]},
     "expected_lease_sha256": {"$ref": "#/$defs/sha256"},
     "expected_lease_schema": {"const": "jpc.taskroot-writer-lease.v1"},
     "expected_goal": {"$ref": "#/$defs/identifier"},
     "expected_run_id": {"$ref": "#/$defs/identifier"},
     "expected_holder_session": {"$ref": "#/$defs/identifier"},
     "legacy_goal_ref_literal": {"$ref": "#/$defs/boundedString"},
-    "legacy_budget_state_ref_status": {"const": "ABSENT_NULL"},
+    "legacy_budget_state_ref_status": {"enum": ["ABSENT_NULL", "FIELD_ABSENT"]},
     "transaction_id": {"$ref": "#/$defs/identifier"},
     "expected_terminal_result": {"const": "FAILED_BEFORE_CONFIG"},
     "expected_terminal_failure_code": {"const": "OWNER_ABORTED_PREPARED"},
@@ -42,6 +43,16 @@
     "governance_provenance_sha256": {"$ref": "#/$defs/sha256"},
     "compatibility_provenance_status": {"const": "ACCEPTED_IMMUTABLE_PREDECESSOR_EVIDENCE"}
   },
+  "oneOf": [
+    {"properties": {
+      "legacy_lease_shape_id": {"const": "LEGACY_NULL_BUDGET_V1"},
+      "legacy_budget_state_ref_status": {"const": "ABSENT_NULL"}
+    }},
+    {"properties": {
+      "legacy_lease_shape_id": {"const": "LEGACY_PROTECTED_059_V1"},
+      "legacy_budget_state_ref_status": {"const": "FIELD_ABSENT"}
+    }}
+  ],
   "$defs": {
     "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

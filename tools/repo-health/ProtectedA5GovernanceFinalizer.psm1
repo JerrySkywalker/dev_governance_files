@@ -5,11 +5,24 @@ $script:Pa5ModernLeaseFields = [ordered]@{
     acquired_utc = 'String'; created_utc = 'String'; hard_stop_utc = 'String'; single_intentional_writer = 'Boolean'
     scope = 'StringArray'; goal_ref = 'String'; budget_state_ref = 'String'
 }
-$script:Pa5LegacyLeaseFields = [ordered]@{
+$script:Pa5LegacyNullBudgetLeaseFields = [ordered]@{
     schema = 'String'; goal = 'String'; holder = 'String'; holder_session = 'String'; state = 'String'
     acquired_utc = 'String'; created_utc = 'String'; hard_stop_utc = 'String'; single_intentional_writer = 'Boolean'
     scope = 'StringArray'; goal_ref = 'String'; budget_state_ref = 'Null'
 }
+$script:Pa5LegacyProtected059LeaseFields = [ordered]@{
+    schema = 'String'; goal = 'String'; holder = 'String'; holder_session = 'String'; state = 'String'
+    acquired_utc = 'String'; created_utc = 'String'; hard_stop_utc = 'String'; single_intentional_writer = 'Boolean'
+    scope = 'StringArray'; goal_ref = 'String'; run_id = 'String'; profile = 'String'; authority_class = 'String'
+    production_authority = 'Boolean'; transaction_id = 'String'; authorization_grant_sha256 = 'String'; write_surfaces_ref = 'String'
+}
+$script:Pa5LegacyNullBudgetShapeId = 'LEGACY_NULL_BUDGET_V1'
+$script:Pa5LegacyProtected059ShapeId = 'LEGACY_PROTECTED_059_V1'
+$script:Pa5Protected059Goal = 'JPC-V22-RC32-PROTECTED-APPLY-059'
+$script:Pa5Protected059HolderSession = 'jpc-v22-rc32-protected-apply-059'
+$script:Pa5Protected059TransactionId = 'a5-rc32-058-5dbf2907de4b41f688125c691c212ff9'
+$script:Pa5Protected059GoalRef = 'C:/build/jpc-059/coord/GOAL.md'
+$script:Pa5Protected059WriteSurfacesRef = 'C:/build/jpc-059/coord/WRITE-SURFACES.json'
 $script:Pa5GoalFields = [ordered]@{
     schema = 'String'; goal = 'String'; run_id = 'String'; profile = 'String'; authority_class = 'String'
     elasticity_grade = 'String'; initial_progress_state = 'String'; current_layer = 'String'; max_admitted_layer = 'String'
@@ -40,7 +53,7 @@ $script:Pa5LegacyAuthorizationFields = [ordered]@{
 }
 $script:Pa5LegacyCompatibilityFields = [ordered]@{
     schema='String'; compatibility_id='String'; created_utc='String'; metadata_classification='String'
-    expected_lease_sha256='String'; expected_lease_schema='String'; expected_goal='String'; expected_run_id='String'
+    legacy_lease_shape_id='String'; expected_lease_sha256='String'; expected_lease_schema='String'; expected_goal='String'; expected_run_id='String'
     expected_holder_session='String'; legacy_goal_ref_literal='String'; legacy_budget_state_ref_status='String'
     transaction_id='String'; expected_terminal_result='String'; expected_terminal_failure_code='String'
     companion_goal_path='String'; companion_goal_sha256='String'; companion_budget_path='String'; companion_budget_sha256='String'
@@ -49,16 +62,24 @@ $script:Pa5LegacyCompatibilityFields = [ordered]@{
     source_reconciliation_receipt_sha256='String'; source_independent_verifier_receipt_sha256='String'
     governance_provenance_reference='String'; governance_provenance_sha256='String'; compatibility_provenance_status='String'
 }
-$script:Pa5LegacyGoalCompanionFields = [ordered]@{
+$script:Pa5LegacyNullBudgetGoalCompanionFields = [ordered]@{
     schema='String'; compatibility_id='String'; created_utc='String'; metadata_classification='String'; legacy_goal='String'; run_id='String'
-    legacy_goal_ref_literal='String'; expected_lease_sha256='String'; transaction_id='String'; admitted_profile='String'
+    legacy_lease_shape_id='String'; legacy_goal_ref_literal='String'; expected_lease_sha256='String'; transaction_id='String'; admitted_profile='String'
     admitted_authority_class='String'; admitted_elasticity_grade='String'; admitted_current_layer='String'; admitted_max_layer='String'
     protected_boundaries_present='Boolean'; owner_only_boundaries_present='Boolean'; governance_provenance_reference='String'
     governance_provenance_sha256='String'; source_goal_record_sha256='String'; source_scope_record_sha256='String'
 }
+$script:Pa5LegacyProtected059GoalCompanionFields = [ordered]@{
+    schema='String'; compatibility_id='String'; created_utc='String'; metadata_classification='String'; legacy_goal='String'; run_id='String'
+    legacy_lease_shape_id='String'; legacy_goal_ref_literal='String'; expected_lease_sha256='String'; transaction_id='String'; admitted_profile='String'
+    admitted_authority_class='String'; admitted_elasticity_grade='String'; admitted_current_layer='String'; admitted_max_layer='String'
+    protected_boundaries_present='Boolean'; owner_only_boundaries_present='Boolean'; governance_provenance_reference='String'
+    governance_provenance_sha256='String'; source_goal_record_sha256='String'; source_scope_record_sha256='String'
+    production_authority='Boolean'; authorization_grant_sha256='String'; write_surfaces_ref_literal='String'
+}
 $script:Pa5LegacyBudgetCompanionFields = [ordered]@{
     schema='String'; compatibility_id='String'; created_utc='String'; metadata_classification='String'; expected_lease_sha256='String'
-    goal='String'; run_id='String'; legacy_budget_reference_status='String'; authorized_operation='String'; apply_authority='Boolean'
+    legacy_lease_shape_id='String'; goal='String'; run_id='String'; legacy_budget_reference_status='String'; authorized_operation='String'; apply_authority='Boolean'
     rollback_authority='Boolean'; promotion_authority='Boolean'; finalize_window='String'; governance_provenance_reference='String'
     governance_provenance_sha256='String'; source_budget_record_sha256='String'
 }
@@ -164,11 +185,16 @@ function Assert-Pa5BoundedString {
     if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt 1024 -or $Value -match '[\x00-\x1f]') { Throw-Pa5Rejected ('MALFORMED_' + $Field.ToUpperInvariant()) }
 }
 
+function Assert-Pa5AbsoluteHistoricalLiteral {
+    param([Parameter(Mandatory)][string]$Value,[Parameter(Mandatory)][string]$Field)
+    Assert-Pa5BoundedString -Value $Value -Field $Field
+    $isAbsolute = $Value -match '^[A-Za-z]:[\\/]' -or $Value -match '^[/]' -or $Value -match '^\\\\[^\\]'
+    if (-not $isAbsolute -or $Value -match '(^|[\\/])\.\.?(?:[\\/]|$)') { Throw-Pa5Rejected ('MALFORMED_' + $Field.ToUpperInvariant()) }
+}
+
 function Assert-Pa5AbsoluteLegacyLiteral {
     param([Parameter(Mandatory)][string]$Value)
-    Assert-Pa5BoundedString -Value $Value -Field 'legacy_goal_ref_literal'
-    $isAbsolute = $Value -match '^[A-Za-z]:[\\/]' -or $Value -match '^[/]' -or $Value -match '^\\\\[^\\]'
-    if (-not $isAbsolute -or $Value -match '(^|[\\/])\.\.?(?:[\\/]|$)') { Throw-Pa5Rejected 'MALFORMED_LEGACY_GOAL_REF_LITERAL' }
+    Assert-Pa5AbsoluteHistoricalLiteral -Value $Value -Field 'legacy_goal_ref_literal'
 }
 
 function ConvertTo-Pa5Utc {
@@ -230,6 +256,31 @@ function Get-Pa5StringArray {
     return @($Element.EnumerateArray() | ForEach-Object { $_.GetString() })
 }
 
+function Get-Pa5LegacyLeaseShape {
+    param([Parameter(Mandatory)][byte[]]$Bytes)
+    if ($Bytes.Length -eq 0 -or $Bytes.Length -gt 131072) { Throw-Pa5Rejected 'MALFORMED_LEGACY_LEASE' }
+    try { $text = [System.Text.UTF8Encoding]::new($false, $true).GetString($Bytes) }
+    catch { Throw-Pa5Rejected 'MALFORMED_LEGACY_LEASE' }
+    try { $document = [System.Text.Json.JsonDocument]::Parse($text) }
+    catch { Throw-Pa5Rejected 'MALFORMED_LEGACY_LEASE' }
+    try {
+        if ($document.RootElement.ValueKind -ne [System.Text.Json.JsonValueKind]::Object) { Throw-Pa5Rejected 'MALFORMED_LEGACY_LEASE' }
+        $names = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($property in $document.RootElement.EnumerateObject()) {
+            if (-not $seen.Add($property.Name) -or -not $names.Add($property.Name)) { Throw-Pa5Rejected 'MALFORMED_LEGACY_LEASE' }
+        }
+        $nullBudget = $names.Count -eq $script:Pa5LegacyNullBudgetLeaseFields.Count
+        foreach ($name in $script:Pa5LegacyNullBudgetLeaseFields.Keys) { $nullBudget = $nullBudget -and $names.Contains([string]$name) }
+        $protected059 = $names.Count -eq $script:Pa5LegacyProtected059LeaseFields.Count
+        foreach ($name in $script:Pa5LegacyProtected059LeaseFields.Keys) { $protected059 = $protected059 -and $names.Contains([string]$name) }
+        if ($nullBudget -eq $protected059) { Throw-Pa5Rejected 'MALFORMED_LEGACY_LEASE' }
+        if ($nullBudget) { return $script:Pa5LegacyNullBudgetShapeId }
+        return $script:Pa5LegacyProtected059ShapeId
+    }
+    finally { $document.Dispose() }
+}
+
 function Read-Pa5LeaseModern {
     param([Parameter(Mandatory)][byte[]]$Bytes)
     $checked = Get-Pa5StrictJsonRoot -Bytes $Bytes -Expected $script:Pa5ModernLeaseFields -FailureCode 'MALFORMED_LEASE'
@@ -257,21 +308,42 @@ function Read-Pa5LeaseModern {
 
 function Read-Pa5LeaseLegacy {
     param([Parameter(Mandatory)][byte[]]$Bytes)
-    $checked = Get-Pa5StrictJsonRoot -Bytes $Bytes -Expected $script:Pa5LegacyLeaseFields -FailureCode 'MALFORMED_LEGACY_LEASE'
+    $shapeId = Get-Pa5LegacyLeaseShape -Bytes $Bytes
+    $fields = if ($shapeId -ceq $script:Pa5LegacyProtected059ShapeId) { $script:Pa5LegacyProtected059LeaseFields } else { $script:Pa5LegacyNullBudgetLeaseFields }
+    $checked = Get-Pa5StrictJsonRoot -Bytes $Bytes -Expected $fields -FailureCode 'MALFORMED_LEGACY_LEASE'
     try {
         $p = $checked.Properties
         $lease = [pscustomobject]@{
+            legacy_lease_shape_id=$shapeId
             schema=$p.schema.GetString(); goal=$p.goal.GetString(); holder=$p.holder.GetString(); holder_session=$p.holder_session.GetString()
             state=$p.state.GetString(); acquired_utc=$p.acquired_utc.GetString(); created_utc=$p.created_utc.GetString()
             hard_stop_utc=$p.hard_stop_utc.GetString(); single_intentional_writer=$p.single_intentional_writer.GetBoolean()
-            scope=Get-Pa5StringArray -Element $p.scope; goal_ref=$p.goal_ref.GetString(); budget_state_ref=$null
+            scope=@(Get-Pa5StringArray -Element $p.scope); goal_ref=$p.goal_ref.GetString()
+            legacy_budget_reference_status=$(if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){'FIELD_ABSENT'}else{'ABSENT_NULL'})
+            run_id=$(if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){$p.run_id.GetString()}else{$null})
+            profile=$(if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){$p.profile.GetString()}else{$null})
+            authority_class=$(if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){$p.authority_class.GetString()}else{$null})
+            production_authority=$(if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){$p.production_authority.GetBoolean()}else{$null})
+            transaction_id=$(if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){$p.transaction_id.GetString()}else{$null})
+            authorization_grant_sha256=$(if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){$p.authorization_grant_sha256.GetString()}else{$null})
+            write_surfaces_ref=$(if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){$p.write_surfaces_ref.GetString()}else{$null})
         }
     }
     finally { $checked.Document.Dispose() }
+    if($shapeId -ceq $script:Pa5LegacyNullBudgetShapeId){$lease|Add-Member -NotePropertyName budget_state_ref -NotePropertyValue $null}
     if ($lease.schema -cne 'jpc.taskroot-writer-lease.v1') { Throw-Pa5Rejected 'UNSUPPORTED_LEASE_SCHEMA' }
     foreach ($pair in @(@{v=$lease.goal;n='goal'},@{v=$lease.holder_session;n='holder_session'})) { Assert-Pa5SafeIdentifier -Value $pair.v -Field $pair.n }
     Assert-Pa5BoundedString -Value $lease.holder -Field 'holder'
     Assert-Pa5AbsoluteLegacyLiteral -Value $lease.goal_ref
+    if($shapeId -ceq $script:Pa5LegacyProtected059ShapeId){
+        Assert-Pa5SafeIdentifier -Value $lease.run_id -Field 'run_id'
+        Assert-Pa5Sha256 -Value $lease.authorization_grant_sha256 -Field 'authorization_grant_sha256'
+        Assert-Pa5AbsoluteHistoricalLiteral -Value $lease.write_surfaces_ref -Field 'write_surfaces_ref'
+        if($lease.goal -cne $script:Pa5Protected059Goal -or $lease.holder_session -cne $script:Pa5Protected059HolderSession -or
+            $lease.profile -cne 'PROTECTED_TRANSACTION_V2' -or $lease.authority_class -cne 'A5' -or -not $lease.production_authority -or
+            $lease.transaction_id -cne $script:Pa5Protected059TransactionId -or $lease.goal_ref -cne $script:Pa5Protected059GoalRef -or
+            $lease.write_surfaces_ref -cne $script:Pa5Protected059WriteSurfacesRef){Throw-Pa5Rejected 'PROTECTED_059_LEASE_BINDING'}
+    }
     if ($lease.state -cne 'active' -or -not $lease.single_intentional_writer) { Throw-Pa5Rejected 'MALFORMED_LEGACY_LEASE' }
     if ($lease.scope.Count -eq 0 -or $lease.scope.Count -gt 32 -or @($lease.scope | Where-Object { [string]::IsNullOrWhiteSpace($_) -or $_.Length -gt 191 -or $_ -match '[\x00-\x1f]' }).Count -ne 0) { Throw-Pa5Rejected 'MALFORMED_SCOPE' }
     $created = ConvertTo-Pa5Utc -Value $lease.created_utc -Field 'created_utc'
@@ -383,13 +455,19 @@ function Read-Pa5LegacyCompatibility {
     Assert-Pa5BoundedString -Value $compatibility.governance_provenance_reference -Field 'governance_provenance_reference'
     if ((ConvertTo-Pa5Utc -Value $compatibility.created_utc -Field 'legacy_compatibility_created_utc') -gt $NowUtc.ToUniversalTime()) { Throw-Pa5Rejected 'FUTURE_LEGACY_COMPATIBILITY' }
     if ($compatibility.schema -cne 'protected-a5-legacy-lease-compatibility.v1' -or $compatibility.metadata_classification -cne 'DERIVED_COMPATIBILITY_METADATA' -or $compatibility.compatibility_provenance_status -cne 'ACCEPTED_IMMUTABLE_PREDECESSOR_EVIDENCE') { Throw-Pa5Rejected 'MALFORMED_LEGACY_COMPATIBILITY' }
-    if ($compatibility.expected_lease_schema -cne 'jpc.taskroot-writer-lease.v1' -or $compatibility.legacy_budget_state_ref_status -cne 'ABSENT_NULL') { Throw-Pa5Rejected 'LEGACY_LEASE_SHAPE_BINDING' }
+    if ($compatibility.expected_lease_schema -cne 'jpc.taskroot-writer-lease.v1' -or
+        $compatibility.legacy_lease_shape_id -cne $Lease.legacy_lease_shape_id -or
+        $compatibility.legacy_budget_state_ref_status -cne $Lease.legacy_budget_reference_status) { Throw-Pa5Rejected 'LEGACY_LEASE_SHAPE_BINDING' }
     if ($compatibility.expected_terminal_result -cne 'FAILED_BEFORE_CONFIG' -or $compatibility.expected_terminal_failure_code -cne 'OWNER_ABORTED_PREPARED') { Throw-Pa5Rejected 'UNSUPPORTED_TERMINAL_CLASS' }
-    if ($compatibility.expected_lease_sha256 -cne $ExpectedLeaseSha256 -or $compatibility.expected_goal -cne $Lease.goal -or $compatibility.expected_holder_session -cne $Lease.holder_session -or $compatibility.legacy_goal_ref_literal -cne $Lease.goal_ref) { Throw-Pa5Rejected 'LEGACY_COMPATIBILITY_LEASE_BINDING' }
+    if ($compatibility.expected_lease_sha256 -cne $ExpectedLeaseSha256 -or $compatibility.expected_goal -cne $Lease.goal -or
+        $compatibility.expected_holder_session -cne $Lease.holder_session -or $compatibility.legacy_goal_ref_literal -cne $Lease.goal_ref -or
+        ($Lease.legacy_lease_shape_id -ceq $script:Pa5LegacyProtected059ShapeId -and
+            ($compatibility.expected_run_id -cne $Lease.run_id -or $compatibility.transaction_id -cne $Lease.transaction_id))) { Throw-Pa5Rejected 'LEGACY_COMPATIBILITY_LEASE_BINDING' }
 
     $goalPath = Resolve-Pa5ArtifactReference -TaskRoot $TaskRoot -Reference $compatibility.companion_goal_path -RequiredRootRelative '.coord-local/protected-a5-legacy/companions/goals' -Field 'companion_goal_path'
     $budgetPath = Resolve-Pa5ArtifactReference -TaskRoot $TaskRoot -Reference $compatibility.companion_budget_path -RequiredRootRelative '.coord-local/protected-a5-legacy/companions/budgets' -Field 'companion_budget_path'
-    $goalRecord = Read-Pa5LegacyFlatRecord -Path $goalPath -Fields $script:Pa5LegacyGoalCompanionFields -FailureCode 'MALFORMED_LEGACY_GOAL_COMPANION'
+    $goalFields=if($Lease.legacy_lease_shape_id -ceq $script:Pa5LegacyProtected059ShapeId){$script:Pa5LegacyProtected059GoalCompanionFields}else{$script:Pa5LegacyNullBudgetGoalCompanionFields}
+    $goalRecord = Read-Pa5LegacyFlatRecord -Path $goalPath -Fields $goalFields -FailureCode 'MALFORMED_LEGACY_GOAL_COMPANION'
     $budgetRecord = Read-Pa5LegacyFlatRecord -Path $budgetPath -Fields $script:Pa5LegacyBudgetCompanionFields -FailureCode 'MALFORMED_LEGACY_BUDGET_COMPANION'
     if ($goalRecord.sha256 -cne $compatibility.companion_goal_sha256) { Throw-Pa5Rejected 'LEGACY_COMPANION_GOAL_SHA256' }
     if ($budgetRecord.sha256 -cne $compatibility.companion_budget_sha256) { Throw-Pa5Rejected 'LEGACY_COMPANION_BUDGET_SHA256' }
@@ -399,12 +477,35 @@ function Read-Pa5LegacyCompatibility {
     foreach ($name in @('expected_lease_sha256','governance_provenance_sha256','source_goal_record_sha256','source_scope_record_sha256')) { Assert-Pa5Sha256 -Value ([string]$goal.$name) -Field $name }
     foreach ($name in @('expected_lease_sha256','governance_provenance_sha256','source_budget_record_sha256')) { Assert-Pa5Sha256 -Value ([string]$budget.$name) -Field $name }
     Assert-Pa5AbsoluteLegacyLiteral -Value $goal.legacy_goal_ref_literal
+    if($Lease.legacy_lease_shape_id -ceq $script:Pa5LegacyProtected059ShapeId){
+        Assert-Pa5Sha256 -Value $goal.authorization_grant_sha256 -Field 'authorization_grant_sha256'
+        Assert-Pa5AbsoluteHistoricalLiteral -Value $goal.write_surfaces_ref_literal -Field 'write_surfaces_ref_literal'
+    }
     foreach ($value in @($goal.governance_provenance_reference,$budget.governance_provenance_reference)) { Assert-Pa5BoundedString -Value $value -Field 'governance_provenance_reference' }
-    $goalAccepted = $goal.schema -ceq 'protected-a5-legacy-goal-companion.v1' -and $goal.metadata_classification -ceq 'DERIVED_COMPATIBILITY_METADATA' -and $goal.admitted_profile -ceq 'PROTECTED_TRANSACTION_V2' -and $goal.admitted_authority_class -ceq 'A5' -and $goal.admitted_elasticity_grade -ceq 'B4' -and $goal.admitted_current_layer -in @('L4','L5') -and $goal.admitted_max_layer -ceq 'L5' -and $goal.protected_boundaries_present -and $goal.owner_only_boundaries_present
+    $goalAccepted = $goal.schema -ceq 'protected-a5-legacy-goal-companion.v1' -and $goal.metadata_classification -ceq 'DERIVED_COMPATIBILITY_METADATA' -and
+        $goal.legacy_lease_shape_id -ceq $Lease.legacy_lease_shape_id -and $goal.admitted_profile -ceq 'PROTECTED_TRANSACTION_V2' -and
+        $goal.admitted_authority_class -ceq 'A5' -and $goal.admitted_elasticity_grade -ceq 'B4' -and
+        $goal.admitted_current_layer -in @('L4','L5') -and $goal.admitted_max_layer -ceq 'L5' -and
+        $goal.protected_boundaries_present -and $goal.owner_only_boundaries_present
+    if($Lease.legacy_lease_shape_id -ceq $script:Pa5LegacyProtected059ShapeId){
+        $goalAccepted = $goalAccepted -and $goal.run_id -ceq $Lease.run_id -and $goal.admitted_profile -ceq $Lease.profile -and
+            $goal.admitted_authority_class -ceq $Lease.authority_class -and $goal.production_authority -eq $Lease.production_authority -and
+            $goal.transaction_id -ceq $Lease.transaction_id -and $goal.authorization_grant_sha256 -ceq $Lease.authorization_grant_sha256 -and
+            $goal.write_surfaces_ref_literal -ceq $Lease.write_surfaces_ref
+    }
     if (-not $goalAccepted) { Throw-Pa5Rejected 'LEGACY_PROTECTED_A5_REQUIRED' }
-    $budgetAccepted = $budget.schema -ceq 'protected-a5-legacy-budget-companion.v1' -and $budget.metadata_classification -ceq 'DERIVED_COMPATIBILITY_METADATA' -and $budget.legacy_budget_reference_status -ceq 'ABSENT_NULL' -and $budget.authorized_operation -ceq 'PROTECTED_A5_GOVERNANCE_FINALIZE' -and -not $budget.apply_authority -and -not $budget.rollback_authority -and -not $budget.promotion_authority -and $budget.finalize_window -ceq 'ONE'
+    $budgetAccepted = $budget.schema -ceq 'protected-a5-legacy-budget-companion.v1' -and $budget.metadata_classification -ceq 'DERIVED_COMPATIBILITY_METADATA' -and
+        $budget.legacy_lease_shape_id -ceq $Lease.legacy_lease_shape_id -and $budget.legacy_budget_reference_status -ceq $Lease.legacy_budget_reference_status -and
+        $budget.authorized_operation -ceq 'PROTECTED_A5_GOVERNANCE_FINALIZE' -and -not $budget.apply_authority -and
+        -not $budget.rollback_authority -and -not $budget.promotion_authority -and $budget.finalize_window -ceq 'ONE'
     if (-not $budgetAccepted) { Throw-Pa5Rejected 'LEGACY_BUDGET_COMPANION_SCOPE' }
-    if ($goal.compatibility_id -cne $compatibility.compatibility_id -or $budget.compatibility_id -cne $compatibility.compatibility_id -or $goal.created_utc -cne $compatibility.created_utc -or $budget.created_utc -cne $compatibility.created_utc -or $goal.legacy_goal -cne $compatibility.expected_goal -or $budget.goal -cne $compatibility.expected_goal -or $goal.run_id -cne $compatibility.expected_run_id -or $budget.run_id -cne $compatibility.expected_run_id -or $goal.legacy_goal_ref_literal -cne $compatibility.legacy_goal_ref_literal -or $goal.expected_lease_sha256 -cne $ExpectedLeaseSha256 -or $budget.expected_lease_sha256 -cne $ExpectedLeaseSha256 -or $goal.transaction_id -cne $compatibility.transaction_id) { Throw-Pa5Rejected 'LEGACY_COMPANION_BINDING' }
+    if ($goal.compatibility_id -cne $compatibility.compatibility_id -or $budget.compatibility_id -cne $compatibility.compatibility_id -or
+        $goal.created_utc -cne $compatibility.created_utc -or $budget.created_utc -cne $compatibility.created_utc -or
+        $goal.legacy_lease_shape_id -cne $compatibility.legacy_lease_shape_id -or $budget.legacy_lease_shape_id -cne $compatibility.legacy_lease_shape_id -or
+        $goal.legacy_goal -cne $compatibility.expected_goal -or $budget.goal -cne $compatibility.expected_goal -or
+        $goal.run_id -cne $compatibility.expected_run_id -or $budget.run_id -cne $compatibility.expected_run_id -or
+        $goal.legacy_goal_ref_literal -cne $compatibility.legacy_goal_ref_literal -or $goal.expected_lease_sha256 -cne $ExpectedLeaseSha256 -or
+        $budget.expected_lease_sha256 -cne $ExpectedLeaseSha256 -or $goal.transaction_id -cne $compatibility.transaction_id) { Throw-Pa5Rejected 'LEGACY_COMPANION_BINDING' }
     if ($goal.governance_provenance_reference -cne $compatibility.governance_provenance_reference -or $budget.governance_provenance_reference -cne $compatibility.governance_provenance_reference -or $goal.governance_provenance_sha256 -cne $compatibility.governance_provenance_sha256 -or $budget.governance_provenance_sha256 -cne $compatibility.governance_provenance_sha256) { Throw-Pa5Rejected 'LEGACY_PROVENANCE_BINDING' }
 
     $reconciliationPath = Resolve-Pa5ArtifactReference -TaskRoot $TaskRoot -Reference $compatibility.canonical_reconciliation_receipt_path -RequiredRootRelative '.coord-local/receipts/protected-a5-legacy' -Field 'canonical_reconciliation_receipt_path'
