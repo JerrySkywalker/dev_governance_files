@@ -1,0 +1,17 @@
+{
+  "schema": "jpc.taskroot-writer-lease.v1",
+  "goal": "JPC-V22-RC32-PROTECTED-APPLY-059",
+  "holder": "synthetic-legacy-protected-holder",
+  "holder_session": "jpc-v22-rc32-protected-apply-059",
+  "state": "active",
+  "acquired_utc": "2026-08-30T10:43:39.9543713+00:00",
+  "created_utc": "2026-08-30T10:43:39.9543713+00:00",
+  "hard_stop_utc": "2026-08-30T11:43:39.9543713+00:00",
+  "single_intentional_writer": true,
+  "scope": [
+    "synthetic protected A5 fixture scope",
+    "synthetic terminal governance finalization"
+  ],
+  "goal_ref": "C:/build/jpc-059/coord/GOAL.md",
+  "budget_state_ref": null
+}

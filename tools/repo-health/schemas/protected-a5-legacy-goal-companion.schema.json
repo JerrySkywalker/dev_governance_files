@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "protected-a5-legacy-goal-companion.v1",
+  "type": "object",
+  "required": [
+    "schema", "compatibility_id", "created_utc", "metadata_classification",
+    "legacy_goal", "run_id", "legacy_goal_ref_literal", "expected_lease_sha256", "transaction_id",
+    "admitted_profile", "admitted_authority_class", "admitted_elasticity_grade",
+    "admitted_current_layer", "admitted_max_layer", "protected_boundaries_present",
+    "owner_only_boundaries_present", "governance_provenance_reference",
+    "governance_provenance_sha256", "source_goal_record_sha256", "source_scope_record_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "protected-a5-legacy-goal-companion.v1"},
+    "compatibility_id": {"$ref": "#/$defs/identifier"},
+    "created_utc": {"type": "string", "format": "date-time"},
+    "metadata_classification": {"const": "DERIVED_COMPATIBILITY_METADATA"},
+    "legacy_goal": {"$ref": "#/$defs/identifier"},
+    "run_id": {"$ref": "#/$defs/identifier"},
+    "legacy_goal_ref_literal": {"$ref": "#/$defs/boundedString"},
+    "expected_lease_sha256": {"$ref": "#/$defs/sha256"},
+    "transaction_id": {"$ref": "#/$defs/identifier"},
+    "admitted_profile": {"const": "PROTECTED_TRANSACTION_V2"},
+    "admitted_authority_class": {"const": "A5"},
+    "admitted_elasticity_grade": {"const": "B4"},
+    "admitted_current_layer": {"enum": ["L4", "L5"]},
+    "admitted_max_layer": {"const": "L5"},
+    "protected_boundaries_present": {"const": true},
+    "owner_only_boundaries_present": {"const": true},
+    "governance_provenance_reference": {"$ref": "#/$defs/boundedString"},
+    "governance_provenance_sha256": {"$ref": "#/$defs/sha256"},
+    "source_goal_record_sha256": {"$ref": "#/$defs/sha256"},
+    "source_scope_record_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "boundedString": {"type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^[^\\u0000-\\u001f]+$"}
+  },
+  "additionalProperties": false
+}

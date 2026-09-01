@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "protected-a5-legacy-lease-compatibility.v1",
+  "type": "object",
+  "required": [
+    "schema", "compatibility_id", "created_utc", "metadata_classification",
+    "expected_lease_sha256", "expected_lease_schema", "expected_goal", "expected_run_id",
+    "expected_holder_session", "legacy_goal_ref_literal", "legacy_budget_state_ref_status",
+    "transaction_id", "expected_terminal_result", "expected_terminal_failure_code",
+    "companion_goal_path", "companion_goal_sha256", "companion_budget_path", "companion_budget_sha256",
+    "canonical_reconciliation_receipt_path", "canonical_reconciliation_receipt_sha256",
+    "canonical_independent_verifier_receipt_path", "canonical_independent_verifier_receipt_sha256",
+    "source_reconciliation_receipt_sha256", "source_independent_verifier_receipt_sha256",
+    "governance_provenance_reference", "governance_provenance_sha256", "compatibility_provenance_status"
+  ],
+  "properties": {
+    "schema": {"const": "protected-a5-legacy-lease-compatibility.v1"},
+    "compatibility_id": {"$ref": "#/$defs/identifier"},
+    "created_utc": {"type": "string", "format": "date-time"},
+    "metadata_classification": {"const": "DERIVED_COMPATIBILITY_METADATA"},
+    "expected_lease_sha256": {"$ref": "#/$defs/sha256"},
+    "expected_lease_schema": {"const": "jpc.taskroot-writer-lease.v1"},
+    "expected_goal": {"$ref": "#/$defs/identifier"},
+    "expected_run_id": {"$ref": "#/$defs/identifier"},
+    "expected_holder_session": {"$ref": "#/$defs/identifier"},
+    "legacy_goal_ref_literal": {"$ref": "#/$defs/boundedString"},
+    "legacy_budget_state_ref_status": {"const": "ABSENT_NULL"},
+    "transaction_id": {"$ref": "#/$defs/identifier"},
+    "expected_terminal_result": {"const": "FAILED_BEFORE_CONFIG"},
+    "expected_terminal_failure_code": {"const": "OWNER_ABORTED_PREPARED"},
+    "companion_goal_path": {"type": "string", "pattern": "^\\.coord-local/protected-a5-legacy/companions/goals/[A-Za-z0-9._-]+\\.json$"},
+    "companion_goal_sha256": {"$ref": "#/$defs/sha256"},
+    "companion_budget_path": {"type": "string", "pattern": "^\\.coord-local/protected-a5-legacy/companions/budgets/[A-Za-z0-9._-]+\\.json$"},
+    "companion_budget_sha256": {"$ref": "#/$defs/sha256"},
+    "canonical_reconciliation_receipt_path": {"type": "string", "pattern": "^\\.coord-local/receipts/protected-a5-legacy/[0-9a-f]{64}\\.reconciliation\\.json$"},
+    "canonical_reconciliation_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "canonical_independent_verifier_receipt_path": {"type": "string", "pattern": "^\\.coord-local/receipts/protected-a5-legacy/[0-9a-f]{64}\\.independent-verifier\\.json$"},
+    "canonical_independent_verifier_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "source_reconciliation_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "source_independent_verifier_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "governance_provenance_reference": {"$ref": "#/$defs/boundedString"},
+    "governance_provenance_sha256": {"$ref": "#/$defs/sha256"},
+    "compatibility_provenance_status": {"const": "ACCEPTED_IMMUTABLE_PREDECESSOR_EVIDENCE"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "boundedString": {"type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^[^\\u0000-\\u001f]+$"}
+  },
+  "additionalProperties": false
+}

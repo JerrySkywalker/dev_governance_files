@@ -1,0 +1,14 @@
+{
+  "schema": "protected-a5-legacy-059-model.v1",
+  "transaction_id": "a5-rc32-058-5dbf2907de4b41f688125c691c212ff9",
+  "real_059_expected_lease_sha256": "c425a8b450db1520ad80358add0b847d3f80027c853fb2a4c8eb9e8409a313af",
+  "legacy_goal_ref_literal": "C:/build/jpc-059/coord/GOAL.md",
+  "legacy_budget_state_ref_status": "ABSENT_NULL",
+  "terminal_result": "FAILED_BEFORE_CONFIG",
+  "terminal_failure_code": "OWNER_ABORTED_PREPARED",
+  "reconciliation_status": "PASS",
+  "final_supervisor_status": "PASS",
+  "sanitized_fixture": true,
+  "real_lease_bytes_included": false,
+  "production_content_included": false
+}

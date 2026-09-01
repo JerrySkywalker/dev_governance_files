@@ -4,7 +4,8 @@ param(
     [Parameter(Mandatory)][string]$TaskRoot,
     [Parameter(Mandatory)][string]$LeasePath,
     [Parameter(Mandatory)][string]$ExpectedLeaseSha256,
-    [string]$AuthorizationPath = ''
+    [string]$AuthorizationPath = '',
+    [string]$LegacyCompatibilityPath = ''
 )
 
 Set-StrictMode -Version Latest
@@ -16,7 +17,8 @@ if ($Mode -ceq 'Observe') {
         -TaskRoot $TaskRoot `
         -LeasePath $LeasePath `
         -ExpectedLeaseSha256 $ExpectedLeaseSha256 `
-        -AuthorizationPath $AuthorizationPath |
+        -AuthorizationPath $AuthorizationPath `
+        -LegacyCompatibilityPath $LegacyCompatibilityPath |
         ConvertTo-Json -Depth 12
 }
 else {
@@ -24,6 +26,7 @@ else {
         -TaskRoot $TaskRoot `
         -LeasePath $LeasePath `
         -ExpectedLeaseSha256 $ExpectedLeaseSha256 `
-        -AuthorizationPath $AuthorizationPath |
+        -AuthorizationPath $AuthorizationPath `
+        -LegacyCompatibilityPath $LegacyCompatibilityPath |
         ConvertTo-Json -Depth 12
 }
