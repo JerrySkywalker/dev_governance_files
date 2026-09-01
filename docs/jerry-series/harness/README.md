@@ -116,5 +116,10 @@ FAILED_OR_UNVERIFIED_ROLLBACK_HARD_STOP=true
   is the temporary, fail-closed compatibility path for expired ordinary-development
   Writer Lease v1 records. It excludes production and does not replace Writer
   Lease v2 ([issue #30](https://github.com/JerrySkywalker/dev_governance_files/issues/30)).
+- [`PROTECTED_A5_GOVERNANCE_FINALIZER_V1`](protected-a5-governance-finalizer-v1.md)
+  is the separate Owner-authorized L5 settlement path for an exactly proven
+  terminal protected-A5 Writer Lease v1. Version 1 supports only
+  `FAILED_BEFORE_CONFIG` / `OWNER_ABORTED_PREPARED` and performs no production
+  transaction mutation.
 
 Retrospectives explain origins but do not provide active defaults.

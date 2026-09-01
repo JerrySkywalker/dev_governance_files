@@ -75,6 +75,7 @@ Harness and Agent-context changes should run:
 ```powershell
 pwsh -NoProfile -File .\tests\repo-health\Test-RepoHealthHarnessContract.ps1
 pwsh -NoProfile -File .\tests\repo-health\Test-WriterLeaseV1Settlement.ps1
+pwsh -NoProfile -File .\tests\repo-health\Test-ProtectedA5GovernanceFinalizer.ps1
 pwsh -NoProfile -File .\tests\repo-health\Test-RepoHealthManifestCoordinator.ps1
 pwsh -NoProfile -File .\tests\repo-health\Test-DevelopmentProductionScope.ps1
 pwsh -NoProfile -File .\tests\repo-health\Test-Jpc054DProtectedScopeClosure.ps1

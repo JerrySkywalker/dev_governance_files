@@ -115,5 +115,8 @@ FAILED_OR_UNVERIFIED_ROLLBACK_HARD_STOP=true
 - [`WRITER_LEASE_V1_INTERIM_SETTLEMENT`](writer-lease-v1-interim-settlement.md)
   是已过期普通开发 Writer Lease v1 的临时、fail-closed 兼容路径。它排除
   production，且不替代 Writer Lease v2（[issue #30](https://github.com/JerrySkywalker/dev_governance_files/issues/30)）。
+- [`PROTECTED_A5_GOVERNANCE_FINALIZER_V1`](protected-a5-governance-finalizer-v1.md)
+  是独立的、需 Owner 明确授权的 L5 保护态 A5 Writer Lease v1 治理结算路径。
+  v1 只支持 `FAILED_BEFORE_CONFIG` / `OWNER_ABORTED_PREPARED`，且不会修改 production 事务。
 
 Retrospective 只解释经验来源，不提供活动默认值。

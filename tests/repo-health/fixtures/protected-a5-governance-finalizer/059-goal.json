@@ -1,0 +1,33 @@
+{
+  "schema": "jpc.frozen-goal.v1",
+  "goal": "JPC-SYNTHETIC-PROTECTED-A5-059",
+  "run_id": "synthetic-protected-a5-run-059",
+  "profile": "PROTECTED_TRANSACTION_V2",
+  "authority_class": "A5",
+  "elasticity_grade": "B4",
+  "initial_progress_state": "P_INIT",
+  "current_layer": "L5",
+  "max_admitted_layer": "L5",
+  "next_proof_vector": "V7/E5/F4/G4",
+  "allowed_repositories": [],
+  "allowed_paths": [
+    "synthetic-task-root"
+  ],
+  "allowed_services": [],
+  "protected_boundaries": [
+    "synthetic-protected-transaction"
+  ],
+  "owner_only_boundaries": [
+    "protected-a5-governance-finalize"
+  ],
+  "budget_overrides": {},
+  "budget_state_ref": ".coord-local/state/059-budget.json",
+  "last_accepted_checkpoint": "F0_RECONCILIATION_PASS",
+  "context_modules": [
+    "harness"
+  ],
+  "stop_conditions": [
+    "unexpected-protected-state"
+  ],
+  "created_utc": "2026-08-30T00:00:00.0000000Z"
+}

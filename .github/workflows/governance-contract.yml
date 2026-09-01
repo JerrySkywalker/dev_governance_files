@@ -66,6 +66,15 @@ jobs:
               Draft202012Validator.check_schema(schema)
               Draft202012Validator(schema).validate(document)
               print(f'SCHEMA_PASS={document_path}')
+          standalone_schemas = [
+              Path('tools/repo-health/schemas/protected-a5-finalization-authorization.schema.json'),
+              Path('tools/repo-health/schemas/protected-a5-finalization-evidence.schema.json'),
+              Path('tools/repo-health/schemas/protected-a5-finalization-receipt.schema.json'),
+          ]
+          for schema_path in standalone_schemas:
+              schema = json.loads(schema_path.read_text(encoding='utf-8'))
+              Draft202012Validator.check_schema(schema)
+              print(f'SCHEMA_DEFINITION_PASS={schema_path}')
           PY
 
       - name: Run Harness contract
@@ -79,6 +88,10 @@ jobs:
       - name: Run 054D protected-scope closure contract
         shell: pwsh
         run: ./tests/repo-health/Test-Jpc054DProtectedScopeClosure.ps1
+
+      - name: Run protected A5 governance finalizer contract
+        shell: pwsh
+        run: ./tests/repo-health/Test-ProtectedA5GovernanceFinalizer.ps1
 
       - name: Run Agent-context contract
         shell: pwsh
