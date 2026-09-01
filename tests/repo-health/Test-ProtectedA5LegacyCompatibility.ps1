@@ -36,6 +36,23 @@ function Set-Writable {
     $mode=[IO.File]::GetUnixFileMode($item.FullName)
     [IO.File]::SetUnixFileMode($item.FullName,($mode -bor [IO.UnixFileMode]::UserWrite))
 }
+function New-AppendTamperHook {
+    param([Parameter(Mandatory)][string]$Path)
+    $targetPath=$Path
+    return {
+        $item=Get-Item -LiteralPath $targetPath -Force
+        if(($item.Attributes -band [IO.FileAttributes]::ReadOnly) -ne 0){
+            if([Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([Runtime.InteropServices.OSPlatform]::Windows)){
+                [IO.File]::SetAttributes($item.FullName,($item.Attributes -band (-bnot [IO.FileAttributes]::ReadOnly)))
+            }
+            else{
+                $mode=[IO.File]::GetUnixFileMode($item.FullName)
+                [IO.File]::SetUnixFileMode($item.FullName,($mode -bor [IO.UnixFileMode]::UserWrite))
+            }
+        }
+        [IO.File]::AppendAllText($targetPath,"`n",[Text.UTF8Encoding]::new($false))
+    }.GetNewClosure()
+}
 
 function Remove-SyntheticRoot {
     param([Parameter(Mandatory)][object]$Fixture)
@@ -317,7 +334,7 @@ $fixture=New-LegacyFixture
 try{
     $prepared=Invoke-CompatibilityPrepare -Fixture $fixture
     Write-LegacyFinalizationPackets -Fixture $fixture -Prepared $prepared|Out-Null
-    $hook={Set-Writable -Path $fixture.LeasePath;[IO.File]::AppendAllText($fixture.LeasePath,"`n",[Text.UTF8Encoding]::new($false))}.GetNewClosure()
+    $hook=New-AppendTamperHook -Path $fixture.LeasePath
     $result=& $finalizerModule {param($root,$lease,$sha,$auth,$compat,$before)Invoke-ProtectedA5GovernanceFinalizationInternal -TaskRoot $root -LeasePath $lease -ExpectedLeaseSha256 $sha -AuthorizationPath $auth -LegacyCompatibilityPath $compat -BeforeLockHook $before} $fixture.Root $fixture.LeasePath $fixture.LeaseSha $fixture.AuthorizationPath $prepared.compatibility_path $hook
     Assert-Status $result 'FINALIZATION_REJECTED_LEASE_CONTENT_DRIFT' 'legacy lease TOCTOU rejects'
 }
@@ -336,7 +353,7 @@ foreach($case in $toctouCases){
         $prepared=Invoke-CompatibilityPrepare -Fixture $fixture
         Write-LegacyFinalizationPackets -Fixture $fixture -Prepared $prepared|Out-Null
         $target=if($case.member -ceq 'authorization'){$fixture.AuthorizationPath}else{[string]$prepared.($case.member)}
-        $hook={Set-Writable -Path $target;[IO.File]::AppendAllText($target,"`n",[Text.UTF8Encoding]::new($false))}.GetNewClosure()
+        $hook=New-AppendTamperHook -Path $target
         $result=& $finalizerModule {param($root,$lease,$sha,$auth,$compat,$before)Invoke-ProtectedA5GovernanceFinalizationInternal -TaskRoot $root -LeasePath $lease -ExpectedLeaseSha256 $sha -AuthorizationPath $auth -LegacyCompatibilityPath $compat -BeforeLockHook $before} $fixture.Root $fixture.LeasePath $fixture.LeaseSha $fixture.AuthorizationPath $prepared.compatibility_path $hook
         Assert-Status $result $case.expected $case.message
     }
