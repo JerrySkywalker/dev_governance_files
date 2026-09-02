@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-writer-lease-v2-epoch.v1",
+  "title": "Writer Lease V2 Epoch Journal Entry",
+  "description": "Durable epoch journal record written when a resource epoch advances. Used to fence stale writers and prove epoch monotonicity.",
+  "type": "object",
+  "required": [
+    "schema",
+    "resource_id",
+    "epoch",
+    "acquisition_id",
+    "activation_generation",
+    "goal_digest",
+    "recorded_utc",
+    "reason"
+  ],
+  "properties": {
+    "schema": {"const": "writer-lease-v2-epoch.v1"},
+    "resource_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$"},
+    "epoch": {"type": "integer", "minimum": 1},
+    "previous_epoch": {"type": "integer", "minimum": 0},
+    "acquisition_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "activation_generation": {"type": "integer", "minimum": 1},
+    "goal_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "recorded_utc": {"type": "string", "format": "date-time"},
+    "reason": {
+      "type": "string",
+      "enum": ["ACQUISITION", "RECOVERY", "RELEASE"]
+    }
+  },
+  "additionalProperties": false
+}

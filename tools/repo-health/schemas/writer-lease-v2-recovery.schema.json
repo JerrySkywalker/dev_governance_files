@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-writer-lease-v2-recovery.v1",
+  "title": "Writer Lease V2 Dead-Holder Recovery Receipt",
+  "description": "Durable record of a canonical dead-holder recovery. Written atomically with the new active metadata after the required sequence is fully satisfied.",
+  "type": "object",
+  "required": [
+    "schema",
+    "recovery_id",
+    "new_acquisition_id",
+    "resource_ids",
+    "previous_acquisition_id",
+    "previous_metadata_digest",
+    "new_epoch_vector",
+    "recovery_class",
+    "recovered_utc"
+  ],
+  "properties": {
+    "schema": {"const": "writer-lease-v2-recovery.v1"},
+    "recovery_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "new_acquisition_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "resource_ids": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "previous_acquisition_id": {"type": "string"},
+    "previous_metadata_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 of the previous active metadata JSON. Must remain identical between proof-identity and final re-read."
+    },
+    "new_epoch_vector": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 1}
+    },
+    "recovery_class": {
+      "type": "string",
+      "enum": ["DEAD_HOLDER_STALE_HEARTBEAT", "EXPIRED_AND_DEAD"],
+      "description": "Exact recovery eligibility class proven before proceeding."
+    },
+    "recovered_utc": {"type": "string", "format": "date-time"},
+    "dead_holder_grace_held_seconds": {"type": "integer", "minimum": 0},
+    "production_transaction_attached": {
+      "type": "boolean",
+      "description": "Must be false. A production-attached record must never be recovered here."
+    }
+  },
+  "additionalProperties": false
+}

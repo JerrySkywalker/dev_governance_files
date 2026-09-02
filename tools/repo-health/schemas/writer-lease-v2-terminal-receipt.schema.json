@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repo-health-writer-lease-v2-terminal-receipt.v1",
+  "title": "Writer Lease V2 Terminal Receipt",
+  "description": "Durable terminal receipt written during canonical release. Proves ordered shutdown and allows next acquirer to proceed without recovery.",
+  "type": "object",
+  "required": [
+    "schema",
+    "receipt_id",
+    "acquisition_id",
+    "resource_ids",
+    "final_epoch_vector",
+    "terminal_state",
+    "released_utc",
+    "goal_digest",
+    "activation_generation"
+  ],
+  "properties": {
+    "schema": {"const": "writer-lease-v2-terminal-receipt.v1"},
+    "receipt_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "acquisition_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"},
+    "resource_ids": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "final_epoch_vector": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 1}
+    },
+    "terminal_state": {
+      "type": "string",
+      "enum": ["RELEASED", "RELEASE_PARTIAL_DRAIN_FAILURE", "RELEASE_RECEIPT_PERSIST_FAILURE"]
+    },
+    "released_utc": {"type": "string", "format": "date-time"},
+    "goal_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "activation_generation": {"type": "integer", "minimum": 1},
+    "outcome": {
+      "type": "string",
+      "enum": ["PASS", "BLOCKED", "HOLD", "WAITING_EXTERNAL_CI", "READY_FOR_OWNER"]
+    }
+  },
+  "additionalProperties": false
+}

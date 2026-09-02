@@ -199,5 +199,23 @@
     "increase_rule": "increase exactly one unit only when at least two of the last three comparable runs consumed >=80%, the cap interrupted still-in-scope P1/P2 work, no safety invariant was violated, and the hard maximum remains",
     "decrease_rule": "decrease one unit after four comparable runs use <=50% without interruption, or when the value repeatedly enables duplicate gates, P0 loops, stale hypotheses, or avoidable contention",
     "frozen_parameters": ["same_head_same_signature_rerun_lifetime", "apply.window_cap", "finalize.window_cap", "failed_or_unverified_rollback_hard_stop", "authority_never_expands_automatically", "budget_domains_never_borrow"]
+  },
+  "writer_lease_v2": {
+    "ttl_seconds": 180,
+    "heartbeat_interval_seconds": 30,
+    "stale_after_seconds": 90,
+    "dead_holder_grace_seconds": 30,
+    "reboot_grace_seconds": 60,
+    "migration_state": "V1_COMPATIBILITY_BLOCKING_SHADOW",
+    "activation_gate": {
+      "exact_main_v2_implementation_accepted": false,
+      "full_windows_race_suite_accepted": false,
+      "global_routing_changed_to_per_overlap": false,
+      "every_active_v1_session_terminal": false,
+      "no_live_production_transaction": false,
+      "v1_metadata_digests_captured": false,
+      "v2_epoch_journals_initialized": false,
+      "fresh_supervisor_pass": false
+    }
   }
 }
