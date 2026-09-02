@@ -1,0 +1,28 @@
+{
+  "schema": "jpc.v22.a5-promotion-intent.v1",
+  "goal": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J",
+  "run_id": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J-20260828T043116Z",
+  "captured_utc": "2026-08-28T04:36:05.1018817Z",
+  "transaction_id": "a5-rc31-053j-promote-86cd67b62939465687cf49efbd1bf872",
+  "access_main": "1c738b9e894266149a73e61e31c8eed04cc71bce",
+  "client_source": "438ab58704ccc93c1ad5a74bfb40a517edc35ead",
+  "adapter_sha256": "sha256:25a5abf45026d3cb551e2ac717f535daf103371c741e401590646cad244817ab",
+  "remote_script_sha256": "sha256:4146e9ceb3b49c5268bc4c47022c5b9548b0ec58caf5fa6e65b9beb90b3a0e02",
+  "prestate_sha256": "sha256:8e797f133439d88eb970ba21142711e59737f47c9347372e6dd4a920fcafd0cc",
+  "target_sha256": "sha256:b1dedfeb9ce844bdfc6ab64ac7a477225da8cfb4f9fb8dfe20637873cab4e284",
+  "binary_sha256": "sha256:61a56ae42e468dcffae9a6252b5af158f037c9cb6626fbba0179a84a4f7c0df1",
+  "target_disposition": "ADOPT_EXISTING_EXACT",
+  "target_metadata_mutated": false,
+  "custody_rehash_pass": true,
+  "source_anchor_pass": true,
+  "prestate_probe_pass": true,
+  "mutation_readiness_pass": true,
+  "remote_privilege": "sudo-n",
+  "production_mutation_started": false,
+  "sanitization": {
+    "raw_host_persisted": false,
+    "raw_manifest_url_persisted": false,
+    "raw_artifact_path_persisted": false,
+    "raw_ssh_output_persisted": false
+  }
+}

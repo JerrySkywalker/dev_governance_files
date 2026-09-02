@@ -1,0 +1,35 @@
+{
+  "schema": "jpc.v22.ga-fastlane.budget.v1",
+  "goal": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J",
+  "run_id": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J-20260828T043116Z",
+  "created_utc": "2026-08-28T04:31:16.8577458Z",
+  "domains": {
+    "remote_promotion_transactions": {
+      "lifetime_cap": 3,
+      "lifetime_consumed": 0,
+      "reserved_transaction_id": "a5-rc31-053j-promote-86cd67b62939465687cf49efbd1bf872",
+      "reservation_state": "RELEASED_UNCONSUMED_PRE_APPLY",
+      "unit": "fresh terminal A5 transaction"
+    },
+    "new_client_successor_releases": {
+      "lifetime_cap": 2,
+      "lifetime_consumed": 0,
+      "unit": "accepted successor release"
+    },
+    "zenbook_c1_runs": {
+      "lifetime_cap": 2,
+      "lifetime_consumed": 0,
+      "unit": "canonical public bootstrap"
+    },
+    "zenbook_c2_runs": {
+      "lifetime_cap": 1,
+      "lifetime_consumed": 0,
+      "unit": "canonical public bootstrap"
+    },
+    "skyforge_c3_runs": {
+      "lifetime_cap": 1,
+      "lifetime_consumed": 0,
+      "unit": "canonical public bootstrap"
+    }
+  }
+}

@@ -36,6 +36,36 @@ function Replace-FileText {
     if (-not $text.Contains($From, [System.StringComparison]::Ordinal)) { throw 'Fixture replacement token is absent.' }
     Write-Utf8NoBom -Path $Path -Text $text.Replace($From, $To)
 }
+function Set-FixtureScope {
+    param([Parameter(Mandatory)][object]$Fixture,[Parameter(Mandatory)][string]$ScopeJson)
+    $text = [System.IO.File]::ReadAllText($Fixture.LeasePath, [System.Text.UTF8Encoding]::new($false))
+    $pattern = '(?s)"scope"\s*:\s*\[.*?\]'
+    $matches = [regex]::Matches($text, $pattern)
+    if ($matches.Count -ne 1) { throw 'Fixture scope replacement requires exactly one JSON array.' }
+    Write-Utf8NoBom -Path $Fixture.LeasePath -Text ([regex]::Replace($text, $pattern, ('"scope": ' + $ScopeJson), 1))
+}
+function Assert-ScopeAdmissionStatus {
+    param([Parameter(Mandatory)][string]$ScopeJson,[Parameter(Mandatory)][string]$ExpectedStatus,[Parameter(Mandatory)][string]$Message)
+    $fixture = New-FixtureTaskRoot
+    try {
+        Set-FixtureScope -Fixture $fixture -ScopeJson $ScopeJson
+        $result = Test-WriterLeaseV1SettlementAdmission -TaskRoot $fixture.Root -LeasePath $fixture.LeasePath -NowUtc $afterExpiry
+        Assert-True ($result.status -eq $ExpectedStatus) $Message
+        Assert-True (Test-Path -LiteralPath $fixture.LeasePath) ($Message + ' leaves the active marker unchanged')
+    }
+    finally { Remove-FixtureTaskRoot -Fixture $fixture }
+}
+function Assert-ScopeNormalReturn {
+    param([Parameter(Mandatory)][string]$ScopeJson,[Parameter(Mandatory)][string]$Message)
+    $fixture = New-FixtureTaskRoot
+    try {
+        Set-FixtureScope -Fixture $fixture -ScopeJson $ScopeJson
+        $leaseSha = Get-Sha256 -Path $fixture.LeasePath
+        $normal = Invoke-WriterLeaseV1OrdinaryDevelopmentCoordinator -TaskRoot $fixture.Root -LeasePath $fixture.LeasePath -ExpectedLeaseSha256 $leaseSha -ExpectedHolderSession $fixture.HolderSession -Run { 'PASS' }
+        Assert-True ($normal.normal_return_release.status -eq 'NORMAL_RETURN_RELEASED' -and -not $normal.normal_return_release.active_lease) $Message
+    }
+    finally { Remove-FixtureTaskRoot -Fixture $fixture }
+}
 function New-FixtureTaskRoot {
     $root = Join-Path ([System.IO.Path]::GetTempPath()) ('writer-lease-v1-' + [guid]::NewGuid().ToString('N'))
     $leaseDirectory = Join-Path $root '.coord-local/leases'
@@ -177,6 +207,19 @@ try {
         Assert-True (Test-Path -LiteralPath $fixture.LeasePath) 'production attachment does not retire the active marker'
     }
     finally { Remove-FixtureTaskRoot -Fixture $fixture }
+
+    Assert-ScopeNormalReturn -ScopeJson '["task-root"]' -Message 'one-scope ordinary lease preserves array cardinality and releases normally'
+    Assert-ScopeNormalReturn -ScopeJson '["task-root","governance-source"]' -Message 'two-scope ordinary lease remains accepted'
+    $scope32 = '[' + ((1..32 | ForEach-Object { '"scope-' + $_ + '"' }) -join ',') + ']'
+    Assert-ScopeNormalReturn -ScopeJson $scope32 -Message '32-scope ordinary lease remains accepted'
+
+    Assert-ScopeAdmissionStatus -ScopeJson '[]' -ExpectedStatus 'SETTLEMENT_REJECTED_MALFORMED_SCOPE' -Message 'zero-scope ordinary lease rejects'
+    $scope33 = '[' + ((1..33 | ForEach-Object { '"scope-' + $_ + '"' }) -join ',') + ']'
+    Assert-ScopeAdmissionStatus -ScopeJson $scope33 -ExpectedStatus 'SETTLEMENT_REJECTED_MALFORMED_SCOPE' -Message '33-scope ordinary lease rejects'
+    Assert-ScopeAdmissionStatus -ScopeJson '["task-root",""]' -ExpectedStatus 'SETTLEMENT_REJECTED_MALFORMED_SCOPE' -Message 'blank scope item rejects'
+    Assert-ScopeAdmissionStatus -ScopeJson ('["' + ('x' * 192) + '"]') -ExpectedStatus 'SETTLEMENT_REJECTED_MALFORMED_SCOPE' -Message 'overlong scope item rejects'
+    Assert-ScopeAdmissionStatus -ScopeJson '["task-root",7]' -ExpectedStatus 'SETTLEMENT_REJECTED_MALFORMED_LEASE' -Message 'non-string scope item rejects'
+    Assert-ScopeAdmissionStatus -ScopeJson '["protected-transaction"]' -ExpectedStatus 'SETTLEMENT_REJECTED_PRODUCTION_ATTACHED' -Message 'protected scope through ordinary path rejects'
 
     foreach ($outcome in @('PASS','BLOCKED','HOLD','WAITING_EXTERNAL_CI','READY_FOR_OWNER')) {
         $fixture = New-FixtureTaskRoot

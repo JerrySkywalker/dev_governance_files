@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://governance.local/schemas/jpc-053j-protected-scope-closure-authorization.schema.json",
+  "title": "Exact 053J protected-scope closure authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "authorization_id", "authorization_scope", "authority_environment", "real_task_root_authority",
+    "authorized_by", "authorized_utc", "expires_utc", "task_root", "source_lease_path", "lease_sha256", "goal", "run_id",
+    "transaction_id", "goal_sha256", "budget_sha256", "intent_sha256", "terminal_sha256", "final_receipt_sha256",
+    "predecessor_settlement_sha256", "evidence_manifest_sha256", "non_activation_proof_sha256", "classification",
+    "terminal_class", "terminal_reason", "historical_lease_path", "receipt_path", "protected_activation_occurred",
+    "production_apply_executed", "rollback_required", "rollback_executed", "new_production_authority_granted"
+  ],
+  "properties": {
+    "schema": {"const": "jpc.053j-protected-scope-closure-authorization.v1"},
+    "authorization_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "authorization_scope": {"enum": ["EXACT_053J_UNCONSUMED_PRE_APPLY_CLOSEOUT", "SHADOW_AUDIT_AUTHORIZATION"]},
+    "authority_environment": {"enum": ["REAL_053J_TASK_ROOT_ONLY", "SHADOW_AUDIT_ONLY"]},
+    "real_task_root_authority": {"enum": ["OWNER_BOUNDED_EXACT_053J", "NOT_VALID_FOR_REAL_TASK_ROOT"]},
+    "authorized_by": {"enum": ["Owner", "OwnerFixture"]},
+    "authorized_utc": {"type": "string", "format": "date-time"},
+    "expires_utc": {"type": "string", "format": "date-time"},
+    "task_root": {"type": "string", "minLength": 1},
+    "source_lease_path": {"type": "string", "minLength": 1},
+    "lease_sha256": {"const": "2a68e7130affb8e39ae821e80b10c1e3891254b2de091bf81e5f60100d20100a"},
+    "goal": {"const": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J"},
+    "run_id": {"const": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J-20260828T043116Z"},
+    "transaction_id": {"const": "a5-rc31-053j-promote-86cd67b62939465687cf49efbd1bf872"},
+    "goal_sha256": {"const": "218c437a872d8f14c9fe9f33ceb42da0e878d5079ddb403863a71b8dfc196701"},
+    "budget_sha256": {"const": "fb849059fd1a6923089fbf95d645d905c66a62c945b1b2c00d53e3af01888d0a"},
+    "intent_sha256": {"const": "58184159494c329a4a5f854780ada9f8d6eebbff344588c18e501025cea0c054"},
+    "terminal_sha256": {"const": "0ed6233b068747248d4c18450e8011038af3462a356bf3d8507f33816c22c9d5"},
+    "final_receipt_sha256": {"const": "655138e39e9f4c259ef4d5a56d7c81fde22b0f6450686d489feb8e2dbce15e2b"},
+    "predecessor_settlement_sha256": {"const": "3e479110e263c2263f552df0632d9911262f3af759696149065390630e686ab4"},
+    "evidence_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "non_activation_proof_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "classification": {"const": "CLOSED_WITHOUT_PROTECTED_ACTIVATION"},
+    "terminal_class": {"const": "UNCONSUMED_PRE_APPLY_REJECTED"},
+    "terminal_reason": {"const": "PUBLIC_MANIFEST_FETCH_REJECTED"},
+    "historical_lease_path": {"type": "string", "minLength": 1},
+    "receipt_path": {"type": "string", "minLength": 1},
+    "protected_activation_occurred": {"const": false},
+    "production_apply_executed": {"const": false},
+    "rollback_required": {"const": false},
+    "rollback_executed": {"const": false},
+    "new_production_authority_granted": {"const": false}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"authorization_scope": {"const": "SHADOW_AUDIT_AUTHORIZATION"}}},
+      "then": {"properties": {"authority_environment": {"const": "SHADOW_AUDIT_ONLY"}, "real_task_root_authority": {"const": "NOT_VALID_FOR_REAL_TASK_ROOT"}, "authorized_by": {"const": "OwnerFixture"}}}
+    },
+    {
+      "if": {"properties": {"authorization_scope": {"const": "EXACT_053J_UNCONSUMED_PRE_APPLY_CLOSEOUT"}}},
+      "then": {"properties": {"authority_environment": {"const": "REAL_053J_TASK_ROOT_ONLY"}, "real_task_root_authority": {"const": "OWNER_BOUNDED_EXACT_053J"}, "authorized_by": {"const": "Owner"}}}
+    }
+  ]
+}

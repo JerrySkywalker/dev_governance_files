@@ -1,0 +1,15 @@
+{
+  "schema": "jpc.v22.a5-promotion-terminal.v1",
+  "goal": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J",
+  "run_id": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J-20260828T043116Z",
+  "captured_utc": "2026-08-28T04:41:41.6604705Z",
+  "transaction_id": "a5-rc31-053j-promote-86cd67b62939465687cf49efbd1bf872",
+  "result": "UNCONSUMED_PRE_APPLY_REJECTED",
+  "failure_code": "PUBLIC_MANIFEST_FETCH_REJECTED",
+  "adapter_launch_reached_remote_prepare": false,
+  "production_mutation_started": false,
+  "rollback_required": false,
+  "rollback_verified": "not-required",
+  "same_transaction_replay_prohibited": true,
+  "subsequent_observation": "public target changed before the rejected adapter preflight; no claim is made that this transaction committed it"
+}
