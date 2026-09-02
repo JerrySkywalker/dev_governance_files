@@ -151,7 +151,7 @@ function Read-Wlv1Lease {
         $lease = [pscustomobject]@{
             schema = $p.schema.GetString(); goal = $p.goal.GetString(); holder = $p.holder.GetString(); holder_session = $p.holder_session.GetString(); state = $p.state.GetString()
             acquired_utc = $p.acquired_utc.GetString(); created_utc = $p.created_utc.GetString(); hard_stop_utc = $p.hard_stop_utc.GetString()
-            single_intentional_writer = $p.single_intentional_writer.GetBoolean(); scope = Get-Wlv1StringArray -Element $p.scope
+            single_intentional_writer = $p.single_intentional_writer.GetBoolean(); scope = @(Get-Wlv1StringArray -Element $p.scope)
             goal_ref = $p.goal_ref.GetString(); budget_state_ref = $p.budget_state_ref.GetString(); created = $null; acquired = $null; hard_stop = $null
         }
     }

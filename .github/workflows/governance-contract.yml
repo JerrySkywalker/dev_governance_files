@@ -76,6 +76,8 @@ jobs:
               Path('tools/repo-health/schemas/protected-a5-legacy-goal-companion.schema.json'),
               Path('tools/repo-health/schemas/protected-a5-legacy-budget-companion.schema.json'),
               Path('tools/repo-health/schemas/protected-a5-legacy-lease-compatibility.schema.json'),
+              Path('tools/repo-health/schemas/jpc-053j-protected-scope-closure-authorization.schema.json'),
+              Path('tools/repo-health/schemas/jpc-053j-protected-scope-closure-receipt.schema.json'),
           ]
           for schema_path in standalone_schemas:
               schema = json.loads(schema_path.read_text(encoding='utf-8'))
@@ -119,3 +121,38 @@ jobs:
           ./scripts/repo-health/Invoke-MergedBranchCleanup.ps1 `
             -Repository $env:GITHUB_REPOSITORY `
             -Token $env:GH_TOKEN
+
+  windows-exact-closeout:
+    name: Windows exact closeout and Writer Lease v1 contracts
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact checkout
+        shell: pwsh
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:EXPECTED_SHA) {
+            throw "Checkout mismatch: expected=$env:EXPECTED_SHA actual=$actual"
+          }
+          "EXACT_HEAD=$actual"
+
+      - name: Run exact 053J protected-scope closure contract
+        shell: pwsh
+        run: ./tests/repo-health/Test-Jpc053JProtectedScopeClosure.ps1
+
+      - name: Run 054D protected-scope closure regression
+        shell: pwsh
+        run: ./tests/repo-health/Test-Jpc054DProtectedScopeClosure.ps1
+
+      - name: Run Writer Lease v1 settlement and scope-cardinality contracts
+        shell: pwsh
+        run: ./tests/repo-health/Test-WriterLeaseV1Settlement.ps1

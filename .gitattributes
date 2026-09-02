@@ -1,3 +1,4 @@
 *.sh text eol=lf
 *.ps1 text eol=crlf
 *.md text eol=lf
+tests/repo-health/fixtures/jpc-053j-protected-scope-closure/accepted/** -text -diff

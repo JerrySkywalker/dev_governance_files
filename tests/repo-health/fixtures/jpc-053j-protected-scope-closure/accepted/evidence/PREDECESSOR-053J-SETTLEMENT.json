@@ -1,0 +1,20 @@
+{
+  "schema": "jpc.coordination-predecessor-settlement.v1",
+  "recorded_utc": "2026-08-29T06:14:47.0106711+00:00",
+  "new_goal": "JPC-V22-COORDINATION-RECOVERY-AND-RC32-AUTONOMOUS-12H-054D",
+  "new_run_id": "JPC-V22-COORDINATION-RECOVERY-AND-RC32-AUTONOMOUS-12H-054D-20260829T061447Z",
+  "path": "A_NEW_GENERATION",
+  "reason": "EXPIRED_LEASE_WITH_NO_CANONICAL_RECLAIM_IMPLEMENTATION",
+  "predecessor": {
+    "goal": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J",
+    "lease_path": "V:/src/jpc-multi-device-enrollment-train/.coord-local/leases/taskroot-writer.active.json",
+    "lease_length_bytes": 914,
+    "lease_sha256": "2A68E7130AFFB8E39AE821E80B10C1E3891254B2DE091BF81E5F60100D20100A",
+    "hard_stop_utc": "2026-08-28T16:31:16.8577458Z",
+    "holder": "codex-root-implementer",
+    "holder_session": "jpc-v22-ga-fastlane-053j",
+    "holder_liveness": "DEAD_RECONFIRMED_NO_PREDECESSOR_SESSION_OR_GOAL_PROCESS_MATCH",
+    "mutated": false
+  },
+  "sanitization": "No credentials, tokens, cookies, protected responses, raw process command lines, or private runtime data were retained."
+}

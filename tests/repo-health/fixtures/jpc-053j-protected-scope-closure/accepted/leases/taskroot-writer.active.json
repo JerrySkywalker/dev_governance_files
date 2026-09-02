@@ -1,0 +1,18 @@
+{
+  "schema": "jpc.taskroot-writer-lease.v1",
+  "goal": "JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J",
+  "holder": "codex-root-implementer",
+  "holder_session": "jpc-v22-ga-fastlane-053j",
+  "state": "active",
+  "acquired_utc": "2026-08-28T04:31:16.8577458Z",
+  "created_utc": "2026-08-28T04:31:16.8577458Z",
+  "hard_stop_utc": "2026-08-28T16:31:16.8577458Z",
+  "single_intentional_writer": true,
+  "scope": [
+    "one fresh exact rc.3.1 A5 promotion followed only by independently verified terminal state",
+    "real-device C1/C2/C3 action only after per-device no-PKCE admission",
+    "new source PR only for a newly proven deterministic GA blocker; no unrelated changes"
+  ],
+  "goal_ref": ".coord-local/goals/JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J.json",
+  "budget_state_ref": ".coord-local/state/JPC-V22-GA-FASTLANE-AUTONOMOUS-CLOSEOUT-12H-053J-20260828T043116Z/budget.json"
+}
